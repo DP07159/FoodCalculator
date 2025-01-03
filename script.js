@@ -3,14 +3,17 @@ const plansUrl = "https://<deine-render-url>/plans"; // Backend-URL für Wochenp
 const DAILY_LIMIT = 1500;
 
 let recipes = []; // Rezepte werden hier gespeichert
+let savedPlans = {}; // Gespeicherte Wochenpläne
 const tableBody = document.getElementById("table-body");
 const recipeForm = document.getElementById("recipe-form");
 const recipeNameInput = document.getElementById("recipe-name");
 const recipeCaloriesInput = document.getElementById("recipe-calories");
-const recipeMealTypeInput = document.getElementById("recipe-meal-type");
-const recipeList = document.getElementById("recipe-list"); // Container für die Rezeptliste
+const mealTypeCheckboxes = document.querySelectorAll("#meal-type-checkboxes input");
+const recipeList = document.getElementById("recipe-list");
+const planNameInput = document.getElementById("plan-name");
 const savePlanButton = document.getElementById("save-plan");
-const loadPlanButton = document.getElementById("load-plan");
+const loadPlanSelect = document.getElementById("load-plan");
+const loadPlanButton = document.getElementById("load-plan-button");
 
 // Funktion: Dropdowns aktualisieren
 function updateDropdown(select, mealType) {
@@ -23,34 +26,6 @@ function updateDropdown(select, mealType) {
       option.textContent = `${recipe.name} (${recipe.calories} kcal)`;
       select.appendChild(option);
     });
-}
-
-// Funktion: Tabelle für einen Tag aktualisieren
-function updateTableRow(dayIndex, row, meals) {
-  let totalCalories = 0;
-
-  // Kalorien für jede Mahlzeit summieren
-  Object.values(meals).forEach((meal) => {
-    if (meal) {
-      totalCalories += meal.calories;
-    }
-  });
-
-  const remainingCalories = DAILY_LIMIT - totalCalories;
-
-  // Gesamtkalorien und verbleibende Kalorien in der Tabelle anzeigen
-  const totalCaloriesCell = row.cells[5];
-  const remainingCaloriesCell = row.cells[6];
-
-  totalCaloriesCell.textContent = `${totalCalories} kcal`;
-  remainingCaloriesCell.textContent = `${remainingCalories} kcal`;
-
-  // Farben für verbleibende Kalorien setzen
-  if (remainingCalories >= 0) {
-    remainingCaloriesCell.className = "green";
-  } else {
-    remainingCaloriesCell.className = "red";
-  }
 }
 
 // Funktion: Tabelle initialisieren
@@ -81,7 +56,6 @@ function initializeTable() {
         const selectedRecipe = recipes.find((r) => r.id === recipeId) || null;
 
         selectedMeals[dayIndex][mealType] = selectedRecipe;
-        updateTableRow(dayIndex, row, selectedMeals[dayIndex]);
       });
 
       mealCell.appendChild(select);
@@ -95,16 +69,12 @@ function initializeTable() {
     row.appendChild(remainingCaloriesCell);
 
     tableBody.appendChild(row);
-
-    updateTableRow(dayIndex, row, selectedMeals[dayIndex]);
   });
-
-  console.log("Tabelle mit Wochentagen erstellt."); // Debug-Ausgabe
 }
 
 // Funktion: Rezeptliste anzeigen
 function displayRecipeList() {
-  recipeList.innerHTML = ""; // Rezeptliste leeren
+  recipeList.innerHTML = "";
 
   if (recipes.length === 0) {
     recipeList.innerHTML = "<p>No recipes available.</p>";
@@ -133,19 +103,20 @@ function deleteRecipe(recipeId) {
     method: "DELETE",
   })
     .then(() => {
-      console.log("Rezept gelöscht:", recipeId); // Debug-Ausgabe
       recipes = recipes.filter((recipe) => recipe.id !== recipeId);
       displayRecipeList();
-      tableBody.querySelectorAll("select").forEach((select, index) => {
-        const mealType = ["breakfast", "lunch", "dinner", "snack"][index % 4];
-        updateDropdown(select, mealType);
-      });
     })
     .catch((error) => console.error("Fehler beim Löschen des Rezepts:", error));
 }
 
 // Funktion: Wochenplan speichern
 function savePlan() {
+  const planName = planNameInput.value.trim();
+  if (!planName) {
+    alert("Please enter a plan name.");
+    return;
+  }
+
   const plan = [];
   tableBody.querySelectorAll("tr").forEach((row, rowIndex) => {
     const meals = {};
@@ -157,48 +128,47 @@ function savePlan() {
     plan.push(meals);
   });
 
-  fetch(plansUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(plan),
-  })
-    .then(() => {
-      console.log("Wochenplan gespeichert.");
-    })
-    .catch((error) => console.error("Fehler beim Speichern des Wochenplans:", error));
+  savedPlans[planName] = plan;
+
+  const option = document.createElement("option");
+  option.value = planName;
+  option.textContent = planName;
+  loadPlanSelect.appendChild(option);
+
+  console.log("Plan saved:", planName);
 }
 
 // Funktion: Wochenplan laden
 function loadPlan() {
-  fetch(plansUrl)
-    .then((response) => response.json())
-    .then((plan) => {
-      plan.forEach((meals, rowIndex) => {
-        const row = tableBody.querySelectorAll("tr")[rowIndex];
-        ["breakfast", "lunch", "dinner", "snack"].forEach((mealType, index) => {
-          const select = row.querySelectorAll("select")[index];
-          const recipeId = meals[mealType];
-          if (recipeId) {
-            select.value = recipeId;
-          } else {
-            select.value = "";
-          }
-        });
-      });
-      console.log("Wochenplan geladen.");
-    })
-    .catch((error) => console.error("Fehler beim Laden des Wochenplans:", error));
+  const selectedPlanName = loadPlanSelect.value;
+  if (!selectedPlanName || !savedPlans[selectedPlanName]) {
+    alert("Please select a valid plan.");
+    return;
+  }
+
+  const plan = savedPlans[selectedPlanName];
+  plan.forEach((meals, rowIndex) => {
+    const row = tableBody.querySelectorAll("tr")[rowIndex];
+    ["breakfast", "lunch", "dinner", "snack"].forEach((mealType, index) => {
+      const select = row.querySelectorAll("select")[index];
+      const recipeId = meals[mealType];
+      select.value = recipeId || "";
+    });
+  });
+
+  console.log("Plan loaded:", selectedPlanName);
 }
 
-// Event-Listener für Wochenplan speichern und laden
+// Event-Listener für Plan-Buttons
 savePlanButton.addEventListener("click", savePlan);
 loadPlanButton.addEventListener("click", loadPlan);
 
-// Rezepte vom Backend laden
+// Rezepte laden und Tabelle initialisieren
 fetch(recipesUrl)
   .then((response) => response.json())
   .then((data) => {
     recipes = data;
-    displayRecipeList();
     initializeTable();
-  });
+    displayRecipeList();
+  })
+  .catch((error) => console.error("Fehler beim Laden der Rezepte:", error));

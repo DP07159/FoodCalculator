@@ -19,6 +19,7 @@ fetch(recipesUrl)
       snack: null,
     }));
 
+    // Tabelle für jeden Tag erstellen
     days.forEach((day, index) => {
       const row = document.createElement("tr");
 
@@ -39,11 +40,11 @@ fetch(recipesUrl)
           select.appendChild(option);
         });
 
-        // Event Listener: Dropdown-Auswahl
+        // Event Listener: Auswahl ändern
         select.addEventListener("change", (e) => {
           const recipeId = parseInt(e.target.value);
-          const recipe = recipes.find((r) => r.id === recipeId);
-          selectedMeals[index][mealType] = recipe || null;
+          const recipe = recipes.find((r) => r.id === recipeId) || null;
+          selectedMeals[index][mealType] = recipe;
           updateTableRow(index, row, selectedMeals[index]);
         });
 
@@ -64,19 +65,26 @@ fetch(recipesUrl)
 
     // Funktion: Zeile aktualisieren
     function updateTableRow(index, row, meals) {
-      // Berechne die Gesamtkalorien für den Tag
-      const totalCalories = Object.values(meals).reduce(
-        (sum, meal) => sum + (meal ? meal.calories : 0),
-        0
-      );
+      // Berechne Gesamtkalorien für den Tag
+      let totalCalories = 0;
+      for (const mealType in meals) {
+        if (meals[mealType]) {
+          totalCalories += meals[mealType].calories;
+        }
+      }
 
-      // Berechne die verbleibenden Kalorien
+      // Berechne verbleibende Kalorien
       const remainingCalories = DAILY_LIMIT - totalCalories;
 
-      // Aktualisiere die Zellen der Tabelle
-      row.cells[5].textContent = `${totalCalories} kcal`;
-      row.cells[6].textContent = `${remainingCalories} kcal`;
-      row.cells[6].className = remainingCalories >= 0 ? "green" : "red";
+      // Aktualisiere die Zellen
+      const totalCaloriesCell = row.cells[5];
+      const remainingCaloriesCell = row.cells[6];
+
+      totalCaloriesCell.textContent = `${totalCalories} kcal`;
+      remainingCaloriesCell.textContent = `${remainingCalories} kcal`;
+
+      // Setze Farbe abhängig von verbleibenden Kalorien
+      remainingCaloriesCell.className = remainingCalories >= 0 ? "green" : "red";
     }
   })
   .catch((error) => console.error("Error loading recipes:", error));

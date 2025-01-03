@@ -1,0 +1,6 @@
+[
+  { "id": 1, "name": "Oatmeal", "calories": 200 },
+  { "id": 2, "name": "Chicken Salad", "calories": 400 },
+  { "id": 3, "name": "Pasta", "calories": 500 },
+  { "id": 4, "name": "Snack Bar", "calories": 150 }
+]

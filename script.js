@@ -1,4 +1,4 @@
-const recipesUrl = "https://<deine-render-url>/recipes"; // Backend-URL
+const recipesUrl = "https://foodcalculator-server.onrender.com/recipes"; // Backend-URL
 const DAILY_LIMIT = 1500;
 
 let recipes = []; // Rezepte werden hier gespeichert

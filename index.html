@@ -48,16 +48,24 @@
     <tbody id="table-body"></tbody>
   </table>
 
+  <h2>Save or Load Weekly Plans</h2>
+<input type="text" id="plan-name" placeholder="Enter Plan Name" />
+<button id="save-plan">Save Plan</button>
+<select id="load-plan">
+  <option value="">Select a saved plan</option>
+</select>
+<button id="load-plan-button">Load Plan</button>
+
   <h2>Add New Recipe</h2>
   <form id="recipe-form">
     <input type="text" id="recipe-name" placeholder="Recipe Name" required />
     <input type="number" id="recipe-calories" placeholder="Calories (per portion)" required />
-    <select id="recipe-meal-type" multiple required>
-      <option value="breakfast">Breakfast</option>
-      <option value="lunch">Lunch</option>
-      <option value="dinner">Dinner</option>
-      <option value="snack">Snack</option>
-    </select>
+    <div id="meal-type-checkboxes">
+  <label><input type="checkbox" value="breakfast" /> Breakfast</label>
+  <label><input type="checkbox" value="lunch" /> Lunch</label>
+  <label><input type="checkbox" value="dinner" /> Dinner</label>
+  <label><input type="checkbox" value="snack" /> Snack</label>
+</div>
     <button type="submit">Add Recipe</button>
     <button id="save-plan">Save Plan</button>
     <button id="load-plan">Load Plan</button>

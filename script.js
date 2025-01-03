@@ -11,9 +11,7 @@ const recipeList = document.getElementById("recipe-list"); // Container für die
 
 // Funktion: Dropdowns aktualisieren
 function updateDropdown(select, mealType) {
-  // Standardoption hinzufügen
   select.innerHTML = `<option value="">Select</option>`;
-  // Rezepte filtern und Optionen hinzufügen
   recipes
     .filter((recipe) => recipe.mealTypes.includes(mealType))
     .forEach((recipe) => {
@@ -26,19 +24,30 @@ function updateDropdown(select, mealType) {
 
 // Funktion: Tabelle für einen Tag aktualisieren
 function updateTableRow(dayIndex, row, meals) {
-  const totalCalories = Object.values(meals).reduce((sum, meal) => {
-    return sum + (meal ? meal.calories : 0);
-  }, 0);
+  let totalCalories = 0;
+
+  // Kalorien für jede Mahlzeit summieren
+  Object.values(meals).forEach((meal) => {
+    if (meal) {
+      totalCalories += meal.calories;
+    }
+  });
 
   const remainingCalories = DAILY_LIMIT - totalCalories;
 
+  // Gesamtkalorien und verbleibende Kalorien in der Tabelle anzeigen
   const totalCaloriesCell = row.cells[5];
   const remainingCaloriesCell = row.cells[6];
 
   totalCaloriesCell.textContent = `${totalCalories} kcal`;
   remainingCaloriesCell.textContent = `${remainingCalories} kcal`;
 
-  remainingCaloriesCell.className = remainingCalories >= 0 ? "green" : "red";
+  // Farben für verbleibende Kalorien setzen
+  if (remainingCalories >= 0) {
+    remainingCaloriesCell.className = "green";
+  } else {
+    remainingCaloriesCell.className = "red";
+  }
 }
 
 // Funktion: Tabelle initialisieren
@@ -53,6 +62,7 @@ function initializeTable() {
 
   days.forEach((day, dayIndex) => {
     const row = document.createElement("tr");
+
     const dayCell = document.createElement("td");
     dayCell.textContent = day;
     row.appendChild(dayCell);
@@ -61,7 +71,6 @@ function initializeTable() {
       const mealCell = document.createElement("td");
       const select = document.createElement("select");
 
-      // Dropdown vorerst mit einer Standardoption initialisieren
       updateDropdown(select, mealType);
 
       select.addEventListener("change", (e) => {
@@ -84,7 +93,6 @@ function initializeTable() {
 
     tableBody.appendChild(row);
 
-    // Initiale Zeilenwerte setzen
     updateTableRow(dayIndex, row, selectedMeals[dayIndex]);
   });
 
@@ -93,7 +101,7 @@ function initializeTable() {
 
 // Funktion: Rezeptliste anzeigen
 function displayRecipeList() {
-  recipeList.innerHTML = ""; // Liste leeren
+  recipeList.innerHTML = ""; // Rezeptliste leeren
 
   if (recipes.length === 0) {
     recipeList.innerHTML = "<p>No recipes available.</p>";
@@ -117,13 +125,12 @@ fetch(recipesUrl)
     console.log("Rezepte geladen:", data); // Debug-Ausgabe
     recipes = data;
 
-    // Dropdown-Menüs mit Rezeptdaten aktualisieren
+    // Dropdown-Menüs und Rezeptliste aktualisieren
     tableBody.querySelectorAll("select").forEach((select, index) => {
       const mealType = ["breakfast", "lunch", "dinner", "snack"][index % 4];
       updateDropdown(select, mealType);
     });
 
-    // Rezeptliste anzeigen
     displayRecipeList();
   })
   .catch((error) => console.error("Fehler beim Laden der Rezepte:", error));
@@ -148,13 +155,12 @@ recipeForm.addEventListener("submit", (e) => {
       console.log("Neues Rezept gespeichert:", savedRecipe); // Debug-Ausgabe
       recipes.push(savedRecipe);
 
-      // Dropdowns mit neuen Daten aktualisieren
+      // Dropdowns und Rezeptliste aktualisieren
       tableBody.querySelectorAll("select").forEach((select, index) => {
         const mealType = ["breakfast", "lunch", "dinner", "snack"][index % 4];
         updateDropdown(select, mealType);
       });
 
-      // Rezeptliste aktualisieren
       displayRecipeList();
 
       recipeForm.reset();

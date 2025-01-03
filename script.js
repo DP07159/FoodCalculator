@@ -1,4 +1,4 @@
-const recipesUrl = "http://localhost:3000/recipes"; // Backend-Endpunkt
+const recipesUrl = "https://foodcalculator-server.onrender.com/recipes"; // Backend-Endpunkt
 const DAILY_LIMIT = 1500;
 
 let recipes = [];

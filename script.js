@@ -20,7 +20,7 @@ fetch(recipesUrl)
     }));
 
     // Tabelle für jeden Tag erstellen
-    days.forEach((day, index) => {
+    days.forEach((day, dayIndex) => {
       const row = document.createElement("tr");
 
       // Spalte: Tag
@@ -32,6 +32,8 @@ fetch(recipesUrl)
       ["breakfast", "lunch", "dinner", "snack"].forEach((mealType) => {
         const mealCell = document.createElement("td");
         const select = document.createElement("select");
+
+        // Dropdown-Inhalte erstellen
         select.innerHTML = `<option value="">Select</option>`;
         recipes.forEach((recipe) => {
           const option = document.createElement("option");
@@ -43,9 +45,13 @@ fetch(recipesUrl)
         // Event Listener: Auswahl ändern
         select.addEventListener("change", (e) => {
           const recipeId = parseInt(e.target.value);
-          const recipe = recipes.find((r) => r.id === recipeId) || null;
-          selectedMeals[index][mealType] = recipe;
-          updateTableRow(index, row, selectedMeals[index]);
+          const selectedRecipe = recipes.find((r) => r.id === recipeId) || null;
+
+          // Aktuelles Essen für diesen Tag und diese Mahlzeit speichern
+          selectedMeals[dayIndex][mealType] = selectedRecipe;
+
+          // Zeile für diesen Tag aktualisieren
+          updateTableRow(dayIndex, row, selectedMeals[dayIndex]);
         });
 
         mealCell.appendChild(select);
@@ -60,30 +66,29 @@ fetch(recipesUrl)
       row.appendChild(remainingCaloriesCell);
 
       tableBody.appendChild(row);
-      updateTableRow(index, row, selectedMeals[index]);
+
+      // Initiale Aktualisierung der Zeile
+      updateTableRow(dayIndex, row, selectedMeals[dayIndex]);
     });
 
-    // Funktion: Zeile aktualisieren
-    function updateTableRow(index, row, meals) {
-      // Berechne Gesamtkalorien für den Tag
-      let totalCalories = 0;
-      for (const mealType in meals) {
-        if (meals[mealType]) {
-          totalCalories += meals[mealType].calories;
-        }
-      }
+    // Funktion: Aktualisiere die Tabelle für einen einzelnen Tag
+    function updateTableRow(dayIndex, row, meals) {
+      // Gesamtkalorien des Tages berechnen
+      const totalCalories = Object.values(meals).reduce((sum, meal) => {
+        return sum + (meal ? meal.calories : 0);
+      }, 0);
 
-      // Berechne verbleibende Kalorien
+      // Verbleibende Kalorien berechnen
       const remainingCalories = DAILY_LIMIT - totalCalories;
 
-      // Aktualisiere die Zellen
+      // Werte in die Tabelle schreiben
       const totalCaloriesCell = row.cells[5];
       const remainingCaloriesCell = row.cells[6];
 
       totalCaloriesCell.textContent = `${totalCalories} kcal`;
       remainingCaloriesCell.textContent = `${remainingCalories} kcal`;
 
-      // Setze Farbe abhängig von verbleibenden Kalorien
+      // Farbe der verbleibenden Kalorien setzen
       remainingCaloriesCell.className = remainingCalories >= 0 ? "green" : "red";
     }
   })

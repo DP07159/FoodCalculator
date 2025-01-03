@@ -1,47 +1,54 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Food Calculator</title>
-  <style>
-    table {
-      width: 100%;
-      border-collapse: collapse;
+const express = require("express");
+const fs = require("fs");
+const cors = require("cors");
+const app = express();
+
+const PORT = process.env.PORT || 3000;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Rezeptdatenbank-Pfad
+const RECIPES_FILE = __dirname + "/recipes.json";
+
+// API: Rezepte abrufen
+app.get("/recipes", (req, res) => {
+  fs.readFile(RECIPES_FILE, (err, data) => {
+    if (err) {
+      return res.status(500).json({ error: "Failed to load recipes" });
     }
-    table, th, td {
-      border: 1px solid black;
+    res.json(JSON.parse(data));
+  });
+});
+
+// API: Neues Rezept hinzufügen
+app.post("/recipes", (req, res) => {
+  const newRecipe = req.body;
+
+  // Rezepte laden
+  fs.readFile(RECIPES_FILE, (err, data) => {
+    if (err) {
+      return res.status(500).json({ error: "Failed to load recipes" });
     }
-    th, td {
-      padding: 10px;
-      text-align: center;
-    }
-    .green {
-      color: green;
-    }
-    .red {
-      color: red;
-    }
-  </style>
-</head>
-<body>
-  <h1>Food Calculator</h1>
-  <table>
-    <thead>
-      <tr>
-        <th>Day</th>
-        <th>Breakfast</th>
-        <th>Lunch</th>
-        <th>Dinner</th>
-        <th>Snack</th>
-        <th>Total Calories</th>
-        <th>Remaining Calories</th>
-      </tr>
-    </thead>
-    <tbody id="table-body">
-      <!-- Dynamischer Inhalt -->
-    </tbody>
-  </table>
-  <script src="script.js"></script>
-</body>
-</html>
+
+    const recipes = JSON.parse(data);
+
+    // Neues Rezept mit einer eindeutigen ID hinzufügen
+    newRecipe.id = recipes.length ? recipes[recipes.length - 1].id + 1 : 1;
+    recipes.push(newRecipe);
+
+    // Rezepte speichern
+    fs.writeFile(RECIPES_FILE, JSON.stringify(recipes, null, 2), (err) => {
+      if (err) {
+        return res.status(500).json({ error: "Failed to save recipe" });
+      }
+      res.json(newRecipe);
+    });
+  });
+});
+
+// Server starten
+app.listen(PORT, () => {
+  console.log(`Backend running on http://localhost:${PORT}`);
+});

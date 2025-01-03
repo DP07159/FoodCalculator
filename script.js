@@ -109,7 +109,7 @@ function deleteRecipe(recipeId) {
     .catch((error) => console.error("Fehler beim Löschen des Rezepts:", error));
 }
 
-// Funktion: Wochenplan speichern
+// Wochenplan speichern
 function savePlan() {
   const planName = planNameInput.value.trim();
   if (!planName) {
@@ -128,35 +128,49 @@ function savePlan() {
     plan.push(meals);
   });
 
-  savedPlans[planName] = plan;
-
-  const option = document.createElement("option");
-  option.value = planName;
-  option.textContent = planName;
-  loadPlanSelect.appendChild(option);
-
-  console.log("Plan saved:", planName);
+  fetch(plansUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name: planName, plan }),
+  })
+    .then((response) => response.json())
+    .then(() => {
+      alert(`Plan "${planName}" saved successfully.`);
+      const option = document.createElement("option");
+      option.value = planName;
+      option.textContent = planName;
+      loadPlanSelect.appendChild(option);
+    })
+    .catch((error) => console.error("Error saving plan:", error));
 }
 
-// Funktion: Wochenplan laden
+// Wochenplan laden
 function loadPlan() {
   const selectedPlanName = loadPlanSelect.value;
-  if (!selectedPlanName || !savedPlans[selectedPlanName]) {
-    alert("Please select a valid plan.");
+  if (!selectedPlanName) {
+    alert("Please select a plan to load.");
     return;
   }
 
-  const plan = savedPlans[selectedPlanName];
-  plan.forEach((meals, rowIndex) => {
-    const row = tableBody.querySelectorAll("tr")[rowIndex];
-    ["breakfast", "lunch", "dinner", "snack"].forEach((mealType, index) => {
-      const select = row.querySelectorAll("select")[index];
-      const recipeId = meals[mealType];
-      select.value = recipeId || "";
-    });
-  });
+  fetch(plansUrl)
+    .then((response) => response.json())
+    .then((plans) => {
+      const plan = plans[selectedPlanName];
+      if (!plan) {
+        alert("Plan not found.");
+        return;
+      }
 
-  console.log("Plan loaded:", selectedPlanName);
+      plan.forEach((meals, rowIndex) => {
+        const row = tableBody.querySelectorAll("tr")[rowIndex];
+        ["breakfast", "lunch", "dinner", "snack"].forEach((mealType, index) => {
+          const select = row.querySelectorAll("select")[index];
+          const recipeId = meals[mealType];
+          select.value = recipeId || "";
+        });
+      });
+    })
+    .catch((error) => console.error("Error loading plan:", error));
 }
 
 // Event-Listener für Plan-Buttons

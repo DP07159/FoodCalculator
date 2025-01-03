@@ -1,54 +1,66 @@
-const express = require("express");
-const fs = require("fs");
-const cors = require("cors");
-const app = express();
-
-const PORT = process.env.PORT || 3000;
-
-// Middleware
-app.use(cors());
-app.use(express.json());
-
-// Rezeptdatenbank-Pfad
-const RECIPES_FILE = __dirname + "/recipes.json";
-
-// API: Rezepte abrufen
-app.get("/recipes", (req, res) => {
-  fs.readFile(RECIPES_FILE, (err, data) => {
-    if (err) {
-      return res.status(500).json({ error: "Failed to load recipes" });
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Food Calculator</title>
+  <style>
+    /* Styles wie vorher */
+    table {
+      width: 100%;
+      border-collapse: collapse;
     }
-    res.json(JSON.parse(data));
-  });
-});
-
-// API: Neues Rezept hinzufügen
-app.post("/recipes", (req, res) => {
-  const newRecipe = req.body;
-
-  // Rezepte laden
-  fs.readFile(RECIPES_FILE, (err, data) => {
-    if (err) {
-      return res.status(500).json({ error: "Failed to load recipes" });
+    table, th, td {
+      border: 1px solid black;
     }
+    th, td {
+      padding: 10px;
+      text-align: center;
+    }
+    .green {
+      color: green;
+    }
+    .red {
+      color: red;
+    }
+    form {
+      margin-top: 20px;
+    }
+    form input, form select, form button {
+      margin: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Food Calculator</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Day</th>
+        <th>Breakfast</th>
+        <th>Lunch</th>
+        <th>Dinner</th>
+        <th>Snack</th>
+        <th>Total Calories</th>
+        <th>Remaining Calories</th>
+      </tr>
+    </thead>
+    <tbody id="table-body"></tbody>
+  </table>
 
-    const recipes = JSON.parse(data);
+  <h2>Add New Recipe</h2>
+  <form id="recipe-form">
+    <input type="text" id="recipe-name" placeholder="Recipe Name" required />
+    <input type="number" id="recipe-calories" placeholder="Calories (per portion)" required />
+    <select id="recipe-meal-type" multiple required>
+      <option value="breakfast">Breakfast</option>
+      <option value="lunch">Lunch</option>
+      <option value="dinner">Dinner</option>
+      <option value="snack">Snack</option>
+    </select>
+    <button type="submit">Add Recipe</button>
+  </form>
 
-    // Neues Rezept mit einer eindeutigen ID hinzufügen
-    newRecipe.id = recipes.length ? recipes[recipes.length - 1].id + 1 : 1;
-    recipes.push(newRecipe);
-
-    // Rezepte speichern
-    fs.writeFile(RECIPES_FILE, JSON.stringify(recipes, null, 2), (err) => {
-      if (err) {
-        return res.status(500).json({ error: "Failed to save recipe" });
-      }
-      res.json(newRecipe);
-    });
-  });
-});
-
-// Server starten
-app.listen(PORT, () => {
-  console.log(`Backend running on http://localhost:${PORT}`);
-});
+  <script src="script.js"></script>
+</body>
+</html>

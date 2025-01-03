@@ -9,10 +9,15 @@ const tableBody = document.getElementById("table-body");
 
 // Daten laden und Tabelle erstellen
 fetch(recipesUrl)
-  .then(response => response.json())
-  .then(recipes => {
+  .then((response) => response.json())
+  .then((recipes) => {
     const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-    const selectedMeals = Array(7).fill({ breakfast: null, lunch: null, dinner: null, snack: null });
+    const selectedMeals = Array.from({ length: 7 }, () => ({
+      breakfast: null,
+      lunch: null,
+      dinner: null,
+      snack: null,
+    }));
 
     days.forEach((day, index) => {
       const row = document.createElement("tr");
@@ -23,20 +28,21 @@ fetch(recipesUrl)
       row.appendChild(dayCell);
 
       // Spalten: Mahlzeiten
-      ["breakfast", "lunch", "dinner", "snack"].forEach(mealType => {
+      ["breakfast", "lunch", "dinner", "snack"].forEach((mealType) => {
         const mealCell = document.createElement("td");
         const select = document.createElement("select");
         select.innerHTML = `<option value="">Select</option>`;
-        recipes.forEach(recipe => {
+        recipes.forEach((recipe) => {
           const option = document.createElement("option");
           option.value = recipe.id;
           option.textContent = `${recipe.name} (${recipe.calories} kcal)`;
           select.appendChild(option);
         });
 
+        // Event Listener: Dropdown-Auswahl
         select.addEventListener("change", (e) => {
           const recipeId = parseInt(e.target.value);
-          const recipe = recipes.find(r => r.id === recipeId);
+          const recipe = recipes.find((r) => r.id === recipeId);
           selectedMeals[index][mealType] = recipe || null;
           updateTableRow(index, row, selectedMeals[index]);
         });
@@ -56,13 +62,21 @@ fetch(recipesUrl)
       updateTableRow(index, row, selectedMeals[index]);
     });
 
+    // Funktion: Zeile aktualisieren
     function updateTableRow(index, row, meals) {
-      const totalCalories = Object.values(meals).reduce((sum, meal) => sum + (meal?.calories || 0), 0);
+      // Berechne die Gesamtkalorien für den Tag
+      const totalCalories = Object.values(meals).reduce(
+        (sum, meal) => sum + (meal ? meal.calories : 0),
+        0
+      );
+
+      // Berechne die verbleibenden Kalorien
       const remainingCalories = DAILY_LIMIT - totalCalories;
 
+      // Aktualisiere die Zellen der Tabelle
       row.cells[5].textContent = `${totalCalories} kcal`;
       row.cells[6].textContent = `${remainingCalories} kcal`;
       row.cells[6].className = remainingCalories >= 0 ? "green" : "red";
     }
   })
-  .catch(error => console.error("Error loading recipes:", error));
+  .catch((error) => console.error("Error loading recipes:", error));

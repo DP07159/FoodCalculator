@@ -1,4 +1,5 @@
-const recipesUrl = "https://foodcalculator-server.onrender.com/recipes"; // Backend-URL
+const recipesUrl = "https://foodcalculator-server.onrender.com/recipes"; // Backend-URL für Rezepte
+const plansUrl = "https://<deine-render-url>/plans"; // Backend-URL für Wochenpläne
 const DAILY_LIMIT = 1500;
 
 let recipes = []; // Rezepte werden hier gespeichert
@@ -8,6 +9,8 @@ const recipeNameInput = document.getElementById("recipe-name");
 const recipeCaloriesInput = document.getElementById("recipe-calories");
 const recipeMealTypeInput = document.getElementById("recipe-meal-type");
 const recipeList = document.getElementById("recipe-list"); // Container für die Rezeptliste
+const savePlanButton = document.getElementById("save-plan");
+const loadPlanButton = document.getElementById("load-plan");
 
 // Funktion: Dropdowns aktualisieren
 function updateDropdown(select, mealType) {
@@ -112,60 +115,90 @@ function displayRecipeList() {
   recipes.forEach((recipe) => {
     const li = document.createElement("li");
     li.textContent = `${recipe.name} (${recipe.calories} kcal) - Suitable for: ${recipe.mealTypes.join(", ")}`;
+
+    const deleteButton = document.createElement("button");
+    deleteButton.textContent = "Delete";
+    deleteButton.addEventListener("click", () => deleteRecipe(recipe.id));
+
+    li.appendChild(deleteButton);
     ul.appendChild(li);
   });
 
   recipeList.appendChild(ul);
 }
 
-// Rezepte vom Backend laden
-fetch(recipesUrl)
-  .then((response) => response.json())
-  .then((data) => {
-    console.log("Rezepte geladen:", data); // Debug-Ausgabe
-    recipes = data;
-
-    // Dropdown-Menüs und Rezeptliste aktualisieren
-    tableBody.querySelectorAll("select").forEach((select, index) => {
-      const mealType = ["breakfast", "lunch", "dinner", "snack"][index % 4];
-      updateDropdown(select, mealType);
-    });
-
-    displayRecipeList();
+// Funktion: Rezept löschen
+function deleteRecipe(recipeId) {
+  fetch(`${recipesUrl}/${recipeId}`, {
+    method: "DELETE",
   })
-  .catch((error) => console.error("Fehler beim Laden der Rezepte:", error));
-
-// Neues Rezept hinzufügen
-recipeForm.addEventListener("submit", (e) => {
-  e.preventDefault();
-
-  const name = recipeNameInput.value;
-  const calories = parseInt(recipeCaloriesInput.value);
-  const mealTypes = Array.from(recipeMealTypeInput.selectedOptions).map((option) => option.value);
-
-  const newRecipe = { name, calories, mealTypes };
-
-  fetch(recipesUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(newRecipe),
-  })
-    .then((response) => response.json())
-    .then((savedRecipe) => {
-      console.log("Neues Rezept gespeichert:", savedRecipe); // Debug-Ausgabe
-      recipes.push(savedRecipe);
-
-      // Dropdowns und Rezeptliste aktualisieren
+    .then(() => {
+      console.log("Rezept gelöscht:", recipeId); // Debug-Ausgabe
+      recipes = recipes.filter((recipe) => recipe.id !== recipeId);
+      displayRecipeList();
       tableBody.querySelectorAll("select").forEach((select, index) => {
         const mealType = ["breakfast", "lunch", "dinner", "snack"][index % 4];
         updateDropdown(select, mealType);
       });
+    })
+    .catch((error) => console.error("Fehler beim Löschen des Rezepts:", error));
+}
 
-      displayRecipeList();
-
-      recipeForm.reset();
+// Funktion: Wochenplan speichern
+function savePlan() {
+  const plan = [];
+  tableBody.querySelectorAll("tr").forEach((row, rowIndex) => {
+    const meals = {};
+    ["breakfast", "lunch", "dinner", "snack"].forEach((mealType, index) => {
+      const select = row.querySelectorAll("select")[index];
+      const recipeId = parseInt(select.value);
+      meals[mealType] = recipeId || null;
     });
-});
+    plan.push(meals);
+  });
 
-// Tabelle sofort initialisieren
-initializeTable();
+  fetch(plansUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(plan),
+  })
+    .then(() => {
+      console.log("Wochenplan gespeichert.");
+    })
+    .catch((error) => console.error("Fehler beim Speichern des Wochenplans:", error));
+}
+
+// Funktion: Wochenplan laden
+function loadPlan() {
+  fetch(plansUrl)
+    .then((response) => response.json())
+    .then((plan) => {
+      plan.forEach((meals, rowIndex) => {
+        const row = tableBody.querySelectorAll("tr")[rowIndex];
+        ["breakfast", "lunch", "dinner", "snack"].forEach((mealType, index) => {
+          const select = row.querySelectorAll("select")[index];
+          const recipeId = meals[mealType];
+          if (recipeId) {
+            select.value = recipeId;
+          } else {
+            select.value = "";
+          }
+        });
+      });
+      console.log("Wochenplan geladen.");
+    })
+    .catch((error) => console.error("Fehler beim Laden des Wochenplans:", error));
+}
+
+// Event-Listener für Wochenplan speichern und laden
+savePlanButton.addEventListener("click", savePlan);
+loadPlanButton.addEventListener("click", loadPlan);
+
+// Rezepte vom Backend laden
+fetch(recipesUrl)
+  .then((response) => response.json())
+  .then((data) => {
+    recipes = data;
+    displayRecipeList();
+    initializeTable();
+  });

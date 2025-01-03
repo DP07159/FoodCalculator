@@ -8,17 +8,8 @@ const recipeNameInput = document.getElementById("recipe-name");
 const recipeCaloriesInput = document.getElementById("recipe-calories");
 const recipeMealTypeInput = document.getElementById("recipe-meal-type");
 
-// Rezepte laden
-fetch(recipesUrl)
-  .then((response) => response.json())
-  .then((data) => {
-    recipes = data; // Rezepte speichern
-    createTable(); // Tabelle erstellen
-  })
-  .catch((error) => console.error("Error loading recipes:", error));
-
-// Tabelle erstellen
-function createTable() {
+// Tabelle mit Wochentagen sofort erstellen
+function initializeTable() {
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
   const selectedMeals = Array.from({ length: 7 }, () => ({
     breakfast: null,
@@ -37,16 +28,8 @@ function createTable() {
       const mealCell = document.createElement("td");
       const select = document.createElement("select");
 
-      updateDropdown(select, mealType);
-
-      select.addEventListener("change", (e) => {
-        const recipeId = parseInt(e.target.value);
-        const selectedRecipe = recipes.find((r) => r.id === recipeId) || null;
-
-        selectedMeals[dayIndex][mealType] = selectedRecipe;
-        updateTableRow(dayIndex, row, selectedMeals[dayIndex]);
-      });
-
+      // Standardoption, wenn keine Rezepte vorhanden sind
+      select.innerHTML = `<option value="">Select</option>`;
       mealCell.appendChild(select);
       row.appendChild(mealCell);
     });
@@ -58,11 +41,13 @@ function createTable() {
     row.appendChild(remainingCaloriesCell);
 
     tableBody.appendChild(row);
+
+    // Initiale Zeilenwerte setzen
     updateTableRow(dayIndex, row, selectedMeals[dayIndex]);
   });
 }
 
-// Dropdown-Menü aktualisieren
+// Tabelle aktualisieren, wenn Daten vorhanden sind
 function updateDropdown(select, mealType) {
   select.innerHTML = `<option value="">Select</option>`;
   recipes
@@ -92,6 +77,19 @@ function updateTableRow(dayIndex, row, meals) {
   remainingCaloriesCell.className = remainingCalories >= 0 ? "green" : "red";
 }
 
+// Rezepte laden
+fetch(recipesUrl)
+  .then((response) => response.json())
+  .then((data) => {
+    recipes = data; // Rezepte speichern
+    // Dropdown-Menüs mit Rezeptdaten aktualisieren
+    tableBody.querySelectorAll("select").forEach((select, index) => {
+      const mealType = ["breakfast", "lunch", "dinner", "snack"][index % 4];
+      updateDropdown(select, mealType);
+    });
+  })
+  .catch((error) => console.error("Error loading recipes:", error));
+
 // Rezept hinzufügen
 recipeForm.addEventListener("submit", (e) => {
   e.preventDefault();
@@ -110,10 +108,13 @@ recipeForm.addEventListener("submit", (e) => {
     .then((response) => response.json())
     .then((savedRecipe) => {
       recipes.push(savedRecipe);
-      tableBody.querySelectorAll("select").forEach((select) => {
-        const mealType = select.closest("td").previousElementSibling.textContent.toLowerCase();
+      tableBody.querySelectorAll("select").forEach((select, index) => {
+        const mealType = ["breakfast", "lunch", "dinner", "snack"][index % 4];
         updateDropdown(select, mealType);
       });
       recipeForm.reset();
     });
 });
+
+// Tabelle sofort initialisieren
+initializeTable();

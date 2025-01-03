@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Calculator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Food Calculator</h1>
+    <div id="recipe-input">
+        <h2>Rezepte hinzufügen</h2>
+        <form id="add-recipe-form">
+            <input type="text" id="recipe-name" placeholder="Rezeptname" required>
+            <input type="number" id="calories" placeholder="Kalorien (pro Portion)" required>
+            <select id="meal-type" multiple>
+                <option value="breakfast">Frühstück</option>
+                <option value="lunch">Mittagessen</option>
+                <option value="dinner">Abendessen</option>
+                <option value="snack">Snack</option>
+            </select>
+            <button type="submit">Rezept hinzufügen</button>
+        </form>
+        <div id="recipe-list">
+            <h3>Vorhandene Rezepte</h3>
+            <ul id="recipe-items"></ul>
+        </div>
+    </div>
+
+    <div id="weekly-plan">
+        <h2>Wochenplan</h2>
+        <table id="weekly-table">
+            <thead>
+                <tr>
+                    <th>Tag</th>
+                    <th>Frühstück</th>
+                    <th>Mittagessen</th>
+                    <th>Abendessen</th>
+                    <th>Snack</th>
+                    <th>Gesamt-Kalorien</th>
+                    <th>Übrige Kalorien</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Tabellenzeilen für die Tage der Woche -->
+            </tbody>
+        </table>
+        <input type="text" id="plan-name" placeholder="Name des Plans">
+        <button id="save-plan">Plan speichern</button>
+        <button id="load-plan">Plan laden</button>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>

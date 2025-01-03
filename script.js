@@ -7,6 +7,7 @@ const recipeForm = document.getElementById("recipe-form");
 const recipeNameInput = document.getElementById("recipe-name");
 const recipeCaloriesInput = document.getElementById("recipe-calories");
 const recipeMealTypeInput = document.getElementById("recipe-meal-type");
+const recipeList = document.getElementById("recipe-list"); // Container für die Rezeptliste
 
 // Funktion: Dropdowns aktualisieren
 function updateDropdown(select, mealType) {
@@ -90,6 +91,25 @@ function initializeTable() {
   console.log("Tabelle mit Wochentagen erstellt."); // Debug-Ausgabe
 }
 
+// Funktion: Rezeptliste anzeigen
+function displayRecipeList() {
+  recipeList.innerHTML = ""; // Liste leeren
+
+  if (recipes.length === 0) {
+    recipeList.innerHTML = "<p>No recipes available.</p>";
+    return;
+  }
+
+  const ul = document.createElement("ul");
+  recipes.forEach((recipe) => {
+    const li = document.createElement("li");
+    li.textContent = `${recipe.name} (${recipe.calories} kcal) - Suitable for: ${recipe.mealTypes.join(", ")}`;
+    ul.appendChild(li);
+  });
+
+  recipeList.appendChild(ul);
+}
+
 // Rezepte vom Backend laden
 fetch(recipesUrl)
   .then((response) => response.json())
@@ -102,6 +122,9 @@ fetch(recipesUrl)
       const mealType = ["breakfast", "lunch", "dinner", "snack"][index % 4];
       updateDropdown(select, mealType);
     });
+
+    // Rezeptliste anzeigen
+    displayRecipeList();
   })
   .catch((error) => console.error("Fehler beim Laden der Rezepte:", error));
 
@@ -130,6 +153,9 @@ recipeForm.addEventListener("submit", (e) => {
         const mealType = ["breakfast", "lunch", "dinner", "snack"][index % 4];
         updateDropdown(select, mealType);
       });
+
+      // Rezeptliste aktualisieren
+      displayRecipeList();
 
       recipeForm.reset();
     });

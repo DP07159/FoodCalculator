@@ -1,4 +1,4 @@
-const recipesUrl = "https://https://foodcalculator-server.onrender.com/recipes"; // Backend-URL
+const recipesUrl = "https://<deine-render-url>/recipes"; // Backend-URL
 const DAILY_LIMIT = 1500;
 
 let recipes = []; // Rezepte werden hier gespeichert
@@ -45,6 +45,8 @@ function initializeTable() {
     // Initiale Zeilenwerte setzen
     updateTableRow(dayIndex, row, selectedMeals[dayIndex]);
   });
+
+  console.log("Tabelle mit Wochentagen erstellt."); // Debug-Ausgabe
 }
 
 // Tabelle aktualisieren, wenn Daten vorhanden sind
@@ -81,14 +83,15 @@ function updateTableRow(dayIndex, row, meals) {
 fetch(recipesUrl)
   .then((response) => response.json())
   .then((data) => {
-    recipes = data; // Rezepte speichern
+    console.log("Rezepte geladen:", data); // Debug-Ausgabe
+    recipes = data;
     // Dropdown-Menüs mit Rezeptdaten aktualisieren
     tableBody.querySelectorAll("select").forEach((select, index) => {
       const mealType = ["breakfast", "lunch", "dinner", "snack"][index % 4];
       updateDropdown(select, mealType);
     });
   })
-  .catch((error) => console.error("Error loading recipes:", error));
+  .catch((error) => console.error("Fehler beim Laden der Rezepte:", error));
 
 // Rezept hinzufügen
 recipeForm.addEventListener("submit", (e) => {
@@ -107,6 +110,7 @@ recipeForm.addEventListener("submit", (e) => {
   })
     .then((response) => response.json())
     .then((savedRecipe) => {
+      console.log("Neues Rezept gespeichert:", savedRecipe); // Debug-Ausgabe
       recipes.push(savedRecipe);
       tableBody.querySelectorAll("select").forEach((select, index) => {
         const mealType = ["breakfast", "lunch", "dinner", "snack"][index % 4];

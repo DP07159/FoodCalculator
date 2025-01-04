@@ -221,18 +221,24 @@ function loadPlan() {
     const row = tableBody.querySelectorAll("tr")[rowIndex];
     ["breakfast", "lunch", "dinner", "snack"].forEach((mealType, index) => {
       const select = row.querySelectorAll("select")[index];
-      const recipeId = meals[mealType];
+      const meal = meals[mealType];
 
-      if (!recipeId || !recipes.find((r) => r.id === recipeId)) {
-        select.value = ""; // Setze das Dropdown auf leer, wenn das Rezept nicht verfügbar ist
-        return;
+      if (meal) {
+        const recipeExists = recipes.find((r) => r.id === meal.id);
+
+        if (recipeExists) {
+          select.value = meal.id;
+          meals[mealType] = recipeExists; // Verknüpfe mit aktuellem Rezeptobjekt
+        } else {
+          const option = document.createElement("option");
+          option.value = "";
+          option.textContent = `${meal.name} (Not Available)`;
+          select.appendChild(option);
+          select.value = ""; // Dropdown bleibt bearbeitbar
+        }
+      } else {
+        select.value = ""; // Kein Rezept ausgewählt
       }
-
-      select.value = recipeId;
-
-      // Rezeptdaten in die Kalorienberechnung einfügen
-      const recipe = recipes.find((r) => r.id === recipeId);
-      meals[mealType] = recipe || null;
     });
 
     updateTableRow(rowIndex, row, meals);
@@ -253,7 +259,11 @@ function savePlan() {
     ["breakfast", "lunch", "dinner", "snack"].forEach((mealType, index) => {
       const select = row.querySelectorAll("select")[index];
       const recipeId = parseInt(select.value);
-      meals[mealType] = recipeId || null;
+      const recipe = recipes.find((r) => r.id === recipeId) || null;
+
+      meals[mealType] = recipe
+        ? { id: recipe.id, name: recipe.name, calories: recipe.calories }
+        : null;
     });
     plan.push(meals);
   });

@@ -96,7 +96,7 @@ function updateTableRow(dayIndex, row, meals) {
   remainingCaloriesCell.className = remainingCalories >= 0 ? "green" : "red";
 }
 
-// Funktion: Rezepte laden
+// Funktion: Rezepte laden und anzeigen
 function loadRecipes() {
   fetch(recipesUrl)
     .then((response) => response.json())
@@ -106,6 +106,82 @@ function loadRecipes() {
       displayRecipeList();
     })
     .catch((error) => console.error("Fehler beim Laden der Rezepte:", error));
+}
+
+// Funktion: Rezeptliste anzeigen
+function displayRecipeList() {
+  recipeList.innerHTML = "";
+
+  if (recipes.length === 0) {
+    recipeList.innerHTML = "<p>No recipes available.</p>";
+    return;
+  }
+
+  const ul = document.createElement("ul");
+  recipes.forEach((recipe) => {
+    const li = document.createElement("li");
+    li.textContent = `${recipe.name} (${recipe.calories} kcal) - Suitable for: ${recipe.mealTypes.join(", ")}`;
+
+    const deleteButton = document.createElement("button");
+    deleteButton.textContent = "Delete";
+    deleteButton.addEventListener("click", () => deleteRecipe(recipe.id));
+
+    li.appendChild(deleteButton);
+    ul.appendChild(li);
+  });
+
+  recipeList.appendChild(ul);
+}
+
+// Funktion: Rezept hinzufügen
+recipeForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+
+  const name = recipeNameInput.value.trim();
+  const calories = parseInt(recipeCaloriesInput.value);
+  const mealTypes = Array.from(mealTypeCheckboxes)
+    .filter((checkbox) => checkbox.checked)
+    .map((checkbox) => checkbox.value);
+
+  if (!name || isNaN(calories) || mealTypes.length === 0) {
+    alert("Please fill out all fields.");
+    return;
+  }
+
+  const newRecipe = { name, calories, mealTypes };
+
+  fetch(recipesUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(newRecipe),
+  })
+    .then((response) => response.json())
+    .then((savedRecipe) => {
+      recipes.push(savedRecipe);
+      displayRecipeList();
+      tableBody.querySelectorAll("select").forEach((select, index) => {
+        const mealType = ["breakfast", "lunch", "dinner", "snack"][index % 4];
+        updateDropdown(select, mealType);
+      });
+      recipeForm.reset();
+    })
+    .catch((error) => console.error("Fehler beim Hinzufügen des Rezepts:", error));
+});
+
+// Funktion: Rezept löschen
+function deleteRecipe(recipeId) {
+  fetch(`${recipesUrl}/${recipeId}`, {
+    method: "DELETE",
+  })
+    .then(() => {
+      recipes = recipes.filter((recipe) => recipe.id !== recipeId);
+      displayRecipeList();
+      tableBody.querySelectorAll("select").forEach((select, index) => {
+        const mealType = ["breakfast", "lunch", "dinner", "snack"][index % 4];
+        updateDropdown(select, mealType);
+      });
+    })
+    .catch((error) => console.error("Fehler beim Löschen des Rezepts:", error));
 }
 
 // Funktion: Wochenpläne laden
@@ -145,6 +221,9 @@ function loadPlan() {
       const select = row.querySelectorAll("select")[index];
       const recipeId = meals[mealType];
       select.value = recipeId || "";
+
+      const recipe = recipes.find((r) => r.id === recipeId) || null;
+      meals[mealType] = recipe;
     });
 
     updateTableRow(rowIndex, row, meals);

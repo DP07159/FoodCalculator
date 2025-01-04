@@ -222,10 +222,13 @@ function loadPlan() {
     ["breakfast", "lunch", "dinner", "snack"].forEach((mealType, index) => {
       const select = row.querySelectorAll("select")[index];
       const recipeId = meals[mealType];
-      select.value = recipeId || "";
 
-      const recipe = recipes.find((r) => r.id === recipeId) || null;
-      meals[mealType] = recipe;
+      if (!recipeId || !recipes.find((r) => r.id === recipeId)) {
+        select.innerHTML = '<option value="">Not Available</option>';
+        return;
+      }
+
+      select.value = recipeId;
     });
 
     updateTableRow(rowIndex, row, meals);

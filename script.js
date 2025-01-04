@@ -57,12 +57,31 @@ function initializeTable() {
 
       updateDropdown(select, mealType);
 
+      // Automatische Berechnung bei Dropdown-Änderung
       select.addEventListener("change", (e) => {
         const recipeId = parseInt(e.target.value);
         const selectedRecipe = recipes.find((r) => r.id === recipeId) || null;
 
         selectedMeals[dayIndex][mealType] = selectedRecipe;
+
+        // Aktualisiere nur die aktuelle Zeile
         updateTableRow(dayIndex, row, selectedMeals[dayIndex]);
+
+        // Aktualisiere die gesamte Tabelle
+        console.log("Automatically recalculating table...");
+        const rows = tableBody.querySelectorAll("tr");
+
+        rows.forEach((row, rowIndex) => {
+          const meals = {};
+          ["breakfast", "lunch", "dinner", "snack"].forEach((mealType, index) => {
+            const select = row.querySelectorAll("select")[index];
+            const recipeId = parseInt(select.value);
+            const recipe = recipes.find((r) => r.id === recipeId) || null;
+            meals[mealType] = recipe;
+          });
+
+          updateTableRow(rowIndex, row, meals);
+        });
       });
 
       mealCell.appendChild(select);
@@ -293,27 +312,3 @@ loadPlanButton.addEventListener("click", loadPlan);
 // Initialisierung
 loadRecipes();
 loadPlans();
-
-// Funktion: Gesamte Tabelle neu berechnen
-function recalculateTable() {
-  console.log("Recalculating table...");
-  const rows = tableBody.querySelectorAll("tr");
-
-  rows.forEach((row, rowIndex) => {
-    const meals = {};
-    ["breakfast", "lunch", "dinner", "snack"].forEach((mealType, index) => {
-      const select = row.querySelectorAll("select")[index];
-      const recipeId = parseInt(select.value);
-      const recipe = recipes.find((r) => r.id === recipeId) || null;
-      meals[mealType] = recipe;
-    });
-
-    updateTableRow(rowIndex, row, meals);
-  });
-
-  console.log("Table recalculated!");
-}
-
-// Event-Listener für den Button
-document.getElementById("calculate-calories").addEventListener("click", recalculateTable);
-

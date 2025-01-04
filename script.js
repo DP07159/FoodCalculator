@@ -69,19 +69,7 @@ function initializeTable() {
 
         // Aktualisiere die gesamte Tabelle
         console.log("Automatically recalculating table...");
-        const rows = tableBody.querySelectorAll("tr");
-
-        rows.forEach((row, rowIndex) => {
-          const meals = {};
-          ["breakfast", "lunch", "dinner", "snack"].forEach((mealType, index) => {
-            const select = row.querySelectorAll("select")[index];
-            const recipeId = parseInt(select.value);
-            const recipe = recipes.find((r) => r.id === recipeId) || null;
-            meals[mealType] = recipe;
-          });
-
-          updateTableRow(rowIndex, row, meals);
-        });
+        recalculateTable();
       });
 
       mealCell.appendChild(select);
@@ -128,6 +116,24 @@ function updateTableRow(dayIndex, row, meals) {
   remainingCaloriesCell.className = remainingCalories >= 0 ? "green" : "red";
 
   console.log("--- End Update Row ---");
+}
+
+// Funktion: Gesamte Tabelle neu berechnen
+function recalculateTable() {
+  console.log("Recalculating entire table...");
+  const rows = tableBody.querySelectorAll("tr");
+
+  rows.forEach((row, rowIndex) => {
+    const meals = {};
+    ["breakfast", "lunch", "dinner", "snack"].forEach((mealType, index) => {
+      const select = row.querySelectorAll("select")[index];
+      const recipeId = parseInt(select.value);
+      const recipe = recipes.find((r) => r.id === recipeId) || null;
+      meals[mealType] = recipe;
+    });
+
+    updateTableRow(rowIndex, row, meals);
+  });
 }
 
 // Funktion: Rezepte laden und anzeigen
@@ -258,7 +264,7 @@ function loadPlan() {
           select.value = meal.id;
           meals[mealType] = recipeExists; // Verknüpfe mit aktuellem Rezeptobjekt
         } else {
-          select.value = ""; // Standardwert setzen
+          select.value = ""; // Setze auf Standardwert
         }
       } else {
         select.value = ""; // Kein Rezept ausgewählt
@@ -267,6 +273,10 @@ function loadPlan() {
 
     updateTableRow(rowIndex, row, meals);
   });
+
+  // ** Automatische Berechnung nach Plan-Laden **
+  console.log("Recalculating table after plan load...");
+  recalculateTable(); // Berechnet alle Zeilen
 }
 
 // Funktion: Wochenplan speichern

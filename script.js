@@ -230,11 +230,7 @@ function loadPlan() {
           select.value = meal.id;
           meals[mealType] = recipeExists; // Verknüpfe mit aktuellem Rezeptobjekt
         } else {
-          const option = document.createElement("option");
-          option.value = "";
-          option.textContent = `${meal.name} (Not Available)`;
-          select.appendChild(option);
-          select.value = ""; // Dropdown bleibt bearbeitbar
+          select.value = ""; // Standardwert setzen
         }
       } else {
         select.value = ""; // Kein Rezept ausgewählt

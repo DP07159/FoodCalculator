@@ -1,5 +1,5 @@
-const recipesUrl = "https://foodcalculator-server.onrender.com/recipes"; // Backend-URL für Rezepte
-const plansUrl = "https://foodcalculator-server.onrender.com/plans"; // Backend-URL für Wochenpläne
+const recipesUrl = "https://<deine-render-url>/recipes"; // Backend-URL für Rezepte
+const plansUrl = "https://<deine-render-url>/plans"; // Backend-URL für Wochenpläne
 const DAILY_LIMIT = 1500;
 
 let recipes = []; // Rezepte werden hier gespeichert
@@ -84,7 +84,7 @@ function initializeTable() {
 // Funktion: Tabelle für einen Tag aktualisieren
 function updateTableRow(dayIndex, row, meals) {
   console.log(`--- Update Row for Day ${dayIndex + 1} ---`);
-  console.log("Meals Data Before Update:", meals);
+  console.log("Meals Data:", meals);
 
   let totalCalories = 0;
 
@@ -109,6 +109,88 @@ function updateTableRow(dayIndex, row, meals) {
   remainingCaloriesCell.className = remainingCalories >= 0 ? "green" : "red";
 
   console.log("--- End Update Row ---");
+}
+
+// Funktion: Rezepte laden und anzeigen
+function loadRecipes() {
+  fetch(recipesUrl)
+    .then((response) => response.json())
+    .then((data) => {
+      recipes = data;
+      resetTable();
+      displayRecipeList();
+    })
+    .catch((error) => console.error("Fehler beim Laden der Rezepte:", error));
+}
+
+// Funktion: Rezeptliste anzeigen
+function displayRecipeList() {
+  recipeList.innerHTML = "";
+
+  if (recipes.length === 0) {
+    recipeList.innerHTML = "<p>No recipes available.</p>";
+    return;
+  }
+
+  const ul = document.createElement("ul");
+  recipes.forEach((recipe) => {
+    const li = document.createElement("li");
+    li.textContent = `${recipe.name} (${recipe.calories} kcal) - Suitable for: ${recipe.mealTypes.join(", ")}`;
+
+    const deleteButton = document.createElement("button");
+    deleteButton.textContent = "Delete";
+    deleteButton.addEventListener("click", () => deleteRecipe(recipe.id));
+
+    li.appendChild(deleteButton);
+    ul.appendChild(li);
+  });
+
+  recipeList.appendChild(ul);
+}
+
+// Funktion: Rezept hinzufügen
+recipeForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+
+  const name = recipeNameInput.value.trim();
+  const calories = parseInt(recipeCaloriesInput.value);
+  const mealTypes = Array.from(mealTypeCheckboxes)
+    .filter((checkbox) => checkbox.checked)
+    .map((checkbox) => checkbox.value);
+
+  if (!name || isNaN(calories) || mealTypes.length === 0) {
+    alert("Please fill out all fields.");
+    return;
+  }
+
+  const newRecipe = { name, calories, mealTypes };
+
+  fetch(recipesUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(newRecipe),
+  })
+    .then((response) => response.json())
+    .then((savedRecipe) => {
+      recipes.push(savedRecipe);
+      displayRecipeList();
+      resetTable();
+      recipeForm.reset();
+    })
+    .catch((error) => console.error("Fehler beim Hinzufügen des Rezepts:", error));
+});
+
+// Funktion: Rezept löschen
+function deleteRecipe(recipeId) {
+  fetch(`${recipesUrl}/${recipeId}`, {
+    method: "DELETE",
+  })
+    .then(() => {
+      recipes = recipes.filter((recipe) => recipe.id !== recipeId);
+      displayRecipeList();
+      resetTable();
+    })
+    .catch((error) => console.error("Fehler beim Löschen des Rezepts:", error));
 }
 
 // Funktion: Wochenpläne laden
@@ -167,3 +249,47 @@ function loadPlan() {
     updateTableRow(rowIndex, row, meals);
   });
 }
+
+// Funktion: Wochenplan speichern
+function savePlan() {
+  const planName = planNameInput.value.trim();
+  if (!planName) {
+    alert("Please enter a plan name.");
+    return;
+  }
+
+  const plan = [];
+  tableBody.querySelectorAll("tr").forEach((row, rowIndex) => {
+    const meals = {};
+    ["breakfast", "lunch", "dinner", "snack"].forEach((mealType, index) => {
+      const select = row.querySelectorAll("select")[index];
+      const recipeId = parseInt(select.value);
+      const recipe = recipes.find((r) => r.id === recipeId) || null;
+
+      meals[mealType] = recipe
+        ? { id: recipe.id, name: recipe.name, calories: recipe.calories }
+        : null;
+    });
+    plan.push(meals);
+  });
+
+  fetch(plansUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name: planName, plan }),
+  })
+    .then(() => {
+      alert("Plan saved successfully!");
+      planNameInput.value = ""; // Eingabefeld nach Speichern leeren
+      loadPlans();
+    })
+    .catch((error) => console.error("Fehler beim Speichern des Plans:", error));
+}
+
+// Event-Listener
+savePlanButton.addEventListener("click", savePlan);
+loadPlanButton.addEventListener("click", loadPlan);
+
+// Initialisierung
+loadRecipes();
+loadPlans();

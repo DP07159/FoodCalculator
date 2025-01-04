@@ -223,17 +223,16 @@ function loadPlan() {
       const select = row.querySelectorAll("select")[index];
       const recipeId = meals[mealType];
 
-      if (!recipeId) {
-        select.value = ""; // Leer lassen, wenn keine Auswahl gespeichert war
-      } else {
-        select.value = recipeId;
-
-        // Rezeptdaten in die Dropdowns laden und Kalorien aktualisieren
-        const recipe = recipes.find((r) => r.id === recipeId);
-        if (recipe) {
-          meals[mealType] = recipe;
-        }
+      if (!recipeId || !recipes.find((r) => r.id === recipeId)) {
+        select.value = ""; // Setze das Dropdown auf leer, wenn das Rezept nicht verfügbar ist
+        return;
       }
+
+      select.value = recipeId;
+
+      // Rezeptdaten in die Kalorienberechnung einfügen
+      const recipe = recipes.find((r) => r.id === recipeId);
+      meals[mealType] = recipe || null;
     });
 
     updateTableRow(rowIndex, row, meals);

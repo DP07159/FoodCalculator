@@ -1,5 +1,5 @@
-const recipesUrl = "https://foodcalculator-server.onrender.com/recipes"; // Backend-URL für Rezepte
-const plansUrl = "https://foodcalculator-server.onrender.com/plans"; // Backend-URL für Wochenpläne
+const recipesUrl = "https://<deine-render-url>/recipes"; // Backend-URL für Rezepte
+const plansUrl = "https://<deine-render-url>/plans"; // Backend-URL für Wochenpläne
 const DAILY_LIMIT = 1500;
 
 let recipes = []; // Rezepte werden hier gespeichert
@@ -26,6 +26,12 @@ function updateDropdown(select, mealType) {
       option.textContent = `${recipe.name} (${recipe.calories} kcal)`;
       select.appendChild(option);
     });
+}
+
+// Funktion: Tabelle zurücksetzen und neu initialisieren
+function resetTable() {
+  tableBody.innerHTML = ""; // Tabelle leeren
+  initializeTable(); // Tabelle neu aufbauen
 }
 
 // Funktion: Tabelle initialisieren
@@ -102,7 +108,7 @@ function loadRecipes() {
     .then((response) => response.json())
     .then((data) => {
       recipes = data;
-      initializeTable();
+      resetTable();
       displayRecipeList();
     })
     .catch((error) => console.error("Fehler beim Laden der Rezepte:", error));
@@ -159,10 +165,7 @@ recipeForm.addEventListener("submit", (e) => {
     .then((savedRecipe) => {
       recipes.push(savedRecipe);
       displayRecipeList();
-      tableBody.querySelectorAll("select").forEach((select, index) => {
-        const mealType = ["breakfast", "lunch", "dinner", "snack"][index % 4];
-        updateDropdown(select, mealType);
-      });
+      resetTable();
       recipeForm.reset();
     })
     .catch((error) => console.error("Fehler beim Hinzufügen des Rezepts:", error));
@@ -176,10 +179,7 @@ function deleteRecipe(recipeId) {
     .then(() => {
       recipes = recipes.filter((recipe) => recipe.id !== recipeId);
       displayRecipeList();
-      tableBody.querySelectorAll("select").forEach((select, index) => {
-        const mealType = ["breakfast", "lunch", "dinner", "snack"][index % 4];
-        updateDropdown(select, mealType);
-      });
+      resetTable();
     })
     .catch((error) => console.error("Fehler beim Löschen des Rezepts:", error));
 }
@@ -214,6 +214,8 @@ function loadPlan() {
     alert("Plan not found.");
     return;
   }
+
+  resetTable();
 
   plan.forEach((meals, rowIndex) => {
     const row = tableBody.querySelectorAll("tr")[rowIndex];

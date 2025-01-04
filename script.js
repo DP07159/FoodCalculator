@@ -293,3 +293,27 @@ loadPlanButton.addEventListener("click", loadPlan);
 // Initialisierung
 loadRecipes();
 loadPlans();
+
+// Funktion: Gesamte Tabelle neu berechnen
+function recalculateTable() {
+  console.log("Recalculating table...");
+  const rows = tableBody.querySelectorAll("tr");
+
+  rows.forEach((row, rowIndex) => {
+    const meals = {};
+    ["breakfast", "lunch", "dinner", "snack"].forEach((mealType, index) => {
+      const select = row.querySelectorAll("select")[index];
+      const recipeId = parseInt(select.value);
+      const recipe = recipes.find((r) => r.id === recipeId) || null;
+      meals[mealType] = recipe;
+    });
+
+    updateTableRow(rowIndex, row, meals);
+  });
+
+  console.log("Table recalculated!");
+}
+
+// Event-Listener für den Button
+document.getElementById("calculate-calories").addEventListener("click", recalculateTable);
+

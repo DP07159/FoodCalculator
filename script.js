@@ -137,7 +137,7 @@ function deleteRecipe(recipeId) {
     .catch((error) => console.error("Fehler beim Löschen des Rezepts:", error));
 }
 
-// Funktion: Wochenplan speichern
+// Wochenplan speichern
 function savePlan() {
   const planName = planNameInput.value.trim();
   if (!planName) {
@@ -170,7 +170,7 @@ function savePlan() {
     .catch((error) => console.error("Fehler beim Speichern des Wochenplans:", error));
 }
 
-// Funktion: Wochenplan laden
+// Wochenplan laden
 function loadPlan() {
   const selectedPlanName = loadPlanSelect.value;
   if (!selectedPlanName) {

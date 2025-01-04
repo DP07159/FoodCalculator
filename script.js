@@ -4,7 +4,6 @@ const DAILY_LIMIT = 1500;
 
 let recipes = []; // Rezepte werden hier gespeichert
 let savedPlans = {}; // Gespeicherte Wochenpläne
-let selectedMeals = []; // Enthält die Mahlzeiten-Daten für jeden Tag
 const tableBody = document.getElementById("table-body");
 const recipeForm = document.getElementById("recipe-form");
 const recipeNameInput = document.getElementById("recipe-name");
@@ -38,7 +37,7 @@ function resetTable() {
 // Funktion: Tabelle initialisieren
 function initializeTable() {
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-  selectedMeals = Array.from({ length: 7 }, () => ({
+  const selectedMeals = Array.from({ length: 7 }, () => ({
     breakfast: null,
     lunch: null,
     dinner: null,
@@ -62,11 +61,8 @@ function initializeTable() {
         const recipeId = parseInt(e.target.value);
         const selectedRecipe = recipes.find((r) => r.id === recipeId) || null;
 
-        // Update der Mahlzeit im aktuellen Tag
         selectedMeals[dayIndex][mealType] = selectedRecipe;
-
-        // Neuberechnung der Tageskalorien
-        calculateDayCalories(dayIndex, row);
+        calculateDayCalories(dayIndex, row, selectedMeals[dayIndex]);
       });
 
       mealCell.appendChild(select);
@@ -81,23 +77,18 @@ function initializeTable() {
 
     tableBody.appendChild(row);
 
-    calculateDayCalories(dayIndex, row);
+    calculateDayCalories(dayIndex, row, selectedMeals[dayIndex]);
   });
 }
 
 // Funktion: Tageskalorien berechnen
-function calculateDayCalories(dayIndex, row) {
+function calculateDayCalories(dayIndex, row, meals) {
   console.log(`--- Calculating Calories for Day ${dayIndex + 1} ---`);
-
-  const meals = selectedMeals[dayIndex]; // Alle Mahlzeiten des Tages
-  console.log("Meals Data:", meals);
 
   let totalCalories = 0;
 
-  // Berechnung der Kalorien aus allen Mahlzeiten
   Object.values(meals).forEach((meal) => {
     if (meal) {
-      console.log(`Adding calories from meal: ${meal.name}, ${meal.calories} kcal`);
       totalCalories += meal.calories;
     }
   });
@@ -113,7 +104,6 @@ function calculateDayCalories(dayIndex, row) {
   remainingCaloriesCell.className = remainingCalories >= 0 ? "green" : "red";
 
   console.log(`Total Calories: ${totalCalories}, Remaining Calories: ${remainingCalories}`);
-  console.log("--- End Calculating Calories ---");
 }
 
 // Funktion: Rezepte laden und anzeigen
@@ -126,6 +116,76 @@ function loadRecipes() {
       displayRecipeList();
     })
     .catch((error) => console.error("Fehler beim Laden der Rezepte:", error));
+}
+
+// Funktion: Rezeptliste anzeigen
+function displayRecipeList() {
+  recipeList.innerHTML = "";
+
+  if (recipes.length === 0) {
+    recipeList.innerHTML = "<p>No recipes available.</p>";
+    return;
+  }
+
+  const ul = document.createElement("ul");
+  recipes.forEach((recipe) => {
+    const li = document.createElement("li");
+    li.textContent = `${recipe.name} (${recipe.calories} kcal) - Suitable for: ${recipe.mealTypes.join(", ")}`;
+
+    const deleteButton = document.createElement("button");
+    deleteButton.textContent = "Delete";
+    deleteButton.addEventListener("click", () => deleteRecipe(recipe.id));
+
+    li.appendChild(deleteButton);
+    ul.appendChild(li);
+  });
+
+  recipeList.appendChild(ul);
+}
+
+// Funktion: Rezept hinzufügen
+recipeForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+
+  const name = recipeNameInput.value.trim();
+  const calories = parseInt(recipeCaloriesInput.value);
+  const mealTypes = Array.from(mealTypeCheckboxes)
+    .filter((checkbox) => checkbox.checked)
+    .map((checkbox) => checkbox.value);
+
+  if (!name || isNaN(calories) || mealTypes.length === 0) {
+    alert("Please fill out all fields.");
+    return;
+  }
+
+  const newRecipe = { name, calories, mealTypes };
+
+  fetch(recipesUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(newRecipe),
+  })
+    .then((response) => response.json())
+    .then((savedRecipe) => {
+      recipes.push(savedRecipe);
+      displayRecipeList();
+      resetTable();
+      recipeForm.reset();
+    })
+    .catch((error) => console.error("Fehler beim Hinzufügen des Rezepts:", error));
+});
+
+// Funktion: Rezept löschen
+function deleteRecipe(recipeId) {
+  fetch(`${recipesUrl}/${recipeId}`, {
+    method: "DELETE",
+  })
+    .then(() => {
+      recipes = recipes.filter((recipe) => recipe.id !== recipeId);
+      displayRecipeList();
+      resetTable();
+    })
+    .catch((error) => console.error("Fehler beim Löschen des Rezepts:", error));
 }
 
 // Funktion: Wochenpläne laden
@@ -161,9 +221,8 @@ function loadPlan() {
 
   resetTable();
 
-  plan.forEach((meals, dayIndex) => {
-    selectedMeals[dayIndex] = meals; // Lade gespeicherte Mahlzeiten
-    const row = tableBody.querySelectorAll("tr")[dayIndex];
+  plan.forEach((meals, rowIndex) => {
+    const row = tableBody.querySelectorAll("tr")[rowIndex];
     ["breakfast", "lunch", "dinner", "snack"].forEach((mealType, index) => {
       const select = row.querySelectorAll("select")[index];
       const meal = meals[mealType];
@@ -173,7 +232,7 @@ function loadPlan() {
 
         if (recipeExists) {
           select.value = meal.id;
-          selectedMeals[dayIndex][mealType] = recipeExists; // Verknüpfe mit aktuellem Rezept
+          meals[mealType] = recipeExists; // Verknüpfe mit aktuellem Rezeptobjekt
         } else {
           select.value = ""; // Standardwert setzen
         }
@@ -182,9 +241,49 @@ function loadPlan() {
       }
     });
 
-    calculateDayCalories(dayIndex, row);
+    calculateDayCalories(rowIndex, row, meals);
   });
 }
+
+// Funktion: Wochenplan speichern
+function savePlan() {
+  const planName = planNameInput.value.trim();
+  if (!planName) {
+    alert("Please enter a plan name.");
+    return;
+  }
+
+  const plan = [];
+  tableBody.querySelectorAll("tr").forEach((row, rowIndex) => {
+    const meals = {};
+    ["breakfast", "lunch", "dinner", "snack"].forEach((mealType, index) => {
+      const select = row.querySelectorAll("select")[index];
+      const recipeId = parseInt(select.value);
+      const recipe = recipes.find((r) => r.id === recipeId) || null;
+
+      meals[mealType] = recipe
+        ? { id: recipe.id, name: recipe.name, calories: recipe.calories }
+        : null;
+    });
+    plan.push(meals);
+  });
+
+  fetch(plansUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name: planName, plan }),
+  })
+    .then(() => {
+      alert("Plan saved successfully!");
+      planNameInput.value = ""; // Eingabefeld nach Speichern leeren
+      loadPlans();
+    })
+    .catch((error) => console.error("Fehler beim Speichern des Plans:", error));
+}
+
+// Event-Listener
+savePlanButton.addEventListener("click", savePlan);
+loadPlanButton.addEventListener("click", loadPlan);
 
 // Initialisierung
 loadRecipes();

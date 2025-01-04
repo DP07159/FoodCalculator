@@ -121,6 +121,41 @@ function displayRecipeList() {
   recipeList.appendChild(ul);
 }
 
+// Funktion: Rezept hinzufügen
+recipeForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+
+  const name = recipeNameInput.value.trim();
+  const calories = parseInt(recipeCaloriesInput.value);
+  const mealTypes = Array.from(mealTypeCheckboxes)
+    .filter((checkbox) => checkbox.checked)
+    .map((checkbox) => checkbox.value);
+
+  if (!name || isNaN(calories) || mealTypes.length === 0) {
+    alert("Please fill out all fields.");
+    return;
+  }
+
+  const newRecipe = { name, calories, mealTypes };
+
+  fetch(recipesUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(newRecipe),
+  })
+    .then((response) => response.json())
+    .then((savedRecipe) => {
+      recipes.push(savedRecipe);
+      displayRecipeList();
+      tableBody.querySelectorAll("select").forEach((select, index) => {
+        const mealType = ["breakfast", "lunch", "dinner", "snack"][index % 4];
+        updateDropdown(select, mealType);
+      });
+      recipeForm.reset();
+    })
+    .catch((error) => console.error("Error adding recipe:", error));
+});
+
 // Funktion: Rezept löschen
 function deleteRecipe(recipeId) {
   fetch(`${recipesUrl}/${recipeId}`, {
@@ -134,10 +169,10 @@ function deleteRecipe(recipeId) {
         updateDropdown(select, mealType);
       });
     })
-    .catch((error) => console.error("Fehler beim Löschen des Rezepts:", error));
+    .catch((error) => console.error("Error deleting recipe:", error));
 }
 
-// Wochenplan speichern
+// Funktion: Wochenplan speichern
 function savePlan() {
   const planName = planNameInput.value.trim();
   if (!planName) {
@@ -167,10 +202,10 @@ function savePlan() {
       option.textContent = planName;
       loadPlanSelect.appendChild(option);
     })
-    .catch((error) => console.error("Fehler beim Speichern des Wochenplans:", error));
+    .catch((error) => console.error("Error saving plan:", error));
 }
 
-// Wochenplan laden
+// Funktion: Wochenplan laden
 function loadPlan() {
   const selectedPlanName = loadPlanSelect.value;
   if (!selectedPlanName) {
@@ -196,14 +231,10 @@ function loadPlan() {
         });
       });
     })
-    .catch((error) => console.error("Fehler beim Laden des Wochenplans:", error));
+    .catch((error) => console.error("Error loading plan:", error));
 }
 
-// Event-Listener für Plan-Buttons
-savePlanButton.addEventListener("click", savePlan);
-loadPlanButton.addEventListener("click", loadPlan);
-
-// Rezepte laden und Tabelle initialisieren
+// Initialisierung: Rezepte und Wochenpläne laden
 fetch(recipesUrl)
   .then((response) => response.json())
   .then((data) => {
@@ -211,4 +242,18 @@ fetch(recipesUrl)
     initializeTable();
     displayRecipeList();
   })
-  .catch((error) => console.error("Fehler beim Laden der Rezepte:", error));
+  .catch((error) => console.error("Error loading recipes:", error));
+
+fetch(plansUrl)
+  .then((response) => response.json())
+  .then((plans) => {
+    savedPlans = plans;
+    loadPlanSelect.innerHTML = '<option value="">Select a saved plan</option>';
+    Object.keys(savedPlans).forEach((planName) => {
+      const option = document.createElement("option");
+      option.value = planName;
+      option.textContent = planName;
+      loadPlanSelect.appendChild(option);
+    });
+  })
+  .catch((error) => console.error("Error loading plans:", error));

@@ -96,80 +96,59 @@ function updateTableRow(dayIndex, row, meals) {
   remainingCaloriesCell.className = remainingCalories >= 0 ? "green" : "red";
 }
 
-// Funktion: Rezeptliste anzeigen
-function displayRecipeList() {
-  recipeList.innerHTML = "";
-
-  if (recipes.length === 0) {
-    recipeList.innerHTML = "<p>No recipes available.</p>";
-    return;
-  }
-
-  const ul = document.createElement("ul");
-  recipes.forEach((recipe) => {
-    const li = document.createElement("li");
-    li.textContent = `${recipe.name} (${recipe.calories} kcal) - Suitable for: ${recipe.mealTypes.join(", ")}`;
-
-    const deleteButton = document.createElement("button");
-    deleteButton.textContent = "Delete";
-    deleteButton.addEventListener("click", () => deleteRecipe(recipe.id));
-
-    li.appendChild(deleteButton);
-    ul.appendChild(li);
-  });
-
-  recipeList.appendChild(ul);
+// Funktion: Rezepte laden
+function loadRecipes() {
+  fetch(recipesUrl)
+    .then((response) => response.json())
+    .then((data) => {
+      recipes = data;
+      initializeTable();
+      displayRecipeList();
+    })
+    .catch((error) => console.error("Fehler beim Laden der Rezepte:", error));
 }
 
-// Funktion: Rezept hinzufügen
-recipeForm.addEventListener("submit", (e) => {
-  e.preventDefault();
+// Funktion: Wochenpläne laden
+function loadPlans() {
+  fetch(plansUrl)
+    .then((response) => response.json())
+    .then((plans) => {
+      savedPlans = plans;
+      loadPlanSelect.innerHTML = '<option value="">Select a saved plan</option>';
+      Object.keys(savedPlans).forEach((planName) => {
+        const option = document.createElement("option");
+        option.value = planName;
+        option.textContent = planName;
+        loadPlanSelect.appendChild(option);
+      });
+    })
+    .catch((error) => console.error("Fehler beim Laden der Pläne:", error));
+}
 
-  const name = recipeNameInput.value.trim();
-  const calories = parseInt(recipeCaloriesInput.value);
-  const mealTypes = Array.from(mealTypeCheckboxes)
-    .filter((checkbox) => checkbox.checked)
-    .map((checkbox) => checkbox.value);
-
-  if (!name || isNaN(calories) || mealTypes.length === 0) {
-    alert("Please fill out all fields.");
+// Funktion: Wochenplan laden
+function loadPlan() {
+  const selectedPlanName = loadPlanSelect.value;
+  if (!selectedPlanName) {
+    alert("Please select a plan to load.");
     return;
   }
 
-  const newRecipe = { name, calories, mealTypes };
+  const plan = savedPlans[selectedPlanName];
+  if (!plan) {
+    alert("Plan not found.");
+    return;
+  }
 
-  fetch(recipesUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(newRecipe),
-  })
-    .then((response) => response.json())
-    .then((savedRecipe) => {
-      recipes.push(savedRecipe);
-      displayRecipeList();
-      tableBody.querySelectorAll("select").forEach((select, index) => {
-        const mealType = ["breakfast", "lunch", "dinner", "snack"][index % 4];
-        updateDropdown(select, mealType);
-      });
-      recipeForm.reset();
-    })
-    .catch((error) => console.error("Error adding recipe:", error));
-});
+  plan.forEach((meals, rowIndex) => {
+    const row = tableBody.querySelectorAll("tr")[rowIndex];
+    ["breakfast", "lunch", "dinner", "snack"].forEach((mealType, index) => {
+      const select = row.querySelectorAll("select")[index];
+      const recipeId = meals[mealType];
+      select.value = recipeId || "";
+    });
 
-// Funktion: Rezept löschen
-function deleteRecipe(recipeId) {
-  fetch(`${recipesUrl}/${recipeId}`, {
-    method: "DELETE",
-  })
-    .then(() => {
-      recipes = recipes.filter((recipe) => recipe.id !== recipeId);
-      displayRecipeList();
-      tableBody.querySelectorAll("select").forEach((select, index) => {
-        const mealType = ["breakfast", "lunch", "dinner", "snack"][index % 4];
-        updateDropdown(select, mealType);
-      });
-    })
-    .catch((error) => console.error("Error deleting recipe:", error));
+    updateTableRow(rowIndex, row, meals);
+  });
 }
 
 // Funktion: Wochenplan speichern
@@ -197,63 +176,16 @@ function savePlan() {
     body: JSON.stringify({ name: planName, plan }),
   })
     .then(() => {
-      const option = document.createElement("option");
-      option.value = planName;
-      option.textContent = planName;
-      loadPlanSelect.appendChild(option);
+      alert("Plan saved successfully!");
+      loadPlans();
     })
-    .catch((error) => console.error("Error saving plan:", error));
+    .catch((error) => console.error("Fehler beim Speichern des Plans:", error));
 }
 
-// Funktion: Wochenplan laden
-function loadPlan() {
-  const selectedPlanName = loadPlanSelect.value;
-  if (!selectedPlanName) {
-    alert("Please select a plan to load.");
-    return;
-  }
+// Event-Listener
+savePlanButton.addEventListener("click", savePlan);
+loadPlanButton.addEventListener("click", loadPlan);
 
-  fetch(plansUrl)
-    .then((response) => response.json())
-    .then((plans) => {
-      const plan = plans[selectedPlanName];
-      if (!plan) {
-        alert("Plan not found.");
-        return;
-      }
-
-      plan.forEach((meals, rowIndex) => {
-        const row = tableBody.querySelectorAll("tr")[rowIndex];
-        ["breakfast", "lunch", "dinner", "snack"].forEach((mealType, index) => {
-          const select = row.querySelectorAll("select")[index];
-          const recipeId = meals[mealType];
-          select.value = recipeId || "";
-        });
-      });
-    })
-    .catch((error) => console.error("Error loading plan:", error));
-}
-
-// Initialisierung: Rezepte und Wochenpläne laden
-fetch(recipesUrl)
-  .then((response) => response.json())
-  .then((data) => {
-    recipes = data;
-    initializeTable();
-    displayRecipeList();
-  })
-  .catch((error) => console.error("Error loading recipes:", error));
-
-fetch(plansUrl)
-  .then((response) => response.json())
-  .then((plans) => {
-    savedPlans = plans;
-    loadPlanSelect.innerHTML = '<option value="">Select a saved plan</option>';
-    Object.keys(savedPlans).forEach((planName) => {
-      const option = document.createElement("option");
-      option.value = planName;
-      option.textContent = planName;
-      loadPlanSelect.appendChild(option);
-    });
-  })
-  .catch((error) => console.error("Error loading plans:", error));
+// Initialisierung
+loadRecipes();
+loadPlans();

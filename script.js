@@ -62,7 +62,7 @@ function initializeTable() {
         const selectedRecipe = recipes.find((r) => r.id === recipeId) || null;
 
         selectedMeals[dayIndex][mealType] = selectedRecipe;
-        calculateDayCalories(dayIndex, row, selectedMeals[dayIndex]);
+        updateTableRow(dayIndex, row, selectedMeals[dayIndex]);
       });
 
       mealCell.appendChild(select);
@@ -77,23 +77,28 @@ function initializeTable() {
 
     tableBody.appendChild(row);
 
-    calculateDayCalories(dayIndex, row, selectedMeals[dayIndex]);
+    updateTableRow(dayIndex, row, selectedMeals[dayIndex]);
   });
 }
 
-// Funktion: Tageskalorien berechnen
-function calculateDayCalories(dayIndex, row, meals) {
-  console.log(`--- Calculating Calories for Day ${dayIndex + 1} ---`);
+// Funktion: Tabelle für einen Tag aktualisieren
+function updateTableRow(dayIndex, row, meals) {
+  console.log(`--- Update Row for Day ${dayIndex + 1} ---`);
+  console.log("Meals Data:", meals);
 
   let totalCalories = 0;
 
   Object.values(meals).forEach((meal) => {
     if (meal) {
+      console.log(`Adding calories from meal: ${meal.name}, ${meal.calories} kcal`);
       totalCalories += meal.calories;
     }
   });
 
+  console.log(`Total Calories for Day ${dayIndex + 1}: ${totalCalories}`);
+
   const remainingCalories = DAILY_LIMIT - totalCalories;
+  console.log(`Remaining Calories for Day ${dayIndex + 1}: ${remainingCalories}`);
 
   const totalCaloriesCell = row.cells[5];
   const remainingCaloriesCell = row.cells[6];
@@ -103,7 +108,7 @@ function calculateDayCalories(dayIndex, row, meals) {
 
   remainingCaloriesCell.className = remainingCalories >= 0 ? "green" : "red";
 
-  console.log(`Total Calories: ${totalCalories}, Remaining Calories: ${remainingCalories}`);
+  console.log("--- End Update Row ---");
 }
 
 // Funktion: Rezepte laden und anzeigen
@@ -241,7 +246,7 @@ function loadPlan() {
       }
     });
 
-    calculateDayCalories(rowIndex, row, meals);
+    updateTableRow(rowIndex, row, meals);
   });
 }
 

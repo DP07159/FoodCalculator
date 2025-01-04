@@ -36,7 +36,7 @@ function resetTable() {
 
 // Funktion: Tabelle initialisieren
 function initializeTable() {
-  const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+  const days = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
   const selectedMeals = Array.from({ length: 7 }, () => ({
     breakfast: null,
     lunch: null,
@@ -163,7 +163,7 @@ function displayRecipeList() {
     li.textContent = `${recipe.name} (${recipe.calories} kcal) - Suitable for: ${recipe.mealTypes.join(", ")}`;
 
     const deleteButton = document.createElement("button");
-    deleteButton.textContent = "Delete";
+    deleteButton.textContent = "Löschen";
     deleteButton.addEventListener("click", () => deleteRecipe(recipe.id));
 
     li.appendChild(deleteButton);

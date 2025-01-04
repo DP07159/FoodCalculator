@@ -57,13 +57,13 @@ function initializeTable() {
 
       updateDropdown(select, mealType);
 
-      // Event-Listener für Dropdown-Änderungen
+      // Event-Listener für Änderungen im Dropdown
       select.addEventListener("change", (e) => {
         const recipeId = parseInt(e.target.value);
         const selectedRecipe = recipes.find((r) => r.id === recipeId) || null;
 
         selectedMeals[dayIndex][mealType] = selectedRecipe;
-        calculateCalories(selectedMeals, row);
+        calculateCalories(dayIndex, selectedMeals[dayIndex], row);
       });
 
       mealCell.appendChild(select);
@@ -78,21 +78,28 @@ function initializeTable() {
 
     tableBody.appendChild(row);
 
-    calculateCalories(selectedMeals, row);
+    calculateCalories(dayIndex, selectedMeals[dayIndex], row);
   });
 }
 
 // Funktion: Kalorien live berechnen
-function calculateCalories(selectedMeals, row) {
+function calculateCalories(dayIndex, meals, row) {
+  console.log(`--- Calculate Calories for Day ${dayIndex + 1} ---`);
+  console.log("Meals Data:", meals);
+
   let totalCalories = 0;
 
-  Object.values(selectedMeals).forEach((meal) => {
+  Object.values(meals).forEach((meal) => {
     if (meal) {
+      console.log(`Adding calories from meal: ${meal.name}, ${meal.calories} kcal`);
       totalCalories += meal.calories;
     }
   });
 
+  console.log(`Total Calories for Day ${dayIndex + 1}: ${totalCalories}`);
+
   const remainingCalories = DAILY_LIMIT - totalCalories;
+  console.log(`Remaining Calories for Day ${dayIndex + 1}: ${remainingCalories}`);
 
   const totalCaloriesCell = row.cells[5];
   const remainingCaloriesCell = row.cells[6];
@@ -101,6 +108,8 @@ function calculateCalories(selectedMeals, row) {
   remainingCaloriesCell.textContent = `${remainingCalories} kcal`;
 
   remainingCaloriesCell.className = remainingCalories >= 0 ? "green" : "red";
+
+  console.log("--- End Calculate Calories ---");
 }
 
 // Funktion: Rezepte laden und anzeigen
@@ -193,7 +202,7 @@ function loadPlan() {
       }
     });
 
-    calculateCalories(meals, row);
+    calculateCalories(rowIndex, meals, row);
   });
 }
 

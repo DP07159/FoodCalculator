@@ -83,15 +83,22 @@ function initializeTable() {
 
 // Funktion: Tabelle für einen Tag aktualisieren
 function updateTableRow(dayIndex, row, meals) {
+  console.log(`--- Update Row for Day ${dayIndex + 1} ---`);
+  console.log("Meals Data:", meals);
+
   let totalCalories = 0;
 
   Object.values(meals).forEach((meal) => {
     if (meal) {
+      console.log(`Adding calories from meal: ${meal.name}, ${meal.calories} kcal`);
       totalCalories += meal.calories;
     }
   });
 
+  console.log(`Total Calories for Day ${dayIndex + 1}: ${totalCalories}`);
+
   const remainingCalories = DAILY_LIMIT - totalCalories;
+  console.log(`Remaining Calories for Day ${dayIndex + 1}: ${remainingCalories}`);
 
   const totalCaloriesCell = row.cells[5];
   const remainingCaloriesCell = row.cells[6];
@@ -100,6 +107,8 @@ function updateTableRow(dayIndex, row, meals) {
   remainingCaloriesCell.textContent = `${remainingCalories} kcal`;
 
   remainingCaloriesCell.className = remainingCalories >= 0 ? "green" : "red";
+
+  console.log("--- End Update Row ---");
 }
 
 // Funktion: Rezepte laden und anzeigen

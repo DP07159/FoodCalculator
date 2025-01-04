@@ -11,7 +11,9 @@ const recipeCaloriesInput = document.getElementById("recipe-calories");
 const mealTypeCheckboxes = document.querySelectorAll("#meal-type-checkboxes input");
 const recipeList = document.getElementById("recipe-list");
 const planNameInput = document.getElementById("plan-name");
+const savePlanButton = document.getElementById("save-plan");
 const loadPlanSelect = document.getElementById("load-plan");
+const loadPlanButton = document.getElementById("load-plan-button");
 
 // Funktion: Dropdowns aktualisieren
 function updateDropdown(select, mealType) {
@@ -220,14 +222,11 @@ function loadPlan() {
     ["breakfast", "lunch", "dinner", "snack"].forEach((mealType, index) => {
       const select = row.querySelectorAll("select")[index];
       const recipeId = meals[mealType];
-      const recipe = recipes.find((r) => r.id === recipeId);
 
-      if (recipe) {
-        select.value = recipeId;
-        meals[mealType] = recipe;
+      if (!recipeId) {
+        select.value = ""; // Leer lassen, wenn keine Auswahl gespeichert war
       } else {
-        select.value = ""; // Für nicht mehr vorhandene Rezepte
-        meals[mealType] = null;
+        select.value = recipeId;
       }
     });
 
@@ -267,8 +266,8 @@ function savePlan() {
 }
 
 // Event-Listener
-document.getElementById("save-plan").addEventListener("click", savePlan);
-document.getElementById("load-plan").addEventListener("click", loadPlan);
+savePlanButton.addEventListener("click", savePlan);
+loadPlanButton.addEventListener("click", loadPlan);
 
 // Initialisierung
 loadRecipes();

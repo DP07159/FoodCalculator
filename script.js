@@ -223,12 +223,11 @@ function loadPlan() {
       const select = row.querySelectorAll("select")[index];
       const recipeId = meals[mealType];
 
-      if (!recipeId || !recipes.find((r) => r.id === recipeId)) {
-        select.innerHTML = '<option value="">Not Available</option>';
-        return;
+      if (!recipeId) {
+        select.value = ""; // Leer lassen, wenn keine Auswahl gespeichert war
+      } else {
+        select.value = recipeId;
       }
-
-      select.value = recipeId;
     });
 
     updateTableRow(rowIndex, row, meals);

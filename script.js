@@ -227,6 +227,12 @@ function loadPlan() {
         select.value = ""; // Leer lassen, wenn keine Auswahl gespeichert war
       } else {
         select.value = recipeId;
+
+        // Rezeptdaten in die Dropdowns laden und Kalorien aktualisieren
+        const recipe = recipes.find((r) => r.id === recipeId);
+        if (recipe) {
+          meals[mealType] = recipe;
+        }
       }
     });
 
@@ -260,6 +266,7 @@ function savePlan() {
   })
     .then(() => {
       alert("Plan saved successfully!");
+      planNameInput.value = ""; // Eingabefeld nach Speichern leeren
       loadPlans();
     })
     .catch((error) => console.error("Fehler beim Speichern des Plans:", error));

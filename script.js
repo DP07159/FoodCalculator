@@ -1,5 +1,5 @@
 const recipesUrl = "https://foodcalculator-server.onrender.com/recipes"; // Backend-URL für Rezepte
-const plansUrl = "https://<deine-render-url>/plans"; // Backend-URL für Wochenpläne
+const plansUrl = "https://foodcalculator-server.onrender.com/plans"; // Backend-URL für Wochenpläne
 const DAILY_LIMIT = 1500;
 
 let recipes = []; // Rezepte werden hier gespeichert
@@ -56,6 +56,7 @@ function initializeTable() {
         const selectedRecipe = recipes.find((r) => r.id === recipeId) || null;
 
         selectedMeals[dayIndex][mealType] = selectedRecipe;
+        updateTableRow(dayIndex, row, selectedMeals[dayIndex]);
       });
 
       mealCell.appendChild(select);
@@ -69,7 +70,30 @@ function initializeTable() {
     row.appendChild(remainingCaloriesCell);
 
     tableBody.appendChild(row);
+
+    updateTableRow(dayIndex, row, selectedMeals[dayIndex]);
   });
+}
+
+// Funktion: Tabelle für einen Tag aktualisieren
+function updateTableRow(dayIndex, row, meals) {
+  let totalCalories = 0;
+
+  Object.values(meals).forEach((meal) => {
+    if (meal) {
+      totalCalories += meal.calories;
+    }
+  });
+
+  const remainingCalories = DAILY_LIMIT - totalCalories;
+
+  const totalCaloriesCell = row.cells[5];
+  const remainingCaloriesCell = row.cells[6];
+
+  totalCaloriesCell.textContent = `${totalCalories} kcal`;
+  remainingCaloriesCell.textContent = `${remainingCalories} kcal`;
+
+  remainingCaloriesCell.className = remainingCalories >= 0 ? "green" : "red";
 }
 
 // Funktion: Rezeptliste anzeigen
@@ -105,11 +129,15 @@ function deleteRecipe(recipeId) {
     .then(() => {
       recipes = recipes.filter((recipe) => recipe.id !== recipeId);
       displayRecipeList();
+      tableBody.querySelectorAll("select").forEach((select, index) => {
+        const mealType = ["breakfast", "lunch", "dinner", "snack"][index % 4];
+        updateDropdown(select, mealType);
+      });
     })
     .catch((error) => console.error("Fehler beim Löschen des Rezepts:", error));
 }
 
-// Wochenplan speichern
+// Funktion: Wochenplan speichern
 function savePlan() {
   const planName = planNameInput.value.trim();
   if (!planName) {
@@ -133,18 +161,16 @@ function savePlan() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name: planName, plan }),
   })
-    .then((response) => response.json())
     .then(() => {
-      alert(`Plan "${planName}" saved successfully.`);
       const option = document.createElement("option");
       option.value = planName;
       option.textContent = planName;
       loadPlanSelect.appendChild(option);
     })
-    .catch((error) => console.error("Error saving plan:", error));
+    .catch((error) => console.error("Fehler beim Speichern des Wochenplans:", error));
 }
 
-// Wochenplan laden
+// Funktion: Wochenplan laden
 function loadPlan() {
   const selectedPlanName = loadPlanSelect.value;
   if (!selectedPlanName) {
@@ -170,7 +196,7 @@ function loadPlan() {
         });
       });
     })
-    .catch((error) => console.error("Error loading plan:", error));
+    .catch((error) => console.error("Fehler beim Laden des Wochenplans:", error));
 }
 
 // Event-Listener für Plan-Buttons

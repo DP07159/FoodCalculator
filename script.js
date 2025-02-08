@@ -166,15 +166,14 @@ function displayRecipeList() {
     let mealTypesArray;
 
     try {
-      // Falls mealTypes bereits ein Array ist, nutze es direkt
-      if (Array.isArray(recipe.mealTypes)) {
-        mealTypesArray = recipe.mealTypes;
-      } else {
-        // Falls mealTypes als String gespeichert wurde, wandle es in ein Array um
+      // Falls mealTypes als String gespeichert wurde, umwandeln in ein Array
+      if (typeof recipe.mealTypes === "string") {
         mealTypesArray = JSON.parse(recipe.mealTypes);
+      } else {
+        mealTypesArray = recipe.mealTypes;
       }
 
-      // Falls das Parsen ein einzelnes Element ergibt, wandle es zu einem Array um
+      // Falls immer noch kein Array, dann zu einem Array machen
       if (!Array.isArray(mealTypesArray)) {
         mealTypesArray = [mealTypesArray];
       }

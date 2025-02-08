@@ -203,36 +203,34 @@ function displayRecipeList() {
 }
 
 // Funktion: Rezept hinzufügen
-recipeForm.addEventListener("submit", (e) => {
-  e.preventDefault();
+function addRecipe() {
+  const name = document.getElementById("recipe-name").value.trim();
+  const calories = parseInt(document.getElementById("recipe-calories").value, 10);
+  const selectedMeals = Array.from(document.querySelectorAll('input[name="meal-type"]:checked'))
+                            .map(input => input.value);
 
-  const name = recipeNameInput.value.trim();
-  const calories = parseInt(recipeCaloriesInput.value);
-  const mealTypes = Array.from(mealTypeCheckboxes)
-    .filter((checkbox) => checkbox.checked)
-    .map((checkbox) => checkbox.value);
-
-  if (!name || isNaN(calories) || mealTypes.length === 0) {
-    alert("Bitte alle Felder ausfüllen.");
+  if (!name || isNaN(calories) || selectedMeals.length === 0) {
+    alert("Please enter a valid name, calories, and at least one meal type.");
     return;
   }
 
-  const newRecipe = { name, calories, mealTypes };
+  const newRecipe = { name, calories, mealTypes: selectedMeals };
 
-  fetch(recipesUrl, {
+  fetch("https://foodcalculator-server.onrender.com/recipes", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify(newRecipe),
   })
-    .then((response) => response.json())
-    .then((savedRecipe) => {
-      recipes.push(savedRecipe);
-      displayRecipeList();
-      resetTable();
-      recipeForm.reset();
+    .then(response => response.json())
+    .then((data) => {
+      console.log("✅ Rezept hinzugefügt:", data);
+      recipes.push(data); // Füge das neue Rezept in die Liste ein
+      displayRecipeList(); // Rezeptliste sofort aktualisieren
     })
-    .catch((error) => console.error("Fehler beim Hinzufügen des Rezepts:", error));
-});
+    .catch(error => console.error("❌ Fehler beim Hinzufügen des Rezepts:", error));
+}
 
 // Funktion: Rezept löschen
 function deleteRecipe(recipeId) {

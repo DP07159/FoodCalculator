@@ -151,7 +151,7 @@ function loadRecipes() {
 // Funktion: Rezeptliste anzeigen
 function displayRecipeList() {
   const recipeList = document.getElementById("recipe-list");
-  recipeList.innerHTML = ""; // Liste zurücksetzen
+  recipeList.innerHTML = ""; // Liste zuerst leeren
 
   if (!recipes || recipes.length === 0) {
     console.log("❌ Keine Rezepte gefunden.");
@@ -159,48 +159,44 @@ function displayRecipeList() {
     return;
   }
 
-  console.log("✅ Rezepte werden angezeigt:", recipes); // Debugging-Ausgabe
+  console.log("✅ Rezepte erfolgreich geladen:", recipes); // Debugging
 
   const ul = document.createElement("ul");
+  
   recipes.forEach((recipe) => {
     let mealTypesArray;
 
     try {
-      console.log("🔍 Ursprünglicher Wert von mealTypes:", recipe.mealTypes);
+      // Falls `mealTypes` ein String ist, in ein echtes Array umwandeln
+      mealTypesArray = typeof recipe.mealTypes === "string" ? JSON.parse(recipe.mealTypes) : recipe.mealTypes;
 
-      // **1️⃣ Falls mealTypes ein String ist, in ein Array umwandeln**
-      if (typeof recipe.mealTypes === "string") {
-        mealTypesArray = JSON.parse(recipe.mealTypes);
-        console.log("✅ Geparst zu:", mealTypesArray);
-      } else {
-        mealTypesArray = recipe.mealTypes;
-      }
-
-      // **2️⃣ Falls das Ergebnis immer noch kein Array ist, umwandeln**
+      // Falls mealTypes noch kein Array ist, mache es zu einem
       if (!Array.isArray(mealTypesArray)) {
-        console.log("⚠ mealTypes war kein Array, umgewandelt in ein Array.");
         mealTypesArray = [mealTypesArray];
-      }
-
-      // **3️⃣ Falls mealTypes leer ist, Standardwert setzen**
-      if (mealTypesArray.length === 0) {
-        console.log("⚠ mealTypes war leer, setze 'Unknown'.");
-        mealTypesArray = ["Unknown"];
       }
     } catch (error) {
       console.error("❌ Fehler beim Parsen von mealTypes:", error, "Wert:", recipe.mealTypes);
       mealTypesArray = ["Unknown"]; // Fallback-Wert
     }
 
-    console.log("🎯 Endgültiger Wert von mealTypes:", mealTypesArray);
-
+    // **Neues Listenelement für das Rezept**
     const li = document.createElement("li");
-    li.textContent = `${recipe.name} (${recipe.calories} kcal) - Suitable for: ${mealTypesArray.join(", ")}`;
+    li.innerHTML = `<strong>${recipe.name}</strong> (${recipe.calories} kcal) - Suitable for: ${mealTypesArray.join(", ")}`;
 
+    // **Löschen-Button**
     const deleteButton = document.createElement("button");
     deleteButton.textContent = "Delete";
+    deleteButton.style.marginLeft = "10px"; // Etwas Abstand zum Text
+    deleteButton.style.backgroundColor = "red";
+    deleteButton.style.color = "white";
+    deleteButton.style.border = "none";
+    deleteButton.style.padding = "5px 10px";
+    deleteButton.style.cursor = "pointer";
+
+    // **Klick-Event für das Löschen des Rezepts**
     deleteButton.addEventListener("click", () => deleteRecipe(recipe.id));
 
+    // **Button ins Listenelement einfügen**
     li.appendChild(deleteButton);
     ul.appendChild(li);
   });
@@ -242,15 +238,22 @@ recipeForm.addEventListener("submit", (e) => {
 
 // Funktion: Rezept löschen
 function deleteRecipe(recipeId) {
-  fetch(`${recipesUrl}/${recipeId}`, {
-    method: "DELETE",
+  if (!confirm("Are you sure you want to delete this recipe?")) {
+    return;
+  }
+
+  fetch(`https://foodcalculator-server.onrender.com/recipes/${recipeId}`, {
+    method: "DELETE"
   })
-    .then(() => {
-      recipes = recipes.filter((recipe) => recipe.id !== recipeId);
-      displayRecipeList();
-      resetTable();
+    .then((response) => {
+      if (response.ok) {
+        console.log(`✅ Rezept mit ID ${recipeId} gelöscht.`);
+        loadRecipes(); // **Liste neu laden, um das gelöschte Rezept zu entfernen**
+      } else {
+        console.error("❌ Fehler beim Löschen des Rezepts:", response.statusText);
+      }
     })
-    .catch((error) => console.error("Fehler beim Löschen des Rezepts:", error));
+    .catch((error) => console.error("❌ Netzwerkfehler beim Löschen des Rezepts:", error));
 }
 
 // Funktion: Wochenpläne laden

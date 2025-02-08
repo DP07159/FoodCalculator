@@ -157,7 +157,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // Funktion: Rezeptbuch anzeigen
 function displayRecipeBook() {
   const recipeBook = document.getElementById("recipe-book");
-  recipeBook.innerHTML = ""; // Liste zurücksetzen
+  recipeBook.innerHTML = ""; // Liste zuerst leeren
 
   if (!recipes || recipes.length === 0) {
     console.log("❌ Keine Rezepte im Rezeptbuch.");
@@ -170,28 +170,9 @@ function displayRecipeBook() {
   const ul = document.createElement("ul");
 
   recipes.forEach((recipe) => {
-    let mealTypesArray = [];
-
-    try {
-      // Falls `mealTypes` als String gespeichert ist, in ein Array umwandeln
-      if (typeof recipe.mealTypes === "string") {
-        mealTypesArray = JSON.parse(recipe.mealTypes);
-      } else {
-        mealTypesArray = recipe.mealTypes || [];
-      }
-
-      // Falls `mealTypes` trotzdem kein Array ist, mache es zu einem
-      if (!Array.isArray(mealTypesArray)) {
-        mealTypesArray = [mealTypesArray];
-      }
-    } catch (error) {
-      console.error("❌ Fehler beim Parsen von mealTypes:", error, "Wert:", recipe.mealTypes);
-      mealTypesArray = ["Unknown"];
-    }
-
     // **Rezept-Element für das Rezeptbuch**
     const li = document.createElement("li");
-    li.innerHTML = `<strong>${recipe.name}</strong> - ${recipe.calories} kcal | Geeignet für: ${mealTypesArray.join(", ")}`;
+    li.innerHTML = `<strong>${recipe.name}</strong> - ${recipe.calories} kcal | Geeignet für: ${recipe.mealTypes.join(", ")}`;
 
     ul.appendChild(li);
   });

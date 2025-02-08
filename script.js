@@ -151,7 +151,7 @@ function loadRecipes() {
 // Funktion: Rezeptliste anzeigen
 function displayRecipeList() {
   const recipeList = document.getElementById("recipe-list");
-  recipeList.innerHTML = ""; // Liste zurücksetzen
+  recipeList.innerHTML = ""; // Liste zuerst leeren
 
   if (!recipes || recipes.length === 0) {
     console.log("❌ Keine Rezepte gefunden.");
@@ -164,9 +164,26 @@ function displayRecipeList() {
   const ul = document.createElement("ul");
 
   recipes.forEach((recipe) => {
-    // **Hier muss nichts mehr umgewandelt werden – mealTypes ist jetzt ein echtes Array!**
+    let mealTypesArray;
+
+    try {
+      // **Fix: Falls `mealTypes` ein String ist, verwandle ihn in ein Array**
+      mealTypesArray = JSON.parse(recipe.mealTypes);
+      
+      // Falls `mealTypesArray` trotzdem noch kein Array ist, mache es zu einem
+      if (!Array.isArray(mealTypesArray)) {
+        mealTypesArray = [mealTypesArray];
+      }
+    } catch (error) {
+      console.error("❌ Fehler beim Parsen von mealTypes:", error, "Wert:", recipe.mealTypes);
+      mealTypesArray = ["Unknown"]; // Falls etwas schiefgeht
+    }
+
+    console.log("🎯 Endgültiger Wert von mealTypes:", mealTypesArray);
+
+    // **Neues Listenelement für das Rezept**
     const li = document.createElement("li");
-    li.innerHTML = `<strong>${recipe.name}</strong> (${recipe.calories} kcal) - Suitable for: ${recipe.mealTypes.join(", ")}`;
+    li.innerHTML = `<strong>${recipe.name}</strong> (${recipe.calories} kcal) - Suitable for: ${mealTypesArray.join(", ")}`;
 
     // **Löschen-Button**
     const deleteButton = document.createElement("button");

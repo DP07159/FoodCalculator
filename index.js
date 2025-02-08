@@ -99,11 +99,25 @@ app.get("/recipes", (req, res) => {
       return;
     }
 
-    // **Fix: mealTypes IMMER in ein Array umwandeln**
-    const formattedRecipes = rows.map((recipe) => ({
-      ...recipe,
-      mealTypes: recipe.mealTypes ? JSON.parse(recipe.mealTypes) : []
-    }));
+    // **mealTypes IMMER als echtes Array zurückgeben**
+    const formattedRecipes = rows.map((recipe) => {
+      let mealTypesArray;
+      try {
+        mealTypesArray = JSON.parse(recipe.mealTypes);
+        if (!Array.isArray(mealTypesArray)) {
+          mealTypesArray = [mealTypesArray];
+        }
+      } catch (error) {
+        mealTypesArray = ["Unknown"];
+      }
+
+      return {
+        id: recipe.id,
+        name: recipe.name,
+        calories: recipe.calories,
+        mealTypes: mealTypesArray
+      };
+    });
 
     res.json(formattedRecipes);
   });
@@ -112,17 +126,20 @@ app.get("/recipes", (req, res) => {
 // ✅ **Neues Rezept hinzufügen**
 app.post("/recipes", (req, res) => {
   const { name, calories, mealTypes } = req.body;
-  const mealTypesString = JSON.stringify(mealTypes); // Speichere als String
+
+  // **mealTypes in JSON umwandeln, falls es kein Array ist**
+  let mealTypesArray = Array.isArray(mealTypes) ? mealTypes : [mealTypes];
+  const mealTypesJSON = JSON.stringify(mealTypesArray);
 
   db.run(
     "INSERT INTO recipes (name, calories, mealTypes) VALUES (?, ?, ?)",
-    [name, calories, mealTypesString],
+    [name, calories, mealTypesJSON],
     function (err) {
       if (err) {
         res.status(500).json({ error: err.message });
         return;
       }
-      res.status(201).json({ id: this.lastID, name, calories, mealTypes });
+      res.status(201).json({ id: this.lastID, name, calories, mealTypes: mealTypesArray });
     }
   );
 });

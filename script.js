@@ -162,22 +162,30 @@ function displayRecipeList() {
   console.log("✅ Rezepte erfolgreich geladen:", recipes); // Debugging
 
   const ul = document.createElement("ul");
-  
+
   recipes.forEach((recipe) => {
     let mealTypesArray;
 
     try {
-      // Falls `mealTypes` ein String ist, in ein echtes Array umwandeln
-      mealTypesArray = typeof recipe.mealTypes === "string" ? JSON.parse(recipe.mealTypes) : recipe.mealTypes;
+      console.log("🔍 Ursprünglicher Wert von mealTypes:", recipe.mealTypes);
 
-      // Falls mealTypes noch kein Array ist, mache es zu einem
+      // **Fix: Falls `mealTypes` ein String ist, parse es in ein Array**
+      if (typeof recipe.mealTypes === "string") {
+        mealTypesArray = JSON.parse(recipe.mealTypes);
+      } else {
+        mealTypesArray = recipe.mealTypes;
+      }
+
+      // **Falls das Ergebnis kein Array ist, mache es zu einem**
       if (!Array.isArray(mealTypesArray)) {
         mealTypesArray = [mealTypesArray];
       }
     } catch (error) {
       console.error("❌ Fehler beim Parsen von mealTypes:", error, "Wert:", recipe.mealTypes);
-      mealTypesArray = ["Unknown"]; // Fallback-Wert
+      mealTypesArray = ["Unknown"]; // Falls alles fehlschlägt
     }
+
+    console.log("🎯 Endgültiger Wert von mealTypes:", mealTypesArray);
 
     // **Neues Listenelement für das Rezept**
     const li = document.createElement("li");
@@ -186,7 +194,7 @@ function displayRecipeList() {
     // **Löschen-Button**
     const deleteButton = document.createElement("button");
     deleteButton.textContent = "Delete";
-    deleteButton.style.marginLeft = "10px"; // Etwas Abstand zum Text
+    deleteButton.style.marginLeft = "10px";
     deleteButton.style.backgroundColor = "red";
     deleteButton.style.color = "white";
     deleteButton.style.border = "none";
@@ -196,7 +204,6 @@ function displayRecipeList() {
     // **Klick-Event für das Löschen des Rezepts**
     deleteButton.addEventListener("click", () => deleteRecipe(recipe.id));
 
-    // **Button ins Listenelement einfügen**
     li.appendChild(deleteButton);
     ul.appendChild(li);
   });

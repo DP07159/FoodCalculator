@@ -76,7 +76,7 @@ app.get("/recipes", (req, res) => {
 // ✅ **Neues Rezept hinzufügen**
 app.post("/recipes", (req, res) => {
   const { name, calories, mealTypes } = req.body;
-  const mealTypesString = JSON.stringify(mealTypes);
+  const mealTypesString = JSON.stringify(mealTypes); // Speichere als String
 
   db.run(
     "INSERT INTO recipes (name, calories, mealTypes) VALUES (?, ?, ?)",

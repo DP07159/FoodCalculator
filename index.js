@@ -76,7 +76,7 @@ app.post("/plans", (req, res) => {
 
     fs.writeFile(PLANS_FILE, JSON.stringify(plans, null, 2), (err) => {
       if (err) return res.status(500).json({ error: "Failed to save plan" });
-      res.status(201).json({ message: "Plan saved successfully" });
+      res.status(201).json({ message: "Wochenplan erfolgreich gespeichert." });
     });
   });
 });

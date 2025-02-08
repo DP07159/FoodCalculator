@@ -143,11 +143,16 @@ function loadRecipes() {
     .then((data) => {
       recipes = data;
       console.log("✅ Rezepte erfolgreich geladen:", recipes);
-      displayRecipeList();  // Aktualisiert die normale Rezeptliste
-      displayRecipeBook();  // Aktualisiert das Rezeptbuch!
+      displayRecipeList();  // Normale Rezeptliste aktualisieren
+      displayRecipeBook();  // Rezeptbuch aktualisieren!
     })
     .catch((error) => console.error("❌ Fehler beim Laden der Rezepte:", error));
 }
+
+// **Beim Start der Seite Rezepte laden**
+document.addEventListener("DOMContentLoaded", () => {
+  loadRecipes();
+});
 
 // **Beim Start der Seite Rezepte laden**
 document.addEventListener("DOMContentLoaded", () => {

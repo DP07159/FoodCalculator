@@ -161,28 +161,32 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Funktion: Rezeptbuch anzeigen
 function displayRecipeBook() {
-  const recipeBook = document.getElementById("recipe-book");
-  recipeBook.innerHTML = ""; // Liste zuerst leeren
+  fetch("https://foodcalculator-server.onrender.com/recipebook")
+    .then(response => response.json())
+    .then((data) => {
+      const recipeBook = document.getElementById("recipe-book");
+      recipeBook.innerHTML = ""; // Liste zuerst leeren
 
-  if (!recipes || recipes.length === 0) {
-    console.log("❌ Keine Rezepte im Rezeptbuch.");
-    recipeBook.innerHTML = "<p>No recipes available.</p>";
-    return;
-  }
+      if (!data || data.length === 0) {
+        console.log("❌ Keine Rezepte im Rezeptbuch.");
+        recipeBook.innerHTML = "<p>No recipes available.</p>";
+        return;
+      }
 
-  console.log("✅ Rezeptbuch wird aktualisiert:", recipes);
+      console.log("✅ Rezeptbuch erfolgreich geladen:", data);
 
-  const ul = document.createElement("ul");
+      const ul = document.createElement("ul");
 
-  recipes.forEach((recipe) => {
-    // **Rezept-Element für das Rezeptbuch**
-    const li = document.createElement("li");
-    li.innerHTML = `<strong>${recipe.name}</strong> - ${recipe.calories} kcal | Geeignet für: ${recipe.mealTypes.join(", ")}`;
+      data.forEach((recipe) => {
+        // **Rezept-Element für das Rezeptbuch**
+        const li = document.createElement("li");
+        li.innerHTML = `<strong>${recipe.name}</strong> - ${recipe.calories} kcal | Geeignet für: ${recipe.mealTypes.join(", ")}`;
+        ul.appendChild(li);
+      });
 
-    ul.appendChild(li);
-  });
-
-  recipeBook.appendChild(ul);
+      recipeBook.appendChild(ul);
+    })
+    .catch((error) => console.error("❌ Fehler beim Laden des Rezeptbuchs:", error));
 }
 
 // Funktion: Rezeptliste anzeigen
@@ -400,3 +404,6 @@ loadPlanButton.addEventListener("click", loadPlan);
 // Initialisierung
 loadRecipes();
 loadPlans();
+
+//NEUER Ansatz
+document.addEventListener("DOMContentLoaded", displayRecipeBook);

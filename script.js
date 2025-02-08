@@ -150,20 +150,35 @@ function loadRecipes() {
 
 // Funktion: Rezeptliste anzeigen
 function displayRecipeList() {
-  recipeList.innerHTML = "";
+  const recipeList = document.getElementById("recipe-list");
+  recipeList.innerHTML = ""; // Leere die Liste zuerst
 
-  if (recipes.length === 0) {
+  if (!recipes || recipes.length === 0) {
+    console.log("Keine Rezepte gefunden.");
     recipeList.innerHTML = "<p>No recipes available.</p>";
     return;
   }
 
+  console.log("Rezepte werden angezeigt:", recipes); // Debugging-Ausgabe
+
   const ul = document.createElement("ul");
   recipes.forEach((recipe) => {
+    let mealTypesArray;
+    try {
+      mealTypesArray = JSON.parse(recipe.mealTypes); // Wandelt den String in ein Array um
+      if (!Array.isArray(mealTypesArray)) {
+        mealTypesArray = [mealTypesArray]; // Falls es doch kein Array ist, mache es zu einem
+      }
+    } catch (error) {
+      console.error("Fehler beim Parsen von mealTypes:", error);
+      mealTypesArray = ["Unknown"]; // Fallback, falls etwas schiefgeht
+    }
+
     const li = document.createElement("li");
-    li.textContent = `${recipe.name} (${recipe.calories} kcal) - Geeignet als: ${recipe.mealTypes.join(", ")}`;
+    li.textContent = `${recipe.name} (${recipe.calories} kcal) - Suitable for: ${mealTypesArray.join(", ")}`;
 
     const deleteButton = document.createElement("button");
-    deleteButton.textContent = "Löschen";
+    deleteButton.textContent = "Delete";
     deleteButton.addEventListener("click", () => deleteRecipe(recipe.id));
 
     li.appendChild(deleteButton);

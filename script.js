@@ -160,7 +160,7 @@ function displayRecipeList() {
   const ul = document.createElement("ul");
   recipes.forEach((recipe) => {
     const li = document.createElement("li");
-    li.textContent = `${recipe.name} (${recipe.calories} kcal) - Suitable for: ${recipe.mealTypes.join(", ")}`;
+    li.textContent = `${recipe.name} (${recipe.calories} kcal) - Geeignet als: ${recipe.mealTypes.join(", ")}`;
 
     const deleteButton = document.createElement("button");
     deleteButton.textContent = "Löschen";
@@ -184,7 +184,7 @@ recipeForm.addEventListener("submit", (e) => {
     .map((checkbox) => checkbox.value);
 
   if (!name || isNaN(calories) || mealTypes.length === 0) {
-    alert("Please fill out all fields.");
+    alert("Bitte alle Felder ausfüllen.");
     return;
   }
 
@@ -224,7 +224,7 @@ function loadPlans() {
     .then((response) => response.json())
     .then((plans) => {
       savedPlans = plans;
-      loadPlanSelect.innerHTML = '<option value="">Select a saved plan</option>';
+      loadPlanSelect.innerHTML = '<option value="">Wähle einen Wochenplan</option>';
       Object.keys(savedPlans).forEach((planName) => {
         const option = document.createElement("option");
         option.value = planName;
@@ -239,13 +239,13 @@ function loadPlans() {
 function loadPlan() {
   const selectedPlanName = loadPlanSelect.value;
   if (!selectedPlanName) {
-    alert("Please select a plan to load.");
+    alert("Bitte wähle einen Wochenplan aus.");
     return;
   }
 
   const plan = savedPlans[selectedPlanName];
   if (!plan) {
-    alert("Plan not found.");
+    alert("Wochenplan nicht gefunden.");
     return;
   }
 
@@ -283,7 +283,7 @@ function loadPlan() {
 function savePlan() {
   const planName = planNameInput.value.trim();
   if (!planName) {
-    alert("Please enter a plan name.");
+    alert("Bitte gib einen Namen für den Wochenplan ein.");
     return;
   }
 
@@ -308,7 +308,7 @@ function savePlan() {
     body: JSON.stringify({ name: planName, plan }),
   })
     .then(() => {
-      alert("Plan saved successfully!");
+      alert("Wochenplan wurde gespeichert.");
       planNameInput.value = ""; // Eingabefeld nach Speichern leeren
       loadPlans();
     })

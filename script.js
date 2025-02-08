@@ -138,15 +138,20 @@ function recalculateTable() {
 
 // Funktion: Rezepte laden und anzeigen
 function loadRecipes() {
-  fetch(recipesUrl)
-    .then((response) => response.json())
+  fetch("https://foodcalculator-server.onrender.com/recipes")
+    .then(response => response.json())
     .then((data) => {
       recipes = data;
-      resetTable();
-      displayRecipeList();
+      console.log("✅ Rezepte erfolgreich geladen:", recipes);
+      displayRecipeList(); // Liste direkt aktualisieren
     })
-    .catch((error) => console.error("Fehler beim Laden der Rezepte:", error));
+    .catch((error) => console.error("❌ Fehler beim Laden der Rezepte:", error));
 }
+
+// **Beim Start der Seite Rezepte laden**
+document.addEventListener("DOMContentLoaded", () => {
+  loadRecipes();
+});
 
 // Funktion: Rezeptliste anzeigen
 function displayRecipeList() {

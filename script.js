@@ -169,19 +169,26 @@ function displayRecipeList() {
   const ul = document.createElement("ul");
 
   recipes.forEach((recipe) => {
-    let mealTypesArray;
+    let mealTypesArray = [];
 
-    // **MealTypes als Array umwandeln**
     try {
+      // Falls `mealTypes` immer noch ein String ist, konvertiere es in ein Array
       if (typeof recipe.mealTypes === "string") {
         mealTypesArray = JSON.parse(recipe.mealTypes);
       } else {
-        mealTypesArray = recipe.mealTypes;
+        mealTypesArray = recipe.mealTypes || [];
+      }
+      
+      // Falls mealTypes trotzdem kein Array ist, mache es zu einem
+      if (!Array.isArray(mealTypesArray)) {
+        mealTypesArray = [mealTypesArray];
       }
     } catch (error) {
       console.error("❌ Fehler beim Parsen von mealTypes:", error, "Wert:", recipe.mealTypes);
-      mealTypesArray = ["Unknown"];
+      mealTypesArray = ["Unknown"]; // Falls alles fehlschlägt
     }
+
+    console.log("🎯 Endgültiger Wert von mealTypes:", mealTypesArray);
 
     // **Rezept-Element erstellen**
     const li = document.createElement("li");

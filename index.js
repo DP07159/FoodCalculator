@@ -1,86 +1,141 @@
 const express = require("express");
-const fs = require("fs");
 const cors = require("cors");
-const app = express();
+const sqlite3 = require("sqlite3").verbose();
+const fs = require("fs");
 
+const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors());
+// 💡 **CORS-Fix: Alle Domains erlauben**
+app.use(cors({
+  origin: "*", // Erlaubt Anfragen von überall
+  methods: ["GET", "POST", "DELETE"],
+  allowedHeaders: ["Content-Type"]
+}));
+
 app.use(express.json());
 
-// Pfade zu den JSON-Dateien
-const RECIPES_FILE = __dirname + "/recipes.json";
-const PLANS_FILE = __dirname + "/plans.json";
+// 💾 **SQLite-Datenbank speichern in Render**
+const DB_PATH = "/data/database.db";
 
-// API: Rezepte abrufen
+// Sicherstellen, dass das Datenbank-Verzeichnis existiert
+if (!fs.existsSync("/data")) {
+  console.log("/data-Verzeichnis nicht gefunden – erstelle es.");
+  fs.mkdirSync("/data");
+}
+
+// Falls die Datenbank-Datei fehlt, erstelle sie
+if (!fs.existsSync(DB_PATH)) {
+  console.log("Datenbank nicht gefunden – erstelle neue Datei.");
+  fs.writeFileSync(DB_PATH, "");
+}
+
+// Verbindung zur SQLite-Datenbank
+const db = new sqlite3.Database(DB_PATH, (err) => {
+  if (err) {
+    console.error("Fehler beim Öffnen der SQLite-Datenbank:", err);
+  } else {
+    console.log("Verbunden mit SQLite-Datenbank:", DB_PATH);
+  }
+});
+
+// 🛠️ **Datenbank-Tabellen erstellen**
+db.serialize(() => {
+  db.run(
+    `CREATE TABLE IF NOT EXISTS recipes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      calories INTEGER NOT NULL,
+      mealTypes TEXT NOT NULL
+    )`
+  );
+
+  db.run(
+    `CREATE TABLE IF NOT EXISTS plans (
+      name TEXT PRIMARY KEY,
+      data TEXT NOT NULL
+    )`
+  );
+
+  console.log("Tabellen wurden überprüft und erstellt.");
+});
+
+// ✅ **Rezepte abrufen**
 app.get("/recipes", (req, res) => {
-  fs.readFile(RECIPES_FILE, (err, data) => {
-    if (err) return res.status(500).json({ error: "Failed to load recipes" });
-    res.json(JSON.parse(data));
+  db.all("SELECT * FROM recipes", [], (err, rows) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(rows);
   });
 });
 
-// API: Neues Rezept hinzufügen
+// ✅ **Neues Rezept hinzufügen**
 app.post("/recipes", (req, res) => {
-  const newRecipe = req.body;
+  const { name, calories, mealTypes } = req.body;
+  const mealTypesString = JSON.stringify(mealTypes);
 
-  fs.readFile(RECIPES_FILE, (err, data) => {
-    if (err) return res.status(500).json({ error: "Failed to load recipes" });
-
-    const recipes = JSON.parse(data);
-    newRecipe.id = recipes.length ? recipes[recipes.length - 1].id + 1 : 1;
-    recipes.push(newRecipe);
-
-    fs.writeFile(RECIPES_FILE, JSON.stringify(recipes, null, 2), (err) => {
-      if (err) return res.status(500).json({ error: "Failed to save recipe" });
-      res.json(newRecipe);
-    });
-  });
+  db.run(
+    "INSERT INTO recipes (name, calories, mealTypes) VALUES (?, ?, ?)",
+    [name, calories, mealTypesString],
+    function (err) {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      res.status(201).json({ id: this.lastID, name, calories, mealTypes });
+    }
+  );
 });
 
-// API: Rezept löschen
+// ✅ **Rezept löschen**
 app.delete("/recipes/:id", (req, res) => {
-  const recipeId = parseInt(req.params.id);
+  const recipeId = req.params.id;
 
-  fs.readFile(RECIPES_FILE, (err, data) => {
-    if (err) return res.status(500).json({ error: "Failed to load recipes" });
-
-    const recipes = JSON.parse(data);
-    const updatedRecipes = recipes.filter((recipe) => recipe.id !== recipeId);
-
-    fs.writeFile(RECIPES_FILE, JSON.stringify(updatedRecipes, null, 2), (err) => {
-      if (err) return res.status(500).json({ error: "Failed to delete recipe" });
-      res.status(204).end();
-    });
+  db.run("DELETE FROM recipes WHERE id = ?", recipeId, function (err) {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.status(204).send();
   });
 });
 
-// API: Wochenpläne abrufen
+// ✅ **Pläne abrufen**
 app.get("/plans", (req, res) => {
-  fs.readFile(PLANS_FILE, (err, data) => {
-    if (err) return res.status(500).json({ error: "Failed to load plans" });
-    res.json(JSON.parse(data));
+  db.all("SELECT * FROM plans", [], (err, rows) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    const plans = {};
+    rows.forEach((row) => {
+      plans[row.name] = JSON.parse(row.data);
+    });
+    res.json(plans);
   });
 });
 
-// API: Neuen Wochenplan speichern
+// ✅ **Plan speichern**
 app.post("/plans", (req, res) => {
   const { name, plan } = req.body;
+  const planString = JSON.stringify(plan);
 
-  fs.readFile(PLANS_FILE, (err, data) => {
-    if (err) return res.status(500).json({ error: "Failed to load plans" });
-
-    const plans = JSON.parse(data);
-    plans[name] = plan;
-
-    fs.writeFile(PLANS_FILE, JSON.stringify(plans, null, 2), (err) => {
-      if (err) return res.status(500).json({ error: "Failed to save plan" });
-      res.status(201).json({ message: "Wochenplan erfolgreich gespeichert." });
-    });
-  });
+  db.run(
+    "INSERT OR REPLACE INTO plans (name, data) VALUES (?, ?)",
+    [name, planString],
+    function (err) {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      res.status(201).send();
+    }
+  );
 });
 
+// ✅ **Starte den Server**
 app.listen(PORT, () => {
-  console.log(`Backend running on http://localhost:${PORT}`);
+  console.log(`Server läuft auf http://localhost:${PORT}`);
 });

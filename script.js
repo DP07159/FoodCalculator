@@ -143,7 +143,8 @@ function loadRecipes() {
     .then((data) => {
       recipes = data;
       console.log("✅ Rezepte erfolgreich geladen:", recipes);
-      displayRecipeList(); // Liste direkt aktualisieren
+      displayRecipeList();  // Aktualisiert die normale Rezeptliste
+      displayRecipeBook();  // Aktualisiert das Rezeptbuch!
     })
     .catch((error) => console.error("❌ Fehler beim Laden der Rezepte:", error));
 }

@@ -166,21 +166,27 @@ function displayRecipeList() {
     let mealTypesArray;
 
     try {
-      // Falls mealTypes als String gespeichert wurde, umwandeln in ein Array
+      console.log("🔍 Ursprünglicher Wert von mealTypes:", recipe.mealTypes);
+
+      // Falls mealTypes ein String ist, versuche es zu parsen
       if (typeof recipe.mealTypes === "string") {
         mealTypesArray = JSON.parse(recipe.mealTypes);
+        console.log("✅ Geparst zu:", mealTypesArray);
       } else {
         mealTypesArray = recipe.mealTypes;
       }
 
-      // Falls immer noch kein Array, dann zu einem Array machen
+      // Falls das Ergebnis immer noch kein Array ist, mach es zu einem
       if (!Array.isArray(mealTypesArray)) {
+        console.log("⚠ mealTypes war kein Array, umgewandelt in ein Array.");
         mealTypesArray = [mealTypesArray];
       }
     } catch (error) {
-      console.error("Fehler beim Parsen von mealTypes:", error, "Wert:", recipe.mealTypes);
+      console.error("❌ Fehler beim Parsen von mealTypes:", error, "Wert:", recipe.mealTypes);
       mealTypesArray = ["Unknown"]; // Fallback-Wert
     }
+
+    console.log("🎯 Endgültiger Wert von mealTypes:", mealTypesArray);
 
     const li = document.createElement("li");
     li.textContent = `${recipe.name} (${recipe.calories} kcal) - Suitable for: ${mealTypesArray.join(", ")}`;

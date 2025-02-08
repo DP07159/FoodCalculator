@@ -67,9 +67,17 @@ app.get("/recipes", (req, res) => {
       res.status(500).json({ error: err.message });
       return;
     }
-    res.json(rows);
+
+    // **Fix: Stelle sicher, dass `mealTypes` als Array zurückgegeben wird**
+    const formattedRecipes = rows.map((recipe) => ({
+      ...recipe,
+      mealTypes: JSON.parse(recipe.mealTypes) // Wandelt den String in ein echtes Array um
+    }));
+
+    res.json(formattedRecipes);
   });
 });
+
 
 // ✅ **Neues Rezept hinzufügen**
 app.post("/recipes", (req, res) => {

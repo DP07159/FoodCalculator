@@ -164,9 +164,9 @@ function displayRecipeList() {
   const ul = document.createElement("ul");
 
   recipes.forEach((recipe) => {
-    let mealTypesArray = [];
+    let mealTypesArray;
 
-    // **MealTypes sauber als Array umwandeln**
+    // **MealTypes als Array umwandeln**
     try {
       if (typeof recipe.mealTypes === "string") {
         mealTypesArray = JSON.parse(recipe.mealTypes);

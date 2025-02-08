@@ -68,16 +68,10 @@ app.get("/recipes", (req, res) => {
       return;
     }
 
-    // **Fix: Stelle sicher, dass `mealTypes` als Array zurückgegeben wird**
-    const formattedRecipes = rows.map((recipe) => ({
-      ...recipe,
-      mealTypes: JSON.parse(recipe.mealTypes) // Wandelt den String in ein echtes Array um
-    }));
-
-    res.json(formattedRecipes);
+    // **Fix: Gebe mealTypes IMMER als String zurück, genau wie früher!**
+    res.json(rows);
   });
 });
-
 
 // ✅ **Neues Rezept hinzufügen**
 app.post("/recipes", (req, res) => {

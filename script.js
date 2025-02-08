@@ -154,12 +154,12 @@ function displayRecipeList() {
   recipeList.innerHTML = ""; // Liste zurücksetzen
 
   if (!recipes || recipes.length === 0) {
-    console.log("Keine Rezepte gefunden.");
+    console.log("❌ Keine Rezepte gefunden.");
     recipeList.innerHTML = "<p>No recipes available.</p>";
     return;
   }
 
-  console.log("Rezepte werden angezeigt:", recipes); // Debugging-Ausgabe
+  console.log("✅ Rezepte werden angezeigt:", recipes); // Debugging-Ausgabe
 
   const ul = document.createElement("ul");
   recipes.forEach((recipe) => {
@@ -168,7 +168,7 @@ function displayRecipeList() {
     try {
       console.log("🔍 Ursprünglicher Wert von mealTypes:", recipe.mealTypes);
 
-      // Falls mealTypes ein String ist, versuche es zu parsen
+      // **1️⃣ Falls mealTypes ein String ist, in ein Array umwandeln**
       if (typeof recipe.mealTypes === "string") {
         mealTypesArray = JSON.parse(recipe.mealTypes);
         console.log("✅ Geparst zu:", mealTypesArray);
@@ -176,10 +176,16 @@ function displayRecipeList() {
         mealTypesArray = recipe.mealTypes;
       }
 
-      // Falls das Ergebnis immer noch kein Array ist, mach es zu einem
+      // **2️⃣ Falls das Ergebnis immer noch kein Array ist, umwandeln**
       if (!Array.isArray(mealTypesArray)) {
         console.log("⚠ mealTypes war kein Array, umgewandelt in ein Array.");
         mealTypesArray = [mealTypesArray];
+      }
+
+      // **3️⃣ Falls mealTypes leer ist, Standardwert setzen**
+      if (mealTypesArray.length === 0) {
+        console.log("⚠ mealTypes war leer, setze 'Unknown'.");
+        mealTypesArray = ["Unknown"];
       }
     } catch (error) {
       console.error("❌ Fehler beim Parsen von mealTypes:", error, "Wert:", recipe.mealTypes);

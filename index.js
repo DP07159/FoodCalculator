@@ -60,6 +60,37 @@ db.serialize(() => {
   console.log("Tabellen wurden überprüft und erstellt.");
 });
 
+// Neuer Versuch!!
+app.get("/recipebook", (req, res) => {
+  db.all("SELECT name, calories, mealTypes FROM recipes", [], (err, rows) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+
+    // **mealTypes IMMER in ein echtes Array umwandeln**
+    const formattedRecipes = rows.map((recipe) => {
+      let mealTypesArray;
+      try {
+        mealTypesArray = JSON.parse(recipe.mealTypes);
+        if (!Array.isArray(mealTypesArray)) {
+          mealTypesArray = [mealTypesArray];
+        }
+      } catch (error) {
+        mealTypesArray = ["Unknown"];
+      }
+
+      return {
+        name: recipe.name,
+        calories: recipe.calories,
+        mealTypes: mealTypesArray
+      };
+    });
+
+    res.json(formattedRecipes);
+  });
+});
+
 // ✅ **Rezepte abrufen**
 app.get("/recipes", (req, res) => {
   db.all("SELECT * FROM recipes", [], (err, rows) => {

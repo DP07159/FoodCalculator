@@ -47,5 +47,15 @@ function loadRecipes() {
     .catch(error => console.error("❌ Fehler beim Laden der Rezepte:", error));
 }
 
+// **Rezept löschen**
+function deleteRecipe(recipeId) {
+  fetch(`${API_URL}/recipe/${recipeId}`, { method: "DELETE" })
+    .then(() => {
+      console.log(`✅ Rezept mit ID ${recipeId} gelöscht`);
+      loadRecipes();
+    })
+    .catch(error => console.error("❌ Fehler beim Löschen:", error));
+}
+
 // **Beim Laden der Seite alle Rezepte abrufen**
 document.addEventListener("DOMContentLoaded", loadRecipes);

@@ -11,6 +11,14 @@
         <h1>Food Calculator</h1>
 
         <h2>Wochenplan</h2>
+        <input type="text" id="plan-name" placeholder="Plan-Name">
+        <button onclick="saveMealPlan()">Wochenplan speichern</button>
+        
+        <select id="plan-select">
+            <option value="">Gespeicherte Pläne laden...</option>
+        </select>
+        <button onclick="loadMealPlan()">Laden</button>
+
         <table>
             <thead>
                 <tr>
@@ -25,20 +33,6 @@
             </thead>
             <tbody id="meal-table"></tbody>
         </table>
-
-        <h2>Rezept hinzufügen</h2>
-        <input type="text" id="recipe-name" placeholder="Rezeptname">
-        <input type="number" id="recipe-calories" placeholder="Kalorien">
-        <select id="recipe-mealTypes" multiple>
-            <option value="breakfast">Frühstück</option>
-            <option value="lunch">Mittagessen</option>
-            <option value="dinner">Abendessen</option>
-            <option value="snack">Snack</option>
-        </select>
-        <button onclick="addRecipe()">Rezept hinzufügen</button>
-
-        <h2>Rezeptbuch</h2>
-        <ul id="recipe-list"></ul>
     </div>
 
     <script src="script.js"></script>

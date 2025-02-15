@@ -148,4 +148,8 @@ function deleteRecipe(recipeId) {
 }
 
 // **Beim Laden der Seite alle Rezepte abrufen**
-document.addEventListener("DOMContentLoaded", loadRecipes);
+window.onload = function () {
+  console.log("✅ Seite geladen!");
+  loadRecipes();
+};
+

@@ -236,7 +236,7 @@ function deleteRecipe(recipeId) {
 // Funktion: Rezeptliste anzeigen
 function displayRecipeList() {
   const recipeList = document.getElementById("recipe-list");
-  recipeList.innerHTML = ""; // Liste zuerst leeren
+  recipeList.innerHTML = ""; // Liste zurücksetzen
 
   if (!recipes || recipes.length === 0) {
     console.log("❌ Keine Rezepte gefunden.");
@@ -244,7 +244,7 @@ function displayRecipeList() {
     return;
   }
 
-  console.log("✅ Rezepte erfolgreich geladen:", recipes); // Debugging
+  console.log("✅ Rezepte erfolgreich geladen:", recipes);
 
   const ul = document.createElement("ul");
 
@@ -252,20 +252,20 @@ function displayRecipeList() {
     let mealTypesArray = [];
 
     try {
-      // Falls `mealTypes` immer noch ein String ist, konvertiere es in ein Array
+      // **Falls mealTypes immer noch ein String ist, umwandeln in ein Array**
       if (typeof recipe.mealTypes === "string") {
         mealTypesArray = JSON.parse(recipe.mealTypes);
       } else {
         mealTypesArray = recipe.mealTypes || [];
       }
-      
+
       // Falls mealTypes trotzdem kein Array ist, mache es zu einem
       if (!Array.isArray(mealTypesArray)) {
         mealTypesArray = [mealTypesArray];
       }
     } catch (error) {
       console.error("❌ Fehler beim Parsen von mealTypes:", error, "Wert:", recipe.mealTypes);
-      mealTypesArray = ["Unknown"]; // Falls alles fehlschlägt
+      mealTypesArray = ["Unknown"];
     }
 
     console.log("🎯 Endgültiger Wert von mealTypes:", mealTypesArray);

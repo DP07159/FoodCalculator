@@ -33,6 +33,21 @@
             </thead>
             <tbody id="meal-table"></tbody>
         </table>
+
+        <h2>Rezept hinzufügen</h2>
+        <input type="text" id="recipe-name" placeholder="Rezeptname">
+        <input type="number" id="recipe-calories" placeholder="Kalorien">
+        <select id="recipe-mealTypes" multiple>
+            <option value="breakfast">Frühstück</option>
+            <option value="lunch">Mittagessen</option>
+            <option value="dinner">Abendessen</option>
+            <option value="snack">Snack</option>
+        </select>
+        <button onclick="addRecipe()">Rezept hinzufügen</button>
+
+        <h2>Rezeptbuch</h2>
+        <ul id="recipe-list"></ul> <!-- ✅ Dieses Element war zuvor nicht da -->
+
     </div>
 
     <script src="script.js"></script>

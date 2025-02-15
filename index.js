@@ -135,7 +135,7 @@ app.get("/recipes", (req, res) => {
 app.post("/recipes", (req, res) => {
   const { name, calories, mealTypes } = req.body;
 
-  // **Sicherstellen, dass mealTypes ein Array ist**
+  // **Falls mealTypes kein Array ist, umwandeln**
   const mealTypesArray = Array.isArray(mealTypes) ? mealTypes : [mealTypes];
   const mealTypesJSON = JSON.stringify(mealTypesArray);
 

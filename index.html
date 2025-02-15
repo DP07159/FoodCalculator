@@ -1,80 +1,30 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Food Calculator</title>
-  <style>
-    /* Styles wie vorher */
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    table, th, td {
-      border: 1px solid black;
-    }
-    th, td {
-      padding: 10px;
-      text-align: center;
-    }
-    .green {
-      color: green;
-    }
-    .red {
-      color: red;
-    }
-    form {
-      margin-top: 20px;
-    }
-    form input, form select, form button {
-      margin: 5px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Calculator</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Food Calculator</h1>
-  <table>
-    <thead>
-      <tr>
-        <th>Tag</th>
-        <th>Frühstück</th>
-        <th>Mittagessen</th>
-        <th>Abendessen</th>
-        <th>Snack</th>
-        <th>Gesamtkalorien</th>
-        <th>Restkalorien</th>
-      </tr>
-    </thead>
-    <tbody id="table-body"></tbody>
-  </table>
+    <div class="container">
+        <h1>Food Calculator</h1>
 
-  <h2>Wochenpläne verwalten</h2>
-<input type="text" id="plan-name" placeholder="Name für Wochenplan" />
-<button id="save-plan">Plan speichern</button>
-<select id="load-plan">
-  <option value="">vorhandenen Plan laden</option>
-</select>
-<button id="load-plan-button">Wochenplan laden</button>
+        <h2>Rezept hinzufügen</h2>
+        <input type="text" id="recipe-name" placeholder="Rezeptname">
+        <input type="number" id="recipe-calories" placeholder="Kalorien">
+        <select id="recipe-mealTypes" multiple>
+            <option value="breakfast">Frühstück</option>
+            <option value="lunch">Mittagessen</option>
+            <option value="dinner">Abendessen</option>
+            <option value="snack">Snack</option>
+        </select>
+        <button onclick="addRecipe()">Rezept hinzufügen</button>
 
-  <h2>Rezept hinzufügen</h2>
-  <form id="recipe-form">
-    <input type="text" id="recipe-name" placeholder="Rezeptname" required />
-    <input type="number" id="recipe-calories" placeholder="Kalorien (pro Portion)" required />
-    <div id="meal-type-checkboxes">
-  <label><input type="checkbox" value="breakfast" /> Frühstück</label>
-  <label><input type="checkbox" value="lunch" /> Mittagesssen</label>
-  <label><input type="checkbox" value="dinner" /> Abendessen</label>
-  <label><input type="checkbox" value="snack" /> Snack</label>
-</div>
-    <button type="submit">Rezept hinzufügen</button>
+        <h2>Rezeptbuch</h2>
+        <ul id="recipe-list"></ul>
+    </div>
 
-  </form>
-
-  <h2>Rezeptliste</h2>
-<div id="recipe-list">
-  <!-- Dynamisch gefüllte Rezeptliste -->
-</div>
-
-  <script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>

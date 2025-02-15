@@ -139,8 +139,8 @@ app.delete("/recipe/:id", (req, res) => {
 app.post("/recipes", (req, res) => {
   const { name, calories, mealTypes } = req.body;
 
-  // **mealTypes in JSON umwandeln, falls es kein Array ist**
-  let mealTypesArray = Array.isArray(mealTypes) ? mealTypes : [mealTypes];
+  // **Sicherstellen, dass mealTypes ein Array ist**
+  const mealTypesArray = Array.isArray(mealTypes) ? mealTypes : [mealTypes];
   const mealTypesJSON = JSON.stringify(mealTypesArray);
 
   db.run(

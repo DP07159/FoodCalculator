@@ -160,11 +160,11 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function displayRecipeBook() {
-  fetch("https://foodcalculator-server.onrender.com/recipes")
+  fetch("https://foodcalculator-server.onrender.com/recipebook")
     .then(response => response.json())
     .then((data) => {
       const recipeBook = document.getElementById("recipe-book");
-      recipeBook.innerHTML = ""; // Liste zuerst leeren
+      recipeBook.innerHTML = ""; // Liste zurücksetzen
 
       if (!data || data.length === 0) {
         console.log("❌ Keine Rezepte im Rezeptbuch.");
@@ -177,24 +177,50 @@ function displayRecipeBook() {
       const ul = document.createElement("ul");
 
       data.forEach((recipe) => {
-        let mealTypesArray = [];
+        // **Rezept-Element**
+        const li = document.createElement("li");
+        li.innerHTML = `<strong>${recipe.name}</strong> - ${recipe.calories} kcal | Geeignet für: ${recipe.mealTypes.join(", ")}`;
 
-        try {
-          // Falls mealTypes immer noch ein String ist, in ein Array umwandeln
-          if (typeof recipe.mealTypes === "string") {
-            mealTypesArray = JSON.parse(recipe.mealTypes);
-          } else {
-            mealTypesArray = recipe.mealTypes || [];
-          }
+        // **Löschen-Button**
+        const deleteButton = document.createElement("button");
+        deleteButton.textContent = "Delete";
+        deleteButton.style.marginLeft = "10px";
+        deleteButton.style.backgroundColor = "red";
+        deleteButton.style.color = "white";
+        deleteButton.style.border = "none";
+        deleteButton.style.padding = "5px 10px";
+        deleteButton.style.cursor = "pointer";
 
-          // Falls mealTypes trotzdem kein Array ist, mache es zu einem
-          if (!Array.isArray(mealTypesArray)) {
-            mealTypesArray = [mealTypesArray];
-          }
-        } catch (error) {
-          console.error("❌ Fehler beim Parsen von mealTypes:", error, "Wert:", recipe.mealTypes);
-          mealTypesArray = ["Unknown"];
-        }
+        // **Klick-Event für das Löschen des Rezepts**
+        deleteButton.addEventListener("click", () => deleteRecipe(recipe.id));
+
+        li.appendChild(deleteButton);
+        ul.appendChild(li);
+      });
+
+      recipeBook.appendChild(ul);
+    })
+    .catch((error) => console.error("❌ Fehler beim Laden des Rezeptbuchs:", error));
+}
+
+function deleteRecipe(recipeId) {
+  if (!confirm("Möchtest du dieses Rezept wirklich löschen?")) {
+    return;
+  }
+
+  fetch(`https://foodcalculator-server.onrender.com/recipe/${recipeId}`, {
+    method: "DELETE",
+  })
+    .then((response) => {
+      if (response.ok) {
+        console.log(`✅ Rezept mit ID ${recipeId} gelöscht.`);
+        displayRecipeBook(); // Liste neu laden
+      } else {
+        console.error("❌ Fehler beim Löschen des Rezepts:", response.statusText);
+      }
+    })
+    .catch((error) => console.error("❌ Netzwerkfehler beim Löschen des Rezepts:", error));
+}
 
         // **Rezept-Element für das Rezeptbuch**
         const li = document.createElement("li");

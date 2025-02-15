@@ -60,15 +60,14 @@ db.serialize(() => {
   console.log("Tabellen wurden überprüft und erstellt.");
 });
 
-// Neuer Versuch!!
 app.get("/recipebook", (req, res) => {
-  db.all("SELECT name, calories, mealTypes FROM recipes", [], (err, rows) => {
+  db.all("SELECT * FROM recipes", [], (err, rows) => {
     if (err) {
       res.status(500).json({ error: err.message });
       return;
     }
 
-    // **mealTypes IMMER in ein echtes Array umwandeln**
+    // **mealTypes als echtes Array umwandeln**
     const formattedRecipes = rows.map((recipe) => {
       let mealTypesArray;
       try {
@@ -81,6 +80,7 @@ app.get("/recipebook", (req, res) => {
       }
 
       return {
+        id: recipe.id,
         name: recipe.name,
         calories: recipe.calories,
         mealTypes: mealTypesArray

@@ -1,187 +1,112 @@
 const express = require("express");
-const cors = require("cors");
 const sqlite3 = require("sqlite3").verbose();
-const fs = require("fs");
+const cors = require("cors");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// 💡 **CORS-Fix: Alle Domains erlauben**
-app.use(cors({
-  origin: "*", // Erlaubt Anfragen von überall
-  methods: ["GET", "POST", "DELETE"],
-  allowedHeaders: ["Content-Type"]
-}));
-
 app.use(express.json());
+app.use(cors());
 
-// 💾 **SQLite-Datenbank speichern in Render**
-const DB_PATH = "/data/database.db";
-
-// Sicherstellen, dass das Datenbank-Verzeichnis existiert
-if (!fs.existsSync("/data")) {
-  console.log("/data-Verzeichnis nicht gefunden – erstelle es.");
-  fs.mkdirSync("/data");
-}
-
-// Falls die Datenbank-Datei fehlt, erstelle sie
-if (!fs.existsSync(DB_PATH)) {
-  console.log("Datenbank nicht gefunden – erstelle neue Datei.");
-  fs.writeFileSync(DB_PATH, "");
-}
-
-// Verbindung zur SQLite-Datenbank
-const db = new sqlite3.Database(DB_PATH, (err) => {
-  if (err) {
-    console.error("Fehler beim Öffnen der SQLite-Datenbank:", err);
-  } else {
-    console.log("Verbunden mit SQLite-Datenbank:", DB_PATH);
-  }
+// **Datenbank initialisieren**
+const db = new sqlite3.Database("./food_calculator.sqlite", (err) => {
+  if (err) console.error("❌ Fehler beim Öffnen der Datenbank:", err.message);
+  else console.log("✅ Erfolgreich mit SQLite verbunden.");
 });
 
-// 🛠️ **Datenbank-Tabellen erstellen**
-db.serialize(() => {
-  db.run(
-    `CREATE TABLE IF NOT EXISTS recipes (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      calories INTEGER NOT NULL,
-      mealTypes TEXT NOT NULL
-    )`
-  );
+// **Rezepte-Tabelle erstellen**
+db.run(
+  `CREATE TABLE IF NOT EXISTS recipes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    calories INTEGER NOT NULL,
+    mealTypes TEXT NOT NULL
+  )`
+);
 
-  db.run(
-    `CREATE TABLE IF NOT EXISTS plans (
-      name TEXT PRIMARY KEY,
-      data TEXT NOT NULL
-    )`
-  );
+// **Wochenplan-Tabelle erstellen**
+db.run(
+  `CREATE TABLE IF NOT EXISTS meal_plans (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    data TEXT NOT NULL
+  )`
+);
 
-  console.log("Tabellen wurden überprüft und erstellt.");
-});
-
-app.get("/recipebook", (req, res) => {
-  db.all("SELECT * FROM recipes", [], (err, rows) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
-
-    // **mealTypes als echtes Array umwandeln**
-    const formattedRecipes = rows.map((recipe) => {
-      let mealTypesArray;
-      try {
-        mealTypesArray = JSON.parse(recipe.mealTypes);
-        if (!Array.isArray(mealTypesArray)) {
-          mealTypesArray = [mealTypesArray];
-        }
-      } catch (error) {
-        mealTypesArray = ["Unknown"];
-      }
-
-      return {
-        id: recipe.id,
-        name: recipe.name,
-        calories: recipe.calories,
-        mealTypes: mealTypesArray
-      };
-    });
-
-    res.json(formattedRecipes);
-  });
-});
-
-// ✅ **Rezepte abrufen**
+// **GET: Alle Rezepte abrufen**
 app.get("/recipes", (req, res) => {
   db.all("SELECT * FROM recipes", [], (err, rows) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
+    if (err) return res.status(500).json({ error: err.message });
 
-    // mealTypes sicher als Array zurückgeben
     const formattedRecipes = rows.map((recipe) => ({
       id: recipe.id,
       name: recipe.name,
       calories: recipe.calories,
-      mealTypes: recipe.mealTypes ? JSON.parse(recipe.mealTypes) : []
+      mealTypes: JSON.parse(recipe.mealTypes) || []
     }));
 
     res.json(formattedRecipes);
   });
 });
 
-// ✅ **Neues Rezept hinzufügen**
+// **POST: Neues Rezept hinzufügen**
 app.post("/recipes", (req, res) => {
   let { name, calories, mealTypes } = req.body;
 
-  // Sicherstellen, dass mealTypes ein Array ist
-  if (!Array.isArray(mealTypes)) {
-    mealTypes = [mealTypes];
-  }
-
-  const mealTypesJSON = JSON.stringify(mealTypes); // JSON-Format für SQLite
+  if (!Array.isArray(mealTypes)) mealTypes = [mealTypes];
+  const mealTypesJSON = JSON.stringify(mealTypes);
 
   db.run(
     "INSERT INTO recipes (name, calories, mealTypes) VALUES (?, ?, ?)",
     [name, calories, mealTypesJSON],
     function (err) {
-      if (err) {
-        res.status(500).json({ error: err.message });
-        return;
-      }
+      if (err) return res.status(500).json({ error: err.message });
       res.status(201).json({ id: this.lastID, name, calories, mealTypes });
     }
   );
 });
 
-// ✅ **Rezept löschen**
-app.delete("/recipes/:id", (req, res) => {
-  const recipeId = req.params.id;
-
-  db.run("DELETE FROM recipes WHERE id = ?", recipeId, function (err) {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
-    res.status(204).send();
+// **DELETE: Rezept löschen**
+app.delete("/recipe/:id", (req, res) => {
+  const { id } = req.params;
+  db.run("DELETE FROM recipes WHERE id = ?", [id], function (err) {
+    if (err) return res.status(500).json({ error: err.message });
+    res.status(200).json({ message: "Rezept gelöscht", id });
   });
 });
 
-// ✅ **Pläne abrufen**
-app.get("/plans", (req, res) => {
-  db.all("SELECT * FROM plans", [], (err, rows) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
-    const plans = {};
-    rows.forEach((row) => {
-      plans[row.name] = JSON.parse(row.data);
-    });
-    res.json(plans);
-  });
-});
-
-// ✅ **Plan speichern**
-app.post("/plans", (req, res) => {
-  const { name, plan } = req.body;
-  const planString = JSON.stringify(plan);
+// **POST: Wochenplan speichern**
+app.post("/meal_plans", (req, res) => {
+  const { name, data } = req.body;
+  const jsonData = JSON.stringify(data);
 
   db.run(
-    "INSERT OR REPLACE INTO plans (name, data) VALUES (?, ?)",
-    [name, planString],
+    "INSERT INTO meal_plans (name, data) VALUES (?, ?)",
+    [name, jsonData],
     function (err) {
-      if (err) {
-        res.status(500).json({ error: err.message });
-        return;
-      }
-      res.status(201).send();
+      if (err) return res.status(500).json({ error: err.message });
+      res.status(201).json({ id: this.lastID, name, data });
     }
   );
 });
 
-// ✅ **Starte den Server**
-app.listen(PORT, () => {
-  console.log(`Server läuft auf http://localhost:${PORT}`);
+// **GET: Alle gespeicherten Wochenpläne abrufen**
+app.get("/meal_plans", (req, res) => {
+  db.all("SELECT * FROM meal_plans", [], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
 });
+
+// **GET: Einen Wochenplan abrufen**
+app.get("/meal_plans/:id", (req, res) => {
+  const { id } = req.params;
+  db.get("SELECT * FROM meal_plans WHERE id = ?", [id], (err, row) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!row) return res.status(404).json({ error: "Plan nicht gefunden" });
+    res.json({ id: row.id, name: row.name, data: JSON.parse(row.data) });
+  });
+});
+
+// **Server starten**
+app.listen(PORT, () => console.log(`🚀 Server läuft auf Port ${PORT}`));

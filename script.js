@@ -90,6 +90,11 @@ function calculateCalories() {
 // **Rezeptbuch mit gespeicherten Rezepten anzeigen**
 function populateRecipeList() {
   const recipeList = document.getElementById("recipe-list");
+  if (!recipeList) {
+    console.error("❌ Fehler: Element mit ID 'recipe-list' nicht gefunden!");
+    return;
+  }
+
   recipeList.innerHTML = "";
 
   recipes.forEach(recipe => {
@@ -104,6 +109,7 @@ function populateRecipeList() {
     recipeList.appendChild(li);
   });
 }
+
 
 // **Rezept hinzufügen**
 function addRecipe() {

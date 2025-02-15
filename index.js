@@ -123,6 +123,18 @@ app.get("/recipes", (req, res) => {
   });
 });
 
+app.delete("/recipe/:id", (req, res) => {
+  const { id } = req.params;
+
+  db.run("DELETE FROM recipes WHERE id = ?", [id], function (err) {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.status(200).json({ message: "Rezept erfolgreich gelöscht", id });
+  });
+});
+
 // ✅ **Neues Rezept hinzufügen**
 app.post("/recipes", (req, res) => {
   const { name, calories, mealTypes } = req.body;

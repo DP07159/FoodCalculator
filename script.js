@@ -9,47 +9,59 @@ function loadRecipes() {
     .then(response => response.json())
     .then(data => {
       recipes = data;
-      populateMealTable();
+      populateMealTable();  // ✅ Jetzt existiert diese Funktion!
       loadMealPlans();
     })
     .catch(error => console.error("❌ Fehler beim Laden der Rezepte:", error));
 }
 
-// **Wochenplan speichern**
-function saveMealPlan() {
-  const name = document.getElementById("plan-name").value;
-  if (!name) return alert("Bitte einen Namen eingeben!");
+// **Mahlzeitentabelle aufbauen**
+function populateMealTable() {
+  const mealTable = document.getElementById("meal-table");
+  mealTable.innerHTML = "";
 
-  const mealData = {};
-  document.querySelectorAll("#meal-table tr").forEach(row => {
-    const day = row.children[0].textContent;
-    mealData[day] = {};
-    row.querySelectorAll("select").forEach(select => {
-      mealData[day][select.dataset.mealType] = select.value;
-    });
-  });
+  const weekDays = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
 
-  fetch(`${API_URL}/meal_plans`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, data: mealData })
-  }).then(() => loadMealPlans());
-}
+  weekDays.forEach((day) => {
+    const row = document.createElement("tr");
 
-// **Wochenplan laden**
-function loadMealPlans() {
-  fetch(`${API_URL}/meal_plans`)
-    .then(response => response.json())
-    .then(data => {
-      mealPlans = data;
-      const select = document.getElementById("plan-select");
-      select.innerHTML = `<option value="">Gespeicherte Pläne laden...</option>`;
-      data.forEach(plan => {
-        const option = document.createElement("option");
-        option.value = plan.id;
-        option.textContent = plan.name;
-        select.appendChild(option);
+    const dayCell = document.createElement("td");
+    dayCell.textContent = day;
+    row.appendChild(dayCell);
+
+    ["breakfast", "lunch", "dinner", "snack"].forEach((mealType) => {
+      const mealCell = document.createElement("td");
+      const select = document.createElement("select");
+      select.dataset.mealType = mealType;
+      select.dataset.day = day;
+      select.innerHTML = `<option value="">-- Wählen --</option>`;
+
+      recipes.forEach(recipe => {
+        if (recipe.mealTypes.includes(mealType)) {
+          const option = document.createElement("option");
+          option.value = recipe.id;
+          option.textContent = `${recipe.name} (${recipe.calories} kcal)`;
+          select.appendChild(option);
+        }
       });
+
+      select.addEventListener("change", calculateCalories);
+      mealCell.appendChild(select);
+      row.appendChild(mealCell);
     });
+
+    const totalCaloriesCell = document.createElement("td");
+    totalCaloriesCell.classList.add("total-calories");
+    totalCaloriesCell.textContent = "0 kcal";
+    row.appendChild(totalCaloriesCell);
+
+    const remainingCaloriesCell = document.createElement("td");
+    remainingCaloriesCell.classList.add("remaining-calories");
+    remainingCaloriesCell.textContent = `${DAILY_CALORIE_LIMIT} kcal`;
+    row.appendChild(remainingCaloriesCell);
+
+    mealTable.appendChild(row);
+  });
 }
-document.addEventListener("DOMContentLoaded", loadRecipes);
+
+// **Kalorien b

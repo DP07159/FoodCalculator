@@ -99,11 +99,19 @@ app.get("/recipes", (req, res) => {
       return;
     }
 
-    // **mealTypes aus JSON-String in Array konvertieren**
+    // **mealTypes sauber umwandeln – nie als String zurückgeben!**
     const formattedRecipes = rows.map((recipe) => {
       let mealTypesArray;
+
       try {
-        mealTypesArray = JSON.parse(recipe.mealTypes);
+        // Falls mealTypes als String gespeichert ist, in ein Array umwandeln
+        if (typeof recipe.mealTypes === "string") {
+          mealTypesArray = JSON.parse(recipe.mealTypes);
+        } else {
+          mealTypesArray = recipe.mealTypes;
+        }
+
+        // Falls mealTypes trotzdem kein Array ist, mache es zu einem
         if (!Array.isArray(mealTypesArray)) {
           mealTypesArray = [mealTypesArray];
         }
@@ -122,7 +130,6 @@ app.get("/recipes", (req, res) => {
     res.json(formattedRecipes);
   });
 });
-
 
 // ✅ **Neues Rezept hinzufügen**
 app.post("/recipes", (req, res) => {

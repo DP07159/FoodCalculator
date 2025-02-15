@@ -90,27 +90,6 @@ function calculateCalories() {
   });
 }
 
-// **Rezepte in der Rezeptliste anzeigen**
-function populateRecipeList() {
-  const recipeList = document.getElementById("recipe-list");
-  recipeList.innerHTML = "";
-
-  recipes.forEach(recipe => {
-    const li = document.createElement("li");
-    li.innerHTML = `<strong>${recipe.name}</strong> - ${recipe.calories} kcal | ${recipe.mealTypes.join(", ")}`;
-    
-    const deleteButton = document.createElement("button");
-    deleteButton.textContent = "Löschen";
-    deleteButton.onclick = () => deleteRecipe(recipe.id);
-
-    li.appendChild(deleteButton);
-    recipeList.appendChild(li);
-  });
-}
-
-// **Beim Laden der Seite alle Rezepte abrufen**
-document.addEventListener("DOMContentLoaded", loadRecipes);
-
 // **Rezept hinzufügen**
 function addRecipe() {
   const name = document.getElementById("recipe-name").value;

@@ -99,33 +99,13 @@ app.get("/recipes", (req, res) => {
       return;
     }
 
-    // **mealTypes sauber umwandeln – nie als String zurückgeben!**
-    const formattedRecipes = rows.map((recipe) => {
-      let mealTypesArray;
-
-      try {
-        // Falls mealTypes als String gespeichert ist, in ein Array umwandeln
-        if (typeof recipe.mealTypes === "string") {
-          mealTypesArray = JSON.parse(recipe.mealTypes);
-        } else {
-          mealTypesArray = recipe.mealTypes;
-        }
-
-        // Falls mealTypes trotzdem kein Array ist, mache es zu einem
-        if (!Array.isArray(mealTypesArray)) {
-          mealTypesArray = [mealTypesArray];
-        }
-      } catch (error) {
-        mealTypesArray = ["Unknown"];
-      }
-
-      return {
-        id: recipe.id,
-        name: recipe.name,
-        calories: recipe.calories,
-        mealTypes: mealTypesArray
-      };
-    });
+    // mealTypes sicher als Array zurückgeben
+    const formattedRecipes = rows.map((recipe) => ({
+      id: recipe.id,
+      name: recipe.name,
+      calories: recipe.calories,
+      mealTypes: recipe.mealTypes ? JSON.parse(recipe.mealTypes) : []
+    }));
 
     res.json(formattedRecipes);
   });
@@ -133,11 +113,14 @@ app.get("/recipes", (req, res) => {
 
 // ✅ **Neues Rezept hinzufügen**
 app.post("/recipes", (req, res) => {
-  const { name, calories, mealTypes } = req.body;
+  let { name, calories, mealTypes } = req.body;
 
-  // **Falls mealTypes kein Array ist, umwandeln**
-  const mealTypesArray = Array.isArray(mealTypes) ? mealTypes : [mealTypes];
-  const mealTypesJSON = JSON.stringify(mealTypesArray);
+  // Sicherstellen, dass mealTypes ein Array ist
+  if (!Array.isArray(mealTypes)) {
+    mealTypes = [mealTypes];
+  }
+
+  const mealTypesJSON = JSON.stringify(mealTypes); // JSON-Format für SQLite
 
   db.run(
     "INSERT INTO recipes (name, calories, mealTypes) VALUES (?, ?, ?)",
@@ -147,7 +130,7 @@ app.post("/recipes", (req, res) => {
         res.status(500).json({ error: err.message });
         return;
       }
-      res.status(201).json({ id: this.lastID, name, calories, mealTypes: mealTypesArray });
+      res.status(201).json({ id: this.lastID, name, calories, mealTypes });
     }
   );
 });

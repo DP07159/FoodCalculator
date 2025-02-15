@@ -4,19 +4,19 @@ const DAILY_CALORIE_LIMIT = 1500;
 const weekDays = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
 let recipes = [];
 
-// **Rezepte laden**
+// **Rezepte laden & Dropdowns füllen**
 function loadRecipes() {
   fetch(`${API_URL}/recipes`)
     .then(response => response.json())
     .then((data) => {
       recipes = data;
       populateMealTable();
-      populateRecipeList();
+      populateRecipeList(); // ✅ Diese Funktion existiert jetzt!
     })
     .catch(error => console.error("❌ Fehler beim Laden der Rezepte:", error));
 }
 
-// **Mahlzeitentabelle erstellen**
+// **Mahlzeitentabelle aufbauen**
 function populateMealTable() {
   const mealTable = document.getElementById("meal-table");
   mealTable.innerHTML = "";
@@ -51,10 +51,12 @@ function populateMealTable() {
 
     const totalCaloriesCell = document.createElement("td");
     totalCaloriesCell.classList.add("total-calories");
+    totalCaloriesCell.textContent = "0 kcal";
     row.appendChild(totalCaloriesCell);
 
     const remainingCaloriesCell = document.createElement("td");
     remainingCaloriesCell.classList.add("remaining-calories");
+    remainingCaloriesCell.textContent = `${DAILY_CALORIE_LIMIT} kcal`;
     row.appendChild(remainingCaloriesCell);
 
     mealTable.appendChild(row);
@@ -83,4 +85,57 @@ function calculateCalories() {
   });
 }
 
+// **Rezeptbuch mit gespeicherten Rezepten anzeigen**
+function populateRecipeList() {
+  const recipeList = document.getElementById("recipe-list");
+  recipeList.innerHTML = "";
+
+  recipes.forEach(recipe => {
+    const li = document.createElement("li");
+    li.innerHTML = `<strong>${recipe.name}</strong> - ${recipe.calories} kcal | ${recipe.mealTypes.join(", ")}`;
+
+    const deleteButton = document.createElement("button");
+    deleteButton.textContent = "Löschen";
+    deleteButton.onclick = () => deleteRecipe(recipe.id);
+
+    li.appendChild(deleteButton);
+    recipeList.appendChild(li);
+  });
+}
+
+// **Rezept hinzufügen**
+function addRecipe() {
+  const name = document.getElementById("recipe-name").value;
+  const calories = parseInt(document.getElementById("recipe-calories").value);
+  const mealTypes = Array.from(document.getElementById("recipe-mealTypes").selectedOptions).map(option => option.value);
+
+  if (!name || !calories || mealTypes.length === 0) {
+    alert("Bitte alle Felder ausfüllen.");
+    return;
+  }
+
+  fetch(`${API_URL}/recipes`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, calories, mealTypes })
+  })
+  .then(response => response.json())
+  .then(() => {
+    console.log("✅ Rezept gespeichert");
+    loadRecipes();
+  })
+  .catch(error => console.error("❌ Fehler beim Speichern:", error));
+}
+
+// **Rezept löschen**
+function deleteRecipe(recipeId) {
+  fetch(`${API_URL}/recipe/${recipeId}`, { method: "DELETE" })
+    .then(() => {
+      console.log(`✅ Rezept mit ID ${recipeId} gelöscht`);
+      loadRecipes();
+    })
+    .catch(error => console.error("❌ Fehler beim Löschen:", error));
+}
+
+// **Beim Laden der Seite alle Rezepte abrufen**
 document.addEventListener("DOMContentLoaded", loadRecipes);

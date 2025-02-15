@@ -159,9 +159,8 @@ document.addEventListener("DOMContentLoaded", () => {
   loadRecipes();
 });
 
-// Funktion: Rezeptbuch anzeigen
 function displayRecipeBook() {
-  fetch("https://foodcalculator-server.onrender.com/recipebook")
+  fetch("https://foodcalculator-server.onrender.com/recipes")
     .then(response => response.json())
     .then((data) => {
       const recipeBook = document.getElementById("recipe-book");
@@ -178,9 +177,28 @@ function displayRecipeBook() {
       const ul = document.createElement("ul");
 
       data.forEach((recipe) => {
+        let mealTypesArray = [];
+
+        try {
+          // Falls mealTypes immer noch ein String ist, in ein Array umwandeln
+          if (typeof recipe.mealTypes === "string") {
+            mealTypesArray = JSON.parse(recipe.mealTypes);
+          } else {
+            mealTypesArray = recipe.mealTypes || [];
+          }
+
+          // Falls mealTypes trotzdem kein Array ist, mache es zu einem
+          if (!Array.isArray(mealTypesArray)) {
+            mealTypesArray = [mealTypesArray];
+          }
+        } catch (error) {
+          console.error("❌ Fehler beim Parsen von mealTypes:", error, "Wert:", recipe.mealTypes);
+          mealTypesArray = ["Unknown"];
+        }
+
         // **Rezept-Element für das Rezeptbuch**
         const li = document.createElement("li");
-        li.innerHTML = `<strong>${recipe.name}</strong> - ${recipe.calories} kcal | Geeignet für: ${recipe.mealTypes.join(", ")}`;
+        li.innerHTML = `<strong>${recipe.name}</strong> - ${recipe.calories} kcal | Geeignet für: ${mealTypesArray.join(", ")}`;
         ul.appendChild(li);
       });
 

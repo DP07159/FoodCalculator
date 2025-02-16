@@ -198,7 +198,7 @@ function deleteMealPlan() {
     .catch(error => console.error("❌ Fehler beim Löschen des Plans:", error));
 }
 
-// **Wochenplan aktualisieren**
+// **Wochenplan aktualisieren (ohne neue Namenseingabe)**
 function updateMealPlan() {
   const planId = document.getElementById("plan-list").value;
   if (!planId) {
@@ -218,19 +218,19 @@ function updateMealPlan() {
     planData.push({ day, meals });
   });
 
-  const name = prompt("Neuen Namen für den Plan eingeben (oder alten beibehalten):");
-  if (!name) return;
+  // Hole den aktuellen Namen des Plans aus dem Dropdown
+  const planName = document.getElementById("plan-list").selectedOptions[0].textContent;
 
   fetch(`${API_URL}/meal_plans/${planId}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, data: planData })
+    body: JSON.stringify({ name: planName, data: planData })
   })
   .then(response => {
     if (!response.ok) {
       throw new Error(`Fehler beim Aktualisieren: ${response.status}`);
     }
-    console.log(`✅ Wochenplan mit ID ${planId} aktualisiert`);
+    console.log(`✅ Wochenplan mit ID ${planId} überschrieben`);
     loadMealPlans(); // Liste aktualisieren
   })
   .catch(error => console.error("❌ Fehler beim Aktualisieren des Plans:", error));

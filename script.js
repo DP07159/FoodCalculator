@@ -85,25 +85,23 @@ function calculateCalories() {
   });
 }
 
-// **Rezeptbuch mit gespeicherten Rezepten anzeigen**
+// **Rezeptbuch aktualisieren & Löschen-Button als Icon**
 function populateRecipeList() {
-  const recipeList = document.getElementById("recipe-list");
-  if (!recipeList) return console.error("❌ Fehler: `recipe-list` nicht gefunden!");
+    const recipeList = document.getElementById("recipe-list");
+    recipeList.innerHTML = "";
 
-  recipeList.innerHTML = "";
-  recipes.forEach(recipe => {
-    const li = document.createElement("li");
-    li.innerHTML = `<strong>${recipe.name}</strong> - ${recipe.calories} kcal | ${recipe.mealTypes.join(", ")}`;
+    recipes.forEach(recipe => {
+        const li = document.createElement("li");
+        li.innerHTML = `<strong>${recipe.name}</strong> - ${recipe.calories} kcal | ${recipe.mealTypes.join(", ")}`;
 
-    const deleteButton = document.createElement("button");
-    deleteButton.textContent = "Löschen";
-    deleteButton.onclick = () => deleteRecipe(recipe.id);
+        const deleteButton = document.createElement("button");
+        deleteButton.innerHTML = "🗑️"; // Mülleimer-Icon
+        deleteButton.classList.add("recipe-delete-btn");
+        deleteButton.onclick = () => deleteRecipe(recipe.id);
 
-    li.appendChild(deleteButton);
-    recipeList.appendChild(li);
-  });
-
-  console.log("✅ Rezeptbuch aktualisiert!");
+        li.appendChild(deleteButton);
+        recipeList.appendChild(li);
+    });
 }
 
 // **Rezept hinzufügen mit Checkboxen**

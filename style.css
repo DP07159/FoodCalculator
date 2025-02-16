@@ -176,6 +176,13 @@ button.icon-button:hover {
     width: 48%;
 }
 
+/* 🌟 Plan anlegen: Eingabefeld & Speichern-Button in einer Zeile */
+.new-plan {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* 🌟 Abstand zwischen Eingabefeld und Button */
+}
+
 /* 🌟 Mobile Ansicht */
 @media (max-width: 600px) {
     .flex-container {
@@ -185,6 +192,36 @@ button.icon-button:hover {
     #add-recipe, #recipe-book {
         width: 100%;
     }
+}
+
+/* 🌟 Rezeptbuch Styling */
+#recipe-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+#recipe-list li {
+    background: #ecf0f1;
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* 🌟 Abstand für den Löschen-Button */
+.recipe-delete-btn {
+    font-size: 18px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #e74c3c;
+    margin-left: 10px; /* 🌟 Abstand zwischen Rezeptbeschreibung & Button */
+}
+
+.recipe-delete-btn:hover {
+    color: #c0392b;
 }
 
 /* 🌟 Mobile Ansicht */

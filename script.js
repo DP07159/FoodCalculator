@@ -1,17 +1,17 @@
 const API_URL = "https://foodcalculator-server.onrender.com";
 const DAILY_CALORIE_LIMIT = 1500;
-let recipes = [];
-let mealPlans = [];
 
-// **Rezepte & Pläne laden**
+const weekDays = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
+let recipes = [];
+
+// **Rezepte laden & Dropdowns füllen**
 function loadRecipes() {
   fetch(`${API_URL}/recipes`)
     .then(response => response.json())
-    .then(data => {
+    .then((data) => {
       recipes = data;
       populateMealTable();
-      populateRecipeList();
-      loadMealPlans();
+      populateRecipeList(); // ✅ Diese Funktion existiert jetzt!
     })
     .catch(error => console.error("❌ Fehler beim Laden der Rezepte:", error));
 }
@@ -20,8 +20,6 @@ function loadRecipes() {
 function populateMealTable() {
   const mealTable = document.getElementById("meal-table");
   mealTable.innerHTML = "";
-
-  const weekDays = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
 
   weekDays.forEach((day) => {
     const row = document.createElement("tr");
@@ -90,11 +88,6 @@ function calculateCalories() {
 // **Rezeptbuch mit gespeicherten Rezepten anzeigen**
 function populateRecipeList() {
   const recipeList = document.getElementById("recipe-list");
-  if (!recipeList) {
-    console.error("❌ Fehler: Element mit ID 'recipe-list' nicht gefunden!");
-    return;
-  }
-
   recipeList.innerHTML = "";
 
   recipes.forEach(recipe => {
@@ -109,7 +102,6 @@ function populateRecipeList() {
     recipeList.appendChild(li);
   });
 }
-
 
 // **Rezept hinzufügen**
 function addRecipe() {
@@ -143,44 +135,6 @@ function deleteRecipe(recipeId) {
       loadRecipes();
     })
     .catch(error => console.error("❌ Fehler beim Löschen:", error));
-}
-
-// **Wochenplan speichern**
-function saveMealPlan() {
-  const name = document.getElementById("plan-name").value;
-  if (!name) return alert("Bitte einen Namen eingeben!");
-
-  const mealData = {};
-  document.querySelectorAll("#meal-table tr").forEach(row => {
-    const day = row.children[0].textContent;
-    mealData[day] = {};
-    row.querySelectorAll("select").forEach(select => {
-      mealData[day][select.dataset.mealType] = select.value;
-    });
-  });
-
-  fetch(`${API_URL}/meal_plans`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, data: mealData })
-  }).then(() => loadMealPlans());
-}
-
-// **Wochenplan laden**
-function loadMealPlans() {
-  fetch(`${API_URL}/meal_plans`)
-    .then(response => response.json())
-    .then(data => {
-      mealPlans = data;
-      const select = document.getElementById("plan-select");
-      select.innerHTML = `<option value="">Gespeicherte Pläne laden...</option>`;
-      data.forEach(plan => {
-        const option = document.createElement("option");
-        option.value = plan.id;
-        option.textContent = plan.name;
-        select.appendChild(option);
-      });
-    });
 }
 
 // **Beim Laden der Seite alle Rezepte abrufen**

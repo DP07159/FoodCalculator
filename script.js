@@ -106,28 +106,36 @@ function populateRecipeList() {
   console.log("✅ Rezeptbuch aktualisiert!");
 }
 
-// **Rezept hinzufügen**
+// **Rezept hinzufügen mit Checkboxen**
 function addRecipe() {
-  const name = document.getElementById("recipe-name").value;
-  const calories = parseInt(document.getElementById("recipe-calories").value);
-  const mealTypes = Array.from(document.getElementById("recipe-mealTypes").selectedOptions).map(option => option.value);
+    const name = document.getElementById("recipe-name").value;
+    const calories = parseInt(document.getElementById("recipe-calories").value);
 
-  if (!name || !calories || mealTypes.length === 0) {
-    alert("Bitte alle Felder ausfüllen.");
-    return;
-  }
+    // Alle angehakten Checkbox-Werte sammeln
+    const mealTypes = Array.from(document.querySelectorAll(".recipe-checkboxes input:checked"))
+        .map(checkbox => checkbox.value);
 
-  fetch(`${API_URL}/recipes`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, calories, mealTypes })
-  })
-  .then(response => response.json())
-  .then(() => {
-    console.log("✅ Rezept gespeichert");
-    loadRecipes();
-  })
-  .catch(error => console.error("❌ Fehler beim Speichern:", error));
+    if (!name || !calories || mealTypes.length === 0) {
+        alert("Bitte alle Felder ausfüllen und mindestens eine Mahlzeit auswählen.");
+        return;
+    }
+
+    fetch(`${API_URL}/recipes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, calories, mealTypes })
+    })
+    .then(response => response.json())
+    .then(() => {
+        console.log("✅ Rezept gespeichert");
+        loadRecipes(); // Rezeptliste aktualisieren
+
+        // Felder zurücksetzen
+        document.getElementById("recipe-name").value = "";
+        document.getElementById("recipe-calories").value = "";
+        document.querySelectorAll(".recipe-checkboxes input").forEach(cb => cb.checked = false);
+    })
+    .catch(error => console.error("❌ Fehler beim Speichern:", error));
 }
 
 // **Rezept löschen**

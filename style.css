@@ -224,6 +224,14 @@ button.icon-button:hover {
     color: #c0392b;
 }
 
+/* 🌟 Plan-Eingabe als Gruppe mit Button */
+.plan-input-group {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* 🌟 Abstand zwischen Eingabefeld & Button */
+    margin-top: 5px;
+}
+
 /* 🌟 Mobile Ansicht */
 @media (max-width: 600px) {
     .flex-container {

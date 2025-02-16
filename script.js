@@ -8,8 +8,9 @@ function loadRecipes() {
     .then(response => response.json())
     .then((data) => {
       recipes = data;
-      populateMealTable();
-      populateRecipeList();
+      console.log("✅ Rezepte erfolgreich geladen:", recipes);
+      populateMealTable(); // ✅ Tabelle wird hier aufgerufen
+      populateRecipeList(); // ✅ Rezeptbuch wird hier aufgerufen
     })
     .catch(error => console.error("❌ Fehler beim Laden der Rezepte:", error));
 }
@@ -81,6 +82,29 @@ function calculateCalories() {
     remainingCaloriesCell.textContent = `${remainingCalories} kcal`;
     remainingCaloriesCell.style.color = remainingCalories < 0 ? "red" : "green";
   });
+}
+
+function addRecipe() {
+  const name = document.getElementById("recipe-name").value;
+  const calories = parseInt(document.getElementById("recipe-calories").value);
+  const mealTypes = Array.from(document.getElementById("recipe-mealTypes").selectedOptions).map(option => option.value);
+
+  if (!name || !calories || mealTypes.length === 0) {
+    alert("Bitte alle Felder ausfüllen.");
+    return;
+  }
+
+  fetch(`${API_URL}/recipes`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, calories, mealTypes })
+  })
+  .then(response => response.json())
+  .then((newRecipe) => {
+    console.log("✅ Rezept gespeichert:", newRecipe);
+    loadRecipes(); // ✅ Rezepte neu laden, damit das Rezeptbuch aktualisiert wird
+  })
+  .catch(error => console.error("❌ Fehler beim Speichern des Rezepts:", error));
 }
 
 document.addEventListener("DOMContentLoaded", loadRecipes);

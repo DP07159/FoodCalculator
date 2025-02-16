@@ -107,4 +107,71 @@ function addRecipe() {
   .catch(error => console.error("❌ Fehler beim Speichern des Rezepts:", error));
 }
 
+// **Wochenplan speichern**
+function saveMealPlan() {
+  const name = document.getElementById("plan-name").value;
+  if (!name) return alert("Bitte einen Namen eingeben!");
+
+  const mealData = {};
+  document.querySelectorAll("#meal-table tr").forEach(row => {
+    const day = row.children[0].textContent;
+    mealData[day] = {};
+    row.querySelectorAll("select").forEach(select => {
+      mealData[day][select.dataset.mealType] = select.value || null;
+    });
+  });
+
+  fetch(`${API_URL}/meal_plans`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, data: mealData })
+  })
+  .then(response => response.json())
+  .then(() => {
+    console.log("✅ Wochenplan gespeichert!");
+    loadMealPlans();
+    document.getElementById("plan-name").value = "";
+  })
+  .catch(error => console.error("❌ Fehler beim Speichern des Wochenplans:", error));
+}
+
+// **Gespeicherte Wochenpläne laden**
+function loadMealPlans() {
+  fetch(`${API_URL}/meal_plans`)
+    .then(response => response.json())
+    .then(data => {
+      const select = document.getElementById("plan-select");
+      select.innerHTML = `<option value="">Gespeicherte Pläne laden...</option>`;
+      data.forEach(plan => {
+        const option = document.createElement("option");
+        option.value = plan.id;
+        option.textContent = plan.name;
+        select.appendChild(option);
+      });
+    })
+    .catch(error => console.error("❌ Fehler beim Laden der Wochenpläne:", error));
+}
+
+// **Einen Wochenplan laden**
+function loadSelectedMealPlan() {
+  const selectedPlanId = document.getElementById("plan-select").value;
+  if (!selectedPlanId) return alert("Bitte einen Plan auswählen!");
+
+  fetch(`${API_URL}/meal_plans/${selectedPlanId}`)
+    .then(response => response.json())
+    .then(plan => {
+      console.log("✅ Geladener Plan:", plan);
+      document.querySelectorAll("#meal-table tr").forEach(row => {
+        const day = row.children[0].textContent;
+        if (plan.data[day]) {
+          row.querySelectorAll("select").forEach(select => {
+            select.value = plan.data[day][select.dataset.mealType] || "";
+          });
+        }
+      });
+      calculateCalories(); // Nach dem Laden die Kalorien neu berechnen
+    })
+    .catch(error => console.error("❌ Fehler beim Laden des Plans:", error));
+}
+
 document.addEventListener("DOMContentLoaded", loadRecipes);

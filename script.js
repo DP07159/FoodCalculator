@@ -179,6 +179,63 @@ function saveMealPlan() {
   .catch(error => console.error("❌ Fehler beim Speichern des Plans:", error));
 }
 
+// **Wochenplan löschen**
+function deleteMealPlan() {
+  const planId = document.getElementById("plan-list").value;
+  if (!planId) {
+    alert("Bitte einen Plan auswählen!");
+    return;
+  }
+
+  fetch(`${API_URL}/meal_plans/${planId}`, { method: "DELETE" })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Fehler beim Löschen: ${response.status}`);
+      }
+      console.log(`✅ Wochenplan mit ID ${planId} gelöscht`);
+      loadMealPlans(); // Liste aktualisieren
+    })
+    .catch(error => console.error("❌ Fehler beim Löschen des Plans:", error));
+}
+
+// **Wochenplan aktualisieren**
+function updateMealPlan() {
+  const planId = document.getElementById("plan-list").value;
+  if (!planId) {
+    alert("Bitte einen Plan auswählen!");
+    return;
+  }
+
+  const planData = [];
+  document.querySelectorAll("#meal-table tr").forEach(row => {
+    const day = row.querySelector("td").textContent;
+    const meals = {};
+    
+    row.querySelectorAll("select").forEach(select => {
+      meals[select.dataset.mealType] = select.value || null;
+    });
+
+    planData.push({ day, meals });
+  });
+
+  const name = prompt("Neuen Namen für den Plan eingeben (oder alten beibehalten):");
+  if (!name) return;
+
+  fetch(`${API_URL}/meal_plans/${planId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, data: planData })
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`Fehler beim Aktualisieren: ${response.status}`);
+    }
+    console.log(`✅ Wochenplan mit ID ${planId} aktualisiert`);
+    loadMealPlans(); // Liste aktualisieren
+  })
+  .catch(error => console.error("❌ Fehler beim Aktualisieren des Plans:", error));
+}
+
 // **Alle gespeicherten Wochenpläne laden**
 function loadMealPlans() {
   fetch(`${API_URL}/meal_plans`)

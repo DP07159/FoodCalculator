@@ -277,6 +277,9 @@ function loadMealPlan() {
       });
 
       calculateCalories(); // Berechnung aktualisieren
+
+      // ✅ Plan-Namen in der Subline anzeigen
+      document.getElementById("current-plan-name").textContent = `Aktueller Plan: ${plan.name}`;
     })
     .catch(error => console.error("❌ Fehler beim Laden des Plans:", error));
 }
@@ -286,3 +289,8 @@ document.addEventListener("DOMContentLoaded", loadMealPlans);
 
 // **Beim Laden der Seite alle Rezepte abrufen**
 document.addEventListener("DOMContentLoaded", loadRecipes);
+
+// Eingabefeld für den Plan-Namen leeren
+document.getElementById("plan-name").value = "";
+document.getElementById("current-plan-name").textContent = "Plan speichern als";
+

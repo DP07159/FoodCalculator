@@ -9,7 +9,7 @@ body {
 
 /* 🌟 Container für das Hauptlayout */
 .container {
-    max-width: 800px;
+    max-width: 900px;
     margin: auto;
     background: white;
     padding: 20px;
@@ -23,9 +23,9 @@ h1, h2 {
     color: #2c3e50;
 }
 
-/* 🌟 Wochenplan-Subline */
-#current-plan-name {
-    text-align: center;
+/* 🌟 Links ausgerichtete Subline */
+.left-align {
+    text-align: left;
     font-size: 14px;
     color: gray;
     margin-bottom: 10px;
@@ -50,6 +50,10 @@ th {
     color: white;
 }
 
+td:first-child {
+    text-align: left; /* 🌟 Wochentage linksbündig */
+}
+
 /* 🌟 Eingabefelder */
 input, select {
     width: 100%;
@@ -61,10 +65,8 @@ input, select {
 
 /* 🌟 Buttons */
 button {
-    display: block;
-    width: 100%;
+    display: inline-block;
     padding: 10px;
-    margin-top: 10px;
     background-color: #3498db;
     color: white;
     border: none;
@@ -78,34 +80,68 @@ button:hover {
 }
 
 /* 🌟 Spezielle Buttons */
-button.delete {
-    background-color: #e74c3c;
+button.icon-button {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
 }
 
-button.delete:hover {
-    background-color: #c0392b;
+button.icon-button:hover {
+    color: red;
 }
 
-/* 🌟 Rezeptbuch Styling */
-#recipe-list {
-    list-style-type: none;
-    padding: 0;
-}
-
-#recipe-list li {
-    background: #ecf0f1;
-    padding: 10px;
-    margin: 5px 0;
-    border-radius: 5px;
+/* 🌟 Plan-Verwaltung Layout */
+.plan-actions {
     display: flex;
     justify-content: space-between;
+    gap: 20px;
+}
+
+.new-plan, .existing-plans {
+    width: 48%;
+}
+
+.plan-controls {
+    display: flex;
     align-items: center;
+    gap: 10px;
+}
+
+.small-title {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+/* 🌟 Flexbox für Rezeptbuch & Verwaltung */
+.flex-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+#recipe-book, #add-recipe {
+    width: 48%;
 }
 
 /* 🌟 Mobile Ansicht */
 @media (max-width: 600px) {
-    th, td {
-        font-size: 14px;
-        padding: 8px;
+    .flex-container {
+        flex-direction: column;
+    }
+
+    #recipe-book, #add-recipe, .new-plan, .existing-plans {
+        width: 100%;
+    }
+
+    .plan-actions {
+        flex-direction: column;
+    }
+
+    .plan-controls {
+        flex-wrap: wrap;
+        justify-content: center;
     }
 }

@@ -174,4 +174,28 @@ function loadSelectedMealPlan() {
     .catch(error => console.error("❌ Fehler beim Laden des Plans:", error));
 }
 
+function populateRecipeList() {
+  const recipeList = document.getElementById("recipe-list");
+  if (!recipeList) {
+    console.error("❌ Fehler: `recipe-list` Element nicht gefunden!");
+    return;
+  }
+
+  recipeList.innerHTML = ""; // 🔥 Sicherstellen, dass alte Einträge entfernt werden
+
+  recipes.forEach(recipe => {
+    const li = document.createElement("li");
+    li.innerHTML = `<strong>${recipe.name}</strong> - ${recipe.calories} kcal | ${recipe.mealTypes.join(", ")}`;
+
+    const deleteButton = document.createElement("button");
+    deleteButton.textContent = "Löschen";
+    deleteButton.onclick = () => deleteRecipe(recipe.id);
+
+    li.appendChild(deleteButton);
+    recipeList.appendChild(li);
+  });
+
+  console.log("✅ Rezeptbuch aktualisiert!");
+}
+
 document.addEventListener("DOMContentLoaded", loadRecipes);

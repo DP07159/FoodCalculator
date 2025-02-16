@@ -26,6 +26,15 @@
             <tbody id="meal-table"></tbody>
         </table>
 
+        <h2>Wochenplan verwalten</h2>
+<input type="text" id="plan-name" placeholder="Plan-Name">
+<button onclick="saveMealPlan()">Wochenplan speichern</button>
+
+<select id="plan-select">
+    <option value="">Gespeicherte Pläne laden...</option>
+</select>
+<button onclick="loadSelectedMealPlan()">Laden</button>
+
         <h2>Rezept hinzufügen</h2>
         <input type="text" id="recipe-name" placeholder="Rezeptname">
         <input type="number" id="recipe-calories" placeholder="Kalorien">
@@ -38,7 +47,7 @@
         <button onclick="addRecipe()">Rezept hinzufügen</button>
 
         <h2>Rezeptbuch</h2>
-        <ul id="recipe-list"></ul> <!-- Hier wurden Rezepte aufgelistet -->
+<ul id="recipe-list"></ul>
 
     </div>
 

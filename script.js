@@ -146,5 +146,86 @@ function deleteRecipe(recipeId) {
     .catch(error => console.error("❌ Fehler beim Löschen:", error));
 }
 
+// **Wochenplan speichern**
+function saveMealPlan() {
+  const name = document.getElementById("plan-name").value;
+  if (!name) {
+    alert("Bitte einen Namen für den Plan eingeben!");
+    return;
+  }
+
+  const planData = [];
+  document.querySelectorAll("#meal-table tr").forEach(row => {
+    const day = row.querySelector("td").textContent;
+    const meals = {};
+    
+    row.querySelectorAll("select").forEach(select => {
+      meals[select.dataset.mealType] = select.value || null;
+    });
+
+    planData.push({ day, meals });
+  });
+
+  fetch(`${API_URL}/meal_plans`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, data: planData })
+  })
+  .then(response => response.json())
+  .then(() => {
+    console.log("✅ Wochenplan gespeichert");
+    loadMealPlans(); // Liste aktualisieren
+  })
+  .catch(error => console.error("❌ Fehler beim Speichern des Plans:", error));
+}
+
+// **Alle gespeicherten Wochenpläne laden**
+function loadMealPlans() {
+  fetch(`${API_URL}/meal_plans`)
+    .then(response => response.json())
+    .then((plans) => {
+      console.log("✅ Wochenpläne geladen:", plans);
+      const planList = document.getElementById("plan-list");
+      planList.innerHTML = '<option value="">-- Plan auswählen --</option>';
+
+      plans.forEach(plan => {
+        const option = document.createElement("option");
+        option.value = plan.id;
+        option.textContent = plan.name;
+        planList.appendChild(option);
+      });
+    })
+    .catch(error => console.error("❌ Fehler beim Laden der Pläne:", error));
+}
+
+// **Wochenplan laden**
+function loadMealPlan() {
+  const planId = document.getElementById("plan-list").value;
+  if (!planId) {
+    alert("Bitte einen Plan auswählen!");
+    return;
+  }
+
+  fetch(`${API_URL}/meal_plans/${planId}`)
+    .then(response => response.json())
+    .then((plan) => {
+      console.log("✅ Plan geladen:", plan);
+      document.querySelectorAll("#meal-table tr").forEach(row => {
+        const day = row.querySelector("td").textContent;
+
+        row.querySelectorAll("select").forEach(select => {
+          const mealType = select.dataset.mealType;
+          select.value = plan.data.find(d => d.day === day)?.meals[mealType] || "";
+        });
+      });
+
+      calculateCalories(); // Berechnung aktualisieren
+    })
+    .catch(error => console.error("❌ Fehler beim Laden des Plans:", error));
+}
+
+// **Beim Laden der Seite Wochenpläne abrufen**
+document.addEventListener("DOMContentLoaded", loadMealPlans);
+
 // **Beim Laden der Seite alle Rezepte abrufen**
 document.addEventListener("DOMContentLoaded", loadRecipes);

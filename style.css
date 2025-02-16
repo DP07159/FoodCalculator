@@ -1,41 +1,111 @@
+/* 🌟 Allgemeines Styling */
 body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
-    padding: 0;
-    background-color: #f8f8f8;
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f4f4f4;
+    color: #333;
 }
+
+/* 🌟 Container für das Hauptlayout */
 .container {
     max-width: 800px;
-    margin: 0 auto;
+    margin: auto;
     background: white;
     padding: 20px;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
+
+/* 🌟 Überschriften */
 h1, h2 {
     text-align: center;
+    color: #2c3e50;
 }
+
+/* 🌟 Wochenplan-Subline */
+#current-plan-name {
+    text-align: center;
+    font-size: 14px;
+    color: gray;
+    margin-bottom: 10px;
+}
+
+/* 🌟 Tabelle Styling */
 table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
+    background: white;
 }
+
 th, td {
     border: 1px solid #ddd;
-    padding: 8px;
+    padding: 10px;
     text-align: center;
 }
+
 th {
-    background-color: #f4f4f4;
+    background-color: #3498db;
+    color: white;
 }
+
+/* 🌟 Eingabefelder */
+input, select {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+/* 🌟 Buttons */
 button {
     display: block;
-    margin: 10px auto;
+    width: 100%;
     padding: 10px;
-    background-color: #28a745;
+    margin-top: 10px;
+    background-color: #3498db;
     color: white;
     border: none;
+    border-radius: 5px;
     cursor: pointer;
+    transition: background 0.3s;
 }
+
 button:hover {
-    background-color: #218838;
+    background-color: #2980b9;
+}
+
+/* 🌟 Spezielle Buttons */
+button.delete {
+    background-color: #e74c3c;
+}
+
+button.delete:hover {
+    background-color: #c0392b;
+}
+
+/* 🌟 Rezeptbuch Styling */
+#recipe-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+#recipe-list li {
+    background: #ecf0f1;
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* 🌟 Mobile Ansicht */
+@media (max-width: 600px) {
+    th, td {
+        font-size: 14px;
+        padding: 8px;
+    }
 }

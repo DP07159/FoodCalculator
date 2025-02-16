@@ -66,5 +66,57 @@ app.delete("/recipe/:id", (req, res) => {
   });
 });
 
+// **GET: Alle gespeicherten Wochenpläne abrufen**
+app.get("/meals", (req, res) => {
+  console.log("🔍 GET /meals wurde aufgerufen");
+
+  db.all("SELECT * FROM meal_plans", [], (err, rows) => {
+    if (err) {
+      console.error("❌ Fehler beim Abrufen der Mahlzeiten:", err.message);
+      return res.status(500).json({ error: err.message });
+    }
+
+    try {
+      const formattedMeals = rows.map((meal) => ({
+        id: meal.id,
+        name: meal.name,
+        data: JSON.parse(meal.data) || {}
+      }));
+
+      console.log("✅ Mahlzeiten erfolgreich geladen:", formattedMeals);
+      res.json(formattedMeals);
+    } catch (parseError) {
+      console.error("❌ JSON-Parsing-Fehler:", parseError.message);
+      res.status(500).json({ error: "Fehler beim Verarbeiten der Mahlzeiten" });
+    }
+  });
+});
+
+// **POST: Wochenplan speichern**
+app.post("/meals", (req, res) => {
+  const { name, data } = req.body;
+  if (!name || !data) return res.status(400).json({ error: "Name und Daten erforderlich!" });
+
+  const jsonData = JSON.stringify(data);
+  db.run(
+    "INSERT INTO meal_plans (name, data) VALUES (?, ?)",
+    [name, jsonData],
+    function (err) {
+      if (err) return res.status(500).json({ error: err.message });
+      res.status(201).json({ id: this.lastID, name, data });
+    }
+  );
+});
+
+// **GET: Einzelnen Wochenplan abrufen**
+app.get("/meals/:id", (req, res) => {
+  const { id } = req.params;
+  db.get("SELECT * FROM meal_plans WHERE id = ?", [id], (err, row) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!row) return res.status(404).json({ error: "Wochenplan nicht gefunden" });
+    res.json({ id: row.id, name: row.name, data: JSON.parse(row.data) });
+  });
+});
+
 // **Server starten**
 app.listen(PORT, () => console.log(`🚀 Server läuft auf Port ${PORT}`));

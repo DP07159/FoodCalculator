@@ -132,10 +132,16 @@ function addRecipe() {
 
 // **Rezept löschen**
 function deleteRecipe(recipeId) {
-  fetch(`${API_URL}/recipe/${recipeId}`, { method: "DELETE" })
-    .then(() => {
+  fetch(`${API_URL}/recipes/${recipeId}`, { method: "DELETE" })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Fehler beim Löschen: ${response.status}`);
+      }
       console.log(`✅ Rezept mit ID ${recipeId} gelöscht`);
-      loadRecipes();
+      // Rezept auch im Frontend entfernen
+      recipes = recipes.filter(recipe => recipe.id !== recipeId);
+      populateRecipeList();
+      populateMealTable();
     })
     .catch(error => console.error("❌ Fehler beim Löschen:", error));
 }

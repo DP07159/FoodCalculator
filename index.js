@@ -26,17 +26,28 @@ db.run(
 
 // **GET: Alle Rezepte abrufen**
 app.get("/recipes", (req, res) => {
+  console.log("🔍 GET /recipes wurde aufgerufen");
+
   db.all("SELECT * FROM recipes", [], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
+    if (err) {
+      console.error("❌ Fehler beim Abrufen der Rezepte:", err.message);
+      return res.status(500).json({ error: err.message });
+    }
 
-    const formattedRecipes = rows.map((recipe) => ({
-      id: recipe.id,
-      name: recipe.name,
-      calories: recipe.calories,
-      mealTypes: JSON.parse(recipe.mealTypes) || []
-    }));
+    try {
+      const formattedRecipes = rows.map((recipe) => ({
+        id: recipe.id,
+        name: recipe.name,
+        calories: recipe.calories,
+        mealTypes: JSON.parse(recipe.mealTypes) || []
+      }));
 
-    res.json(formattedRecipes);
+      console.log("✅ Rezepte erfolgreich geladen:", formattedRecipes);
+      res.json(formattedRecipes);
+    } catch (parseError) {
+      console.error("❌ JSON-Parsing-Fehler:", parseError.message);
+      res.status(500).json({ error: "Fehler beim Verarbeiten der Rezepte" });
+    }
   });
 });
 

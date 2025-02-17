@@ -183,17 +183,6 @@ button.icon-button:hover {
     gap: 10px; /* 🌟 Abstand zwischen Eingabefeld und Button */
 }
 
-/* 🌟 Mobile Ansicht */
-@media (max-width: 600px) {
-    .flex-container {
-        flex-direction: column;
-    }
-
-    #add-recipe, #recipe-book {
-        width: 100%;
-    }
-}
-
 /* 🌟 Rezeptbuch Styling */
 #recipe-list {
     list-style-type: none;
@@ -230,6 +219,20 @@ button.icon-button:hover {
     align-items: center;
     gap: 10px; /* 🌟 Abstand zwischen Eingabefeld & Button */
     margin-top: 5px;
+}
+
+/* 🌟 Überschrift mit Abstand über Eingabefeld setzen */
+.new-plan {
+    display: flex;
+    flex-direction: column; /* 🌟 Sorgt dafür, dass die Überschrift über dem Eingabefeld steht */
+    gap: 5px;
+}
+
+/* 🌟 Eingabefeld & Button in einer Zeile */
+.plan-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* 🌟 Abstand zwischen Eingabefeld & Button */
 }
 
 /* 🌟 Mobile Ansicht */

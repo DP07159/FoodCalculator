@@ -91,15 +91,16 @@ button.icon-button:hover {
     color: red;
 }
 
-/* 🌟 Plan-Verwaltung Layout */
+/* 🌟 Plan-Verwaltung: Beide Bereiche nebeneinander */
 .plan-actions {
     display: flex;
     justify-content: space-between;
-    gap: 20px;
+    gap: 20px; /* 🌟 Abstand zwischen den beiden Blöcken */
+    flex-wrap: wrap; /* 🌟 Falls es zu wenig Platz gibt, rutscht einer nach unten */
 }
 
 .new-plan, .existing-plans {
-    width: 48%;
+    width: 48%; /* 🌟 Beide Blöcke nehmen jeweils die Hälfte der Breite */
 }
 
 .plan-controls {
@@ -133,11 +134,12 @@ button.icon-button:hover {
     gap: 10px;
 }
 
-/* 🌟 Überschrift kleiner machen */
+/* 🌟 Links ausgerichtete kleine Überschriften */
 .small-title {
     font-size: 14px;
     font-weight: bold;
     margin-bottom: 5px;
+    text-align: left; /* 🌟 Jetzt linksbündig */
 }
 
 /* 🌟 Rezeptname & Kalorien in einer Zeile */

@@ -36,27 +36,29 @@
 
         <!-- 🌟 Wochenplan-Verwaltung -->
         <section id="plan-management">
-            <div class="new-plan">
-                <p class="small-title">Neuen Plan anlegen</p>
-                <div class="plan-input-wrapper">
-                    <input type="text" id="plan-name" placeholder="Name für neuen Plan">
-                    <button onclick="saveMealPlan()">Speichern</button>
+            <div class="plan-actions">
+                <!-- 🌟 Neuen Plan anlegen -->
+                <div class="new-plan">
+                    <p class="small-title">Neuen Plan anlegen</p>
+                    <div class="plan-input-wrapper">
+                        <input type="text" id="plan-name" placeholder="Name für neuen Plan">
+                        <button onclick="saveMealPlan()">Speichern</button>
+                    </div>
                 </div>
-            </div>
 
+                <!-- 🌟 Pläne verwalten -->
                 <div class="existing-plans">
                     <p class="small-title">Pläne verwalten</p>
                     <div class="plan-controls">
                         <select id="plan-list"></select>
                         <button onclick="loadMealPlan()">Laden</button>
                         <button onclick="updateMealPlan()">Aktualisieren</button>
-                        <button class="icon-button" onclick="deleteMealPlan()">
-                            🗑️
-                        </button>
+                        <button class="icon-button" onclick="deleteMealPlan()">🗑️</button>
                     </div>
                 </div>
             </div>
         </section>
+
 
        <div class="flex-container">
             <!-- 🌟 Rezept hinzufügen -->

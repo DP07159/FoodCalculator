@@ -181,7 +181,7 @@ button.icon-button:hover {
 /* 🌟 Plan anlegen: Eingabefeld & Speichern-Button in einer Zeile */
 .new-plan {
     display: flex;
-    align-items: center;
+    align-items: left;
     gap: 10px; /* 🌟 Abstand zwischen Eingabefeld und Button */
 }
 

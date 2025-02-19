@@ -23,6 +23,25 @@ function login() {
     .catch(error => console.error("❌ Fehler beim Login:", error));
 }
 
+// **Prüfen, ob User eingeloggt ist (Dashboard-Schutz)**
+function checkAuth() {
+    const token = localStorage.getItem("token");
+    const username = localStorage.getItem("username");
+
+    if (!token) {
+        window.location.href = "index.html"; // 🌟 Falls nicht eingeloggt, zurück zum Login
+    } else {
+        document.getElementById("user-name").textContent = username; // 🌟 Begrüßung
+    }
+}
+
+// **Logout & Zurück zum Login**
+function logout() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("username");
+    window.location.href = "index.html"; // 🌟 Nach Logout zurück zur Login-Seite
+}
+
 const API_URL = "https://foodcalculator-server.onrender.com";
 const DAILY_CALORIE_LIMIT = 1500;
 let recipes = [];

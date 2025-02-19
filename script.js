@@ -63,7 +63,6 @@ function logout() {
     window.location.href = "index.html"; // 🌟 Nach Logout zurück zur Login-Seite
 }
 
-const API_URL = "https://foodcalculator-server.onrender.com";
 const DAILY_CALORIE_LIMIT = 1500;
 let recipes = [];
 

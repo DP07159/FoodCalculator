@@ -1,4 +1,29 @@
 const API_URL = "https://foodcalculator-server.onrender.com";
+
+// **Login-Funktion**
+function login() {
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+
+    fetch(`${API_URL}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.token) {
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("username", username);
+            window.location.href = "dashboard.html"; // 🌟 Weiterleitung nach Login
+        } else {
+            document.getElementById("login-error").textContent = "❌ Login fehlgeschlagen!";
+        }
+    })
+    .catch(error => console.error("❌ Fehler beim Login:", error));
+}
+
+const API_URL = "https://foodcalculator-server.onrender.com";
 const DAILY_CALORIE_LIMIT = 1500;
 let recipes = [];
 

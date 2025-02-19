@@ -1,4 +1,5 @@
 <body onload="checkAuth()">
+<button id="logout-button" onclick="logout()">Logout</button>
 
   <!DOCTYPE html>
 <html lang="de">
@@ -19,6 +20,7 @@
         <!-- 🌟 Wochenplan -->
         <section id="meal-plan">
             <h2>Wochenplan</h2>
+            <h2>Willkommen, <span id="user-name"></span>!</h2>
             <p id="current-plan-name" class="left-align">Kein Plan geladen</p>
             <table>
                 <thead>

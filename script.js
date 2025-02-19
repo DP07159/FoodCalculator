@@ -1,5 +1,26 @@
 const API_URL = "https://foodcalculator-server.onrender.com";
 
+// **Registrier-Funktion**
+function register() {
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+
+    fetch(`${API_URL}/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.message) {
+            alert("✅ Registrierung erfolgreich! Bitte logge dich ein.");
+        } else {
+            alert("❌ Registrierung fehlgeschlagen: " + data.error);
+        }
+    })
+    .catch(error => console.error("❌ Fehler bei der Registrierung:", error));
+}
+
 // **Login-Funktion**
 function login() {
     const username = document.getElementById("username").value;

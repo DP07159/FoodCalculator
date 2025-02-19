@@ -1,4 +1,3 @@
-// **1️⃣ API Base URL - WICHTIG: NUR EINMAL DEFINIEREN!**
 const API_URL = "https://foodcalculator-server.onrender.com";
 const DAILY_CALORIE_LIMIT = 1500;
 let recipes = [];

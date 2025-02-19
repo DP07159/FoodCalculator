@@ -1,27 +1,7 @@
+// **1️⃣ API Base URL - WICHTIG: NUR EINMAL DEFINIEREN!**
 const API_URL = "https://foodcalculator-server.onrender.com";
 
-// **Registrier-Funktion**
-function register() {
-    const username = document.getElementById("username").value;
-    const password = document.getElementById("password").value;
-
-    fetch(`${API_URL}/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.message) {
-            alert("✅ Registrierung erfolgreich! Bitte logge dich ein.");
-        } else {
-            alert("❌ Registrierung fehlgeschlagen: " + data.error);
-        }
-    })
-    .catch(error => console.error("❌ Fehler bei der Registrierung:", error));
-}
-
-// **Login-Funktion**
+// **2️⃣ Login-Funktion**
 function login() {
     const username = document.getElementById("username").value;
     const password = document.getElementById("password").value;
@@ -36,7 +16,7 @@ function login() {
         if (data.token) {
             localStorage.setItem("token", data.token);
             localStorage.setItem("username", username);
-            window.location.href = "dashboard.html"; // 🌟 Weiterleitung nach Login
+            window.location.href = "dashboard.html"; // Weiterleitung ins Dashboard
         } else {
             document.getElementById("login-error").textContent = "❌ Login fehlgeschlagen!";
         }
@@ -44,23 +24,49 @@ function login() {
     .catch(error => console.error("❌ Fehler beim Login:", error));
 }
 
-// **Prüfen, ob User eingeloggt ist (Dashboard-Schutz)**
+// **3️⃣ Registrierung-Funktion**
+function register() {
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+
+    if (!username || !password) {
+        alert("❌ Bitte Benutzername und Passwort eingeben!");
+        return;
+    }
+
+    fetch(`${API_URL}/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.message) {
+            alert("✅ Registrierung erfolgreich! Bitte logge dich ein.");
+        } else {
+            alert("❌ Registrierung fehlgeschlagen: " + (data.error || "Unbekannter Fehler"));
+        }
+    })
+    .catch(error => alert("❌ Fehler bei der Registrierung: " + error));
+}
+
+// **4️⃣ Logout-Funktion**
+function logout() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("username");
+    window.location.href = "index.html"; // Zurück zum Login
+}
+
+// **5️⃣ Authentifizierung beim Dashboard-Load**
 function checkAuth() {
     const token = localStorage.getItem("token");
     const username = localStorage.getItem("username");
 
     if (!token) {
-        window.location.href = "index.html"; // 🌟 Falls nicht eingeloggt, zurück zum Login
+        window.location.href = "index.html"; // Falls nicht eingeloggt, zurück zum Login
     } else {
-        document.getElementById("user-name").textContent = username; // 🌟 Begrüßung
+        document.getElementById("user-name").textContent = username; // Begrüßung im Dashboard
     }
-}
-
-// **Logout & Zurück zum Login**
-function logout() {
-    localStorage.removeItem("token");
-    localStorage.removeItem("username");
-    window.location.href = "index.html"; // 🌟 Nach Logout zurück zur Login-Seite
 }
 
 const DAILY_CALORIE_LIMIT = 1500;

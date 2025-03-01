@@ -32,8 +32,8 @@ function register() {
 
 // **🔑 Login**
 function login() {
-    const username = document.getElementById("username").value;
-    const password = document.getElementById("password").value;
+    const username = document.getElementById("login-username").value;
+    const password = document.getElementById("login-password").value;
 
     fetch(`${API_URL}/login`, {
         method: "POST",
@@ -42,12 +42,12 @@ function login() {
     })
     .then(response => response.json())
     .then(data => {
-        if (data.token) {
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("username", username);
-            window.location.href = "dashboard.html";
+        if (data.error) {
+            alert(data.error); // ❌ Fehler als Popup anzeigen
         } else {
-            document.getElementById("error-message").textContent = "❌ Login fehlgeschlagen!";
+            alert("✅ Login erfolgreich!");  
+            localStorage.setItem("userId", data.userId); // User-ID speichern
+            window.location.href = "dashboard.html"; // Weiterleitung zum Food Calculator
         }
     })
     .catch(error => console.error("❌ Fehler beim Login:", error));

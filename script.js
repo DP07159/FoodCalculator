@@ -2,15 +2,8 @@ const API_URL = "https://foodcalculator-server.onrender.com";
 
 // **🔑 Registrierung mit automatischem Login**
 function register() {
-    const username = document.getElementById("username").value;
-    const password = document.getElementById("password").value;
-
-    // 🔍 Passwort-Anforderungen prüfen
-    const passwordRegex = /^(?=.*[A-Z])(?=.*\W).{6,}$/;
-    if (!passwordRegex.test(password)) {
-        document.getElementById("error-message").textContent = "❌ Passwort muss mindestens 6 Zeichen, 1 Sonderzeichen & 1 Großbuchstaben enthalten.";
-        return;
-    }
+    const username = document.getElementById("register-username").value;
+    const password = document.getElementById("register-password").value;
 
     fetch(`${API_URL}/register`, {
         method: "POST",
@@ -19,12 +12,11 @@ function register() {
     })
     .then(response => response.json())
     .then(data => {
-        if (data.token) {
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("username", username);
-            window.location.href = "dashboard.html"; // 🚀 Automatische Weiterleitung nach Registrierung
+        if (data.error) {
+            alert("❌ Registrierung fehlgeschlagen: " + data.error);  // ❌ Fehler anzeigen
         } else {
-            document.getElementById("error-message").textContent = "❌ Registrierung fehlgeschlagen: " + (data.error || "Unbekannter Fehler");
+            alert("✅ Registrierung erfolgreich! Jetzt einloggen.");
+            window.location.href = "index.html";  // Weiterleitung zur Login-Seite
         }
     })
     .catch(error => console.error("❌ Fehler bei der Registrierung:", error));

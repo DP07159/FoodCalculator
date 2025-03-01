@@ -7,19 +7,22 @@ function register() {
 
     fetch(`${API_URL}/register`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            alert("❌ Registrierung fehlgeschlagen: " + data.error);  // ❌ Fehler anzeigen
-        } else {
-            alert("✅ Registrierung erfolgreich! Jetzt einloggen.");
-            window.location.href = "index.html";  // Weiterleitung zur Login-Seite
-        }
-    })
-    .catch(error => console.error("❌ Fehler bei der Registrierung:", error));
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password })
+})
+.then(async response => {
+    if (!response.ok) {
+        let errorMessage = `Fehler: ${response.status}`;
+        try {
+            const errorData = await response.json();
+            errorMessage = errorData.error || errorMessage;
+        } catch (e) {}
+        throw new Error(errorMessage);
+    }
+    return response.json();
+})
+.then(data => console.log("✅ Registrierung erfolgreich:", data))
+.catch(error => console.error("❌ Registrierung fehlgeschlagen:", error.message));
 }
 
 // **🔑 Login**
@@ -29,18 +32,20 @@ function login() {
 
     fetch(`${API_URL}/login`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            alert(data.error); // ❌ Fehler als Popup anzeigen
-        } else {
-            alert("✅ Login erfolgreich!");  
-            localStorage.setItem("userId", data.userId); // User-ID speichern
-            window.location.href = "dashboard.html"; // Weiterleitung zum Food Calculator
-        }
-    })
-    .catch(error => console.error("❌ Fehler beim Login:", error));
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password })
+})
+.then(async response => {
+    if (!response.ok) {
+        let errorMessage = `Fehler: ${response.status}`;
+        try {
+            const errorData = await response.json();
+            errorMessage = errorData.error || errorMessage;
+        } catch (e) {}
+        throw new Error(errorMessage);
+    }
+    return response.json();
+})
+.then(data => console.log("✅ Login erfolgreich:", data))
+.catch(error => console.error("❌ Login fehlgeschlagen:", error.message));
 }

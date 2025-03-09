@@ -26,8 +26,23 @@
         const recipeId = params.get('id');
 
         async function loadRecipeDetails() {
-            const response = await fetch(`/recipes/${recipeId}`);
-            const recipe = await response.json();
+    const response = await fetch(`/recipes/${recipeId}`);
+
+    // Debug-Ausgabe
+    const responseText = await response.text();
+    console.log("🔎 Server Response:", responseText);
+
+    try {
+        const recipe = JSON.parse(responseText);
+        document.getElementById('recipeName').value = recipe.name || '';
+        document.getElementById('ingredients').value = recipe.ingredients || '';
+        document.getElementById('instructions').value = recipe.instructions || '';
+    } catch (error) {
+        console.error('❌ Fehler beim Parsen der Antwort:', error.message);
+        alert('Fehler beim Abrufen der Rezeptdaten. Bitte überprüfe die Konsole.');
+    }
+}
+
 
             document.getElementById('recipeName').value = recipe.name || '';
             document.getElementById('ingredients').value = recipe.ingredients || '';

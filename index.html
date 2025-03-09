@@ -88,12 +88,12 @@
     async function loadRecipes() {
     try {
         const response = await fetch('/recipes');
-        const responseText = await response.text();  // Rohtext anzeigen
+        const responseText = await response.text(); // Rohtext anzeigen
 
         console.log("🔎 Server Response (Rezeptdaten):", responseText);
 
-        // Prüfen, ob der Inhalt wirklich JSON ist
-        try {
+        // Prüfen, ob die Antwort JSON ist
+        if (responseText.trim().startsWith('{') || responseText.trim().startsWith('[')) {
             const recipes = JSON.parse(responseText);  // JSON-PARSING nur versuchen, wenn sinnvoll
             console.log("✅ Erfolgreiches JSON-Parsing:", recipes);
 
@@ -110,9 +110,9 @@
                                      </a>`;
                 recipeList.appendChild(listItem);
             });
-        } catch (jsonError) {
-            console.error('❌ JSON-Parsing-Fehler:', jsonError.message);
-            alert('Fehler beim Verarbeiten der Rezeptdaten. Siehe Konsole für Details.');
+        } else {
+            console.error('❌ Antwort war kein JSON:', responseText);
+            alert('Der Server liefert keine gültigen Rezeptdaten. Siehe Konsole für Details.');
         }
 
     } catch (error) {

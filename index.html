@@ -88,26 +88,33 @@
     async function loadRecipes() {
     try {
         const response = await fetch('/recipes');
-        const responseText = await response.text(); // Rohtext anzeigen
+        const responseText = await response.text();  // Rohtext anzeigen
 
         console.log("🔎 Server Response (Rezeptdaten):", responseText);
 
-        // Prüfen, ob die Antwort JSON ist
-        const recipes = JSON.parse(responseText);
+        // Prüfen, ob der Inhalt wirklich JSON ist
+        try {
+            const recipes = JSON.parse(responseText);  // JSON-PARSING nur versuchen, wenn sinnvoll
+            console.log("✅ Erfolgreiches JSON-Parsing:", recipes);
 
-        const recipeList = document.getElementById('recipe-list');
-        recipeList.innerHTML = ''; // Liste leeren
+            const recipeList = document.getElementById('recipe-list');
+            recipeList.innerHTML = ''; // Liste leeren
 
-        recipes.forEach(recipe => {
-            const listItem = document.createElement('li');
-            listItem.classList.add('recipe-item');
-            listItem.setAttribute('data-id', recipe.id);
+            recipes.forEach(recipe => {
+                const listItem = document.createElement('li');
+                listItem.classList.add('recipe-item');
+                listItem.setAttribute('data-id', recipe.id);
 
-            listItem.innerHTML = `<a href="/recipeDetails.html?id=${recipe.id}" class="recipe-link">
-                                    ${recipe.name}
-                                 </a>`;
-            recipeList.appendChild(listItem);
-        });
+                listItem.innerHTML = `<a href="/recipeDetails.html?id=${recipe.id}" class="recipe-link">
+                                        ${recipe.name}
+                                     </a>`;
+                recipeList.appendChild(listItem);
+            });
+        } catch (jsonError) {
+            console.error('❌ JSON-Parsing-Fehler:', jsonError.message);
+            alert('Fehler beim Verarbeiten der Rezeptdaten. Siehe Konsole für Details.');
+        }
+
     } catch (error) {
         console.error("❌ Fehler beim Laden der Rezepte:", error.message);
         alert('Fehler beim Laden der Rezepte. Siehe Konsole für Details.');

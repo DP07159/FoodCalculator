@@ -111,6 +111,9 @@ function populateRecipeList() {
 
     recipes.forEach(recipe => {
         const li = document.createElement("li");
+        li.classList.add("recipe-item");   // ✅ Klasse für Klickbarkeit hinzufügen
+        li.setAttribute('data-id', recipe.id);  // ✅ data-id hinzufügen
+
         li.innerHTML = `<strong>${recipe.name}</strong> - ${recipe.calories} kcal | ${recipe.mealTypes.join(", ")}`;
 
         const deleteButton = document.createElement("button");

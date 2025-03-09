@@ -115,23 +115,19 @@ button:hover {
     background-color: darkred;
 }
 
-.recipe-button {
-    background-color: #4CAF50;  /* Grüne Schaltfläche */
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    text-align: center;
-    text-decoration: none;
+#recipe-link {
     display: inline-block;
-    font-size: 16px;
+    color: #4CAF50;  /* Grüne Schrift */
+    text-decoration: underline;  /* Unterstrichen wie ein Link */
     cursor: pointer;
-    border-radius: 5px;
-    width: 100%; /* Sorgt für eine breite Klickfläche */
+    padding: 10px 0;  /* Mehr Platz für Klickfläche */
 }
 
-.recipe-button:hover {
-    background-color: #45a049;  /* Dunkleres Grün beim Überfahren */
+#recipe-link:hover {
+    color: #45a049;  /* Dunkleres Grün beim Überfahren */
+    text-decoration: none;  /* Dezentere Link-Anzeige beim Hover */
 }
+
 
 /* 🚀 Mobile Optimierung */
 @media (max-width: 768px) {

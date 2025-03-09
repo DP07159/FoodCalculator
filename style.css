@@ -115,6 +115,24 @@ button:hover {
     background-color: darkred;
 }
 
+.recipe-button {
+    background-color: #4CAF50;  /* Grüne Schaltfläche */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+    width: 100%; /* Sorgt für eine breite Klickfläche */
+}
+
+.recipe-button:hover {
+    background-color: #45a049;  /* Dunkleres Grün beim Überfahren */
+}
+
 /* 🚀 Mobile Optimierung */
 @media (max-width: 768px) {
     #plan-container {

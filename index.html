@@ -97,8 +97,10 @@
     listItem.classList.add('recipe-item');
     listItem.setAttribute('data-id', recipe.id);
 
-    // Visuell als Link/Schaltfläche anzeigen
-    listItem.innerHTML = `<button class="recipe-button">${recipe.name}</button>`;
+    // Rezeptname als Link darstellen
+    listItem.innerHTML = `<a href="/recipeDetails.html?id=${recipe.id}" class="recipe-link">
+                             ${recipe.name}
+                          </a>`;
 
     recipeList.appendChild(listItem);
 });

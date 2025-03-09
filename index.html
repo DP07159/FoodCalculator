@@ -97,18 +97,20 @@
     listItem.classList.add('recipe-item');
     listItem.setAttribute('data-id', recipe.id);
 
-    // Klick-Funktion hinzufügen
-    listItem.addEventListener('click', () => {
-        window.location.href = `/recipeDetails.html?id=${recipe.id}`;
-    });
-
-    // Optional: Visuellen Hinweis für die Klickbarkeit hinzufügen
-    listItem.style.cursor = 'pointer';
-    listItem.style.textDecoration = 'underline';
-
     listItem.textContent = `${recipe.name} (ID: ${recipe.id})`;  
     recipeList.appendChild(listItem);
 });
+
+// ✅ Klick-Event-Listener für die gesamte Liste (Event Delegation)
+document.getElementById('recipe-list').addEventListener('click', (event) => {
+    const clickedItem = event.target.closest('.recipe-item');
+    if (clickedItem) {
+        const recipeId = clickedItem.getAttribute('data-id');
+        if (recipeId) {
+            window.location.href = `/recipeDetails.html?id=${recipeId}`;
+        }
+    }
+});        
     }
 
     window.onload = loadRecipes;

@@ -15,6 +15,25 @@ function loadRecipes() {
     .catch(error => console.error("❌ Fehler beim Laden der Rezepte:", error));
 }
 
+//250309
+document.addEventListener('DOMContentLoaded', () => {
+    const recipeItems = document.querySelectorAll('#recipe-list li');
+
+    recipeItems.forEach(item => {
+        const recipeId = item.getAttribute('data-id');
+        
+        if (recipeId) {
+            item.addEventListener('click', () => {
+                window.location.href = `/recipeDetails.html?id=${recipeId}`;
+            });
+
+            // Optional: Visuellen Hinweis für die Klickbarkeit hinzufügen
+            item.style.cursor = 'pointer';
+            item.style.textDecoration = 'underline';
+        }
+    });
+});
+
 // **Mahlzeitentabelle aufbauen**
 function populateMealTable() {
   const mealTable = document.getElementById("meal-table");

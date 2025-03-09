@@ -88,17 +88,16 @@
     async function loadRecipes() {
     try {
         const response = await fetch('/recipes');
-        const responseText = await response.text(); // Rohtext anzeigen
+        const responseText = await response.text();  // Rohtext anzeigen
 
-        console.log("🔎 Server Response (Rezeptdaten):", responseText);
+        console.log("🔎 Server Response (Rezeptdaten):", responseText); // ← Das ist der Schlüssel!
 
-        // Prüfen, ob die Antwort JSON ist
         if (responseText.trim().startsWith('{') || responseText.trim().startsWith('[')) {
-            const recipes = JSON.parse(responseText);  // JSON-PARSING nur versuchen, wenn sinnvoll
+            const recipes = JSON.parse(responseText);
             console.log("✅ Erfolgreiches JSON-Parsing:", recipes);
 
             const recipeList = document.getElementById('recipe-list');
-            recipeList.innerHTML = ''; // Liste leeren
+            recipeList.innerHTML = '';
 
             recipes.forEach(recipe => {
                 const listItem = document.createElement('li');

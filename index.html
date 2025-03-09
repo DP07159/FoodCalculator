@@ -97,11 +97,16 @@
     listItem.classList.add('recipe-item');
     listItem.setAttribute('data-id', recipe.id);
 
+    // Klick-Funktion hinzufügen
     listItem.addEventListener('click', () => {
         window.location.href = `/recipeDetails.html?id=${recipe.id}`;
     });
 
-    listItem.textContent = `${recipe.name} (ID: ${recipe.id})`;  // Zur besseren Übersicht
+    // Optional: Visuellen Hinweis für die Klickbarkeit hinzufügen
+    listItem.style.cursor = 'pointer';
+    listItem.style.textDecoration = 'underline';
+
+    listItem.textContent = `${recipe.name} (ID: ${recipe.id})`;  
     recipeList.appendChild(listItem);
 });
     }

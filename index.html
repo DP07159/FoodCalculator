@@ -92,12 +92,14 @@
         const recipeList = document.getElementById('recipe-list');
         recipeList.innerHTML = ''; // Liste leeren
 
-        recipes.forEach(recipe => {
+       recipes.forEach(recipe => {
     const listItem = document.createElement('li');
     listItem.classList.add('recipe-item');
     listItem.setAttribute('data-id', recipe.id);
 
-    listItem.textContent = `${recipe.name} (ID: ${recipe.id})`;  
+    // Visuell als Link/Schaltfläche anzeigen
+    listItem.innerHTML = `<button class="recipe-button">${recipe.name}</button>`;
+
     recipeList.appendChild(listItem);
 });
 

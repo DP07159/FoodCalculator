@@ -290,6 +290,14 @@ function loadMealPlan() {
     .catch(error => console.error("❌ Fehler beim Laden des Plans:", error));
 }
 
+//150309 
+document.querySelectorAll('.recipe-item').forEach(item => {
+    item.addEventListener('click', () => {
+        const recipeId = item.getAttribute('data-id');
+        window.location.href = `/recipeDetails.html?id=${recipeId}`;
+    });
+});
+
 // **Beim Laden der Seite Wochenpläne abrufen**
 document.addEventListener("DOMContentLoaded", loadMealPlans);
 

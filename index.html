@@ -80,7 +80,32 @@
     <!-- 🌟 Rezeptbuch -->
     <section id="recipe-book">
         <h2>Rezeptbuch</h2>
-        <ul id="recipe-list"></ul>
+        <ul id="recipe-list">
+    <!-- Rezepte werden hier dynamisch eingefügt -->
+</ul>
+
+<script>
+    async function loadRecipes() {
+        const response = await fetch('/recipes');
+        const recipes = await response.json();
+
+        const recipeList = document.getElementById('recipe-list');
+        recipeList.innerHTML = ''; // Liste leeren
+
+        recipes.forEach(recipe => {
+            const listItem = document.createElement('li');
+            listItem.classList.add('recipe-item');
+            listItem.innerHTML = `
+                <a href="/recipeDetails.html?id=${recipe.id}">
+                    ${recipe.name}
+                </a>`;
+            recipeList.appendChild(listItem);
+        });
+    }
+
+    window.onload = loadRecipes;
+</script>
+
     </section>
 </div>
 

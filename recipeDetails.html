@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Rezeptdetails</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Rezeptdetails</h1>
+
+    <form id="recipeForm">
+        <label for="recipeName">Name des Rezepts:</label>
+        <input type="text" id="recipeName" name="recipeName" readonly>
+
+        <label for="ingredients">Zutaten:</label>
+        <textarea id="ingredients" name="ingredients"></textarea>
+
+        <label for="instructions">Anleitung:</label>
+        <textarea id="instructions" name="instructions"></textarea>
+
+        <button type="submit">Speichern</button>
+    </form>
+
+    <script>
+        // Rezept-ID aus der URL extrahieren
+        const params = new URLSearchParams(window.location.search);
+        const recipeId = params.get('id');
+
+        // Rezeptdetails laden
+        async function loadRecipeDetails() {
+            const response = await fetch(`/recipes/${recipeId}`);
+            const recipe = await response.json();
+
+            document.getElementById('recipeName').value = recipe.name || '';
+            document.getElementById('ingredients').value = recipe.ingredients || '';
+            document.getElementById('instructions').value = recipe.instructions || '';
+        }
+
+        // Rezeptdetails speichern/aktualisieren
+        document.getElementById('recipeForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const ingredients = document.getElementById('ingredients').value;
+            const instructions = document.getElementById('instructions').value;
+
+            const response = await fetch(`/recipes/${recipeId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ingredients, instructions })
+            });
+
+            if (response.ok) {
+                alert('✅ Rezept erfolgreich aktualisiert!');
+            } else {
+                alert('❌ Fehler beim Aktualisieren des Rezepts.');
+            }
+        });
+
+        // Seite laden
+        window.onload = loadRecipeDetails;
+    </script>
+</body>
+</html>

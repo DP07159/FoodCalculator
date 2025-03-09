@@ -4,15 +4,26 @@ let recipes = [];
 
 // **Rezepte laden**
 function loadRecipes() {
-  fetch(`${API_URL}/recipes`)
-    .then(response => response.json())
-    .then((data) => {
-      console.log("✅ Rezepte erfolgreich geladen:", data);
-      recipes = data;
-      populateMealTable(); // Wochenplan-Tabelle aktualisieren
-      populateRecipeList(); // Rezeptbuch aktualisieren
-    })
-    .catch(error => console.error("❌ Fehler beim Laden der Rezepte:", error));
+    console.log("🔎 loadRecipes() gestartet");
+    fetch(`${API_URL}/recipes`)
+        .then(response => response.json())
+        .then((data) => {
+            console.log("✅ Rezepte erfolgreich geladen:", data);
+            recipes = data;
+            populateMealTable(); 
+            populateRecipeList(); 
+
+            // ✅ Popup-Meldung ausblenden
+            const errorMessage = document.getElementById("error-message");
+            if (errorMessage) errorMessage.style.display = "none";
+        })
+        .catch(error => {
+            console.error("❌ Fehler beim Laden der Rezepte:", error);
+
+            // ❗️ Falls du ein Fehler-Element hast, hier sichtbar machen
+            const errorMessage = document.getElementById("error-message");
+            if (errorMessage) errorMessage.style.display = "block";
+        });
 }
 
 //250309

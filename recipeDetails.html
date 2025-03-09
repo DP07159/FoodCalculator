@@ -25,6 +25,11 @@
         const params = new URLSearchParams(window.location.search);
         const recipeId = params.get('id');
 
+if (!recipeId) {
+    alert('❌ Keine gültige Rezept-ID gefunden.');
+    window.location.href = "/index.html"; // Zurück zur Startseite
+}
+
         async function loadRecipeDetails() {
     const response = await fetch(`/recipes/${recipeId}`);
 

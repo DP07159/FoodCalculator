@@ -93,14 +93,17 @@
         recipeList.innerHTML = ''; // Liste leeren
 
         recipes.forEach(recipe => {
-            const listItem = document.createElement('li');
-            listItem.classList.add('recipe-item');
-            listItem.innerHTML = `
-                <a href="/recipeDetails.html?id=${recipe.id}">
-                    ${recipe.name}
-                </a>`;
-            recipeList.appendChild(listItem);
-        });
+    const listItem = document.createElement('li');
+    listItem.classList.add('recipe-item');
+    listItem.setAttribute('data-id', recipe.id);
+
+    listItem.addEventListener('click', () => {
+        window.location.href = `/recipeDetails.html?id=${recipe.id}`;
+    });
+
+    listItem.textContent = `${recipe.name} (ID: ${recipe.id})`;  // Zur besseren Übersicht
+    recipeList.appendChild(listItem);
+});
     }
 
     window.onload = loadRecipes;

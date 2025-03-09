@@ -309,12 +309,15 @@ function loadMealPlan() {
     .catch(error => console.error("❌ Fehler beim Laden des Plans:", error));
 }
 
-//150309 
-document.querySelectorAll('.recipe-item').forEach(item => {
-    item.addEventListener('click', () => {
-        const recipeId = item.getAttribute('data-id');
-        window.location.href = `/recipeDetails.html?id=${recipeId}`;
-    });
+// ✅ Korrekte Lösung mit Event Delegation
+document.getElementById('recipe-list').addEventListener('click', (event) => {
+    const clickedItem = event.target.closest('.recipe-item');
+    if (clickedItem) {
+        const recipeId = clickedItem.getAttribute('data-id');
+        if (recipeId) {
+            window.location.href = `/recipeDetails.html?id=${recipeId}`;
+        }
+    }
 });
 
 // **Beim Laden der Seite Wochenpläne abrufen**

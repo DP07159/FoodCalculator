@@ -8,19 +8,22 @@
 <body>
     <h1>Rezeptdetails</h1>
 
-    <form id="recipeForm">
-        <label for="recipeName">Name des Rezepts:</label>
-        <input type="text" id="recipeName" name="recipeName" readonly>
+    <form id="recipe-form">
+        <label for="recipe-name">Name:</label>
+        <input type="text" id="recipe-name" name="recipe-name">
 
-        <label for="ingredients">Zutaten:</label>
-        <textarea id="ingredients" name="ingredients"></textarea>
+        <label for="recipe-calories">Kalorien:</label>
+        <input type="number" id="recipe-calories" name="recipe-calories">
 
-        <label for="instructions">Anleitung:</label>
-        <textarea id="instructions" name="instructions"></textarea>
+        <label for="recipe-ingredients">Zutaten:</label>
+        <textarea id="recipe-ingredients" name="recipe-ingredients"></textarea>
 
-        <button type="submit">Speichern</button>
+        <label for="recipe-instructions">Anleitung:</label>
+        <textarea id="recipe-instructions" name="recipe-instructions"></textarea>
+
+        <button type="button" onclick="updateRecipe()">Speichern</button>
     </form>
-
+    
     <script>
         const params = new URLSearchParams(window.location.search);
         const recipeId = params.get('id');

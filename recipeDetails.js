@@ -13,12 +13,12 @@ async function loadRecipeDetails() {
         const response = await fetch(`${API_URL}/recipes/${recipeId}`);
         const recipe = await response.json();
 
-        if (recipe.error) {
+        if (!recipe || recipe.error) {
             alert("Fehler: Rezept nicht gefunden.");
             return;
         }
 
-        // ✅ Felder vorausfüllen
+        // ✅ Felder vorausfüllen (mit zusätzlicher Prüfung)
         document.getElementById("recipe-name").value = recipe.name || '';
         document.getElementById("recipe-calories").value = recipe.calories || '';
         document.getElementById("recipe-ingredients").value = recipe.ingredients || '';

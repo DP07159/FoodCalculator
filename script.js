@@ -6,27 +6,14 @@ let recipes = [];
 function loadRecipes() {
     console.log("🔎 loadRecipes() gestartet");
     fetch(`${API_URL}/recipes`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`Fehler beim Laden der Rezepte: ${response.statusText}`);
-            }
-            return response.json();
-        })
+        .then(response => response.json())
         .then((data) => {
             console.log("✅ Rezepte erfolgreich geladen:", data);
             recipes = data;
-            populateMealTable(); // HIER wird die fehlende Funktion jetzt korrekt aufgerufen
+            populateMealTable();
             populateRecipeList();
-
-            const errorMessage = document.getElementById("error-message");
-            if (errorMessage) errorMessage.style.display = "none";
         })
-        .catch(error => {
-            console.error("❌ Fehler beim Laden der Rezepte:", error);
-
-            const errorMessage = document.getElementById("error-message");
-            if (errorMessage) errorMessage.style.display = "block";
-        });
+        .catch(error => console.error("❌ Fehler beim Laden der Rezepte:", error));
 }
 
 // ✅ Rezeptbuch erstellen und Klickbereiche verbessern
@@ -63,7 +50,7 @@ function populateRecipeList() {
     });
 }
 
-// ✅ NEU: Fehlende Funktion `populateMealTable()` hinzugefügt
+// ✅ Mahlzeitentabelle
 function populateMealTable() {
     const mealTable = document.getElementById("meal-table");
     if (!mealTable) return console.error("❌ Fehler: `meal-table` nicht gefunden!");
@@ -113,7 +100,7 @@ function populateMealTable() {
     });
 }
 
-// **Kalorien berechnen**
+// ✅ Kalorienberechnung
 function calculateCalories() {
     document.querySelectorAll("#meal-table tr").forEach(row => {
         let totalCalories = 0;
@@ -133,7 +120,26 @@ function calculateCalories() {
     });
 }
 
-// ✅ Event Delegation für dynamische Inhalte
+// **Wochenpläne laden**
+function loadMealPlans() {
+    fetch(`${API_URL}/meal_plans`)
+        .then(response => response.json())
+        .then((plans) => {
+            console.log("✅ Wochenpläne geladen:", plans);
+            const planList = document.getElementById("plan-list");
+            planList.innerHTML = '<option value="">-- Plan auswählen --</option>';
+
+            plans.forEach(plan => {
+                const option = document.createElement("option");
+                option.value = plan.id;
+                option.textContent = plan.name;
+                planList.appendChild(option);
+            });
+        })
+        .catch(error => console.error("❌ Fehler beim Laden der Pläne:", error));
+}
+
+// **Event Delegation**
 document.getElementById('recipe-list').addEventListener('click', (event) => {
     const clickedItem = event.target.closest('.recipe-item');
     if (clickedItem) {
@@ -150,7 +156,7 @@ document.addEventListener("DOMContentLoaded", loadMealPlans);
 // **Beim Laden der Seite alle Rezepte abrufen**
 document.addEventListener("DOMContentLoaded", loadRecipes);
 
-// **Eingabefelder für den Plan-Namen leeren**
+// **Plan-Name zurücksetzen**
 document.addEventListener("DOMContentLoaded", () => {
     const planNameInput = document.getElementById("plan-name");
     const currentPlanName = document.getElementById("current-plan-name");
@@ -158,4 +164,5 @@ document.addEventListener("DOMContentLoaded", () => {
     if (planNameInput) planNameInput.value = "";
     if (currentPlanName) currentPlanName.textContent = "Wochenplan";
 });
+
 

@@ -37,6 +37,7 @@ function populateRecipeList() {
     recipes.forEach(recipe => {
         const li = document.createElement("li");
         li.classList.add("recipe-item"); // WICHTIG für die Klickbarkeit!
+        li.setAttribute("data-id", recipe.id); // 🟩 Hinzugefügt
 
         const linkToInstructions = document.createElement("a");
         linkToInstructions.href = `/recipeInstructions.html?id=${recipe.id}`;
@@ -77,6 +78,13 @@ function loadMealPlan() {
         .then(response => response.json())
         .then((plan) => {
             console.log("✅ Plan geladen:", plan);
+
+            if (!plan.data) {
+                console.warn("❗️ Kein gültiger Wochenplan geladen.");
+                alert("Der Plan enthält keine Daten.");
+                return;
+            }
+
             document.querySelectorAll("#meal-table tr").forEach(row => {
                 const day = row.querySelector("td").textContent;
 
@@ -87,7 +95,6 @@ function loadMealPlan() {
             });
 
             calculateCalories(); // Berechnung aktualisieren
-
             document.getElementById("current-plan-name").textContent = `Aktueller Wochenplan: ${plan.name}`;
         })
         .catch(error => console.error("❌ Fehler beim Laden des Plans:", error));
@@ -129,6 +136,11 @@ document.addEventListener("DOMContentLoaded", loadMealPlans);
 // **Beim Laden der Seite alle Rezepte abrufen**
 document.addEventListener("DOMContentLoaded", loadRecipes);
 
-// Eingabefeld für den Plan-Namen leeren
-document.getElementById("plan-name").value = "";
-document.getElementById("current-plan-name").textContent = "Wochenplan";
+// **Eingabefelder für den Plan-Namen leeren**
+document.addEventListener("DOMContentLoaded", () => {
+    const planNameInput = document.getElementById("plan-name");
+    const currentPlanName = document.getElementById("current-plan-name");
+
+    if (planNameInput) planNameInput.value = "";
+    if (currentPlanName) currentPlanName.textContent = "Wochenplan";
+});

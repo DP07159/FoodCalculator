@@ -1,85 +1,95 @@
-const API_URL = "https://foodcalculator-server.onrender.com";
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Rezeptdetails</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="breadcrumb">
+        <a href="/index.html">🏠 Hauptseite</a> > 
+        <a href="/recipeBook.html">📖 Rezeptbuch</a> > 
+        <span>📝 Rezeptdetails</span>
+    </nav>
 
-async function loadRecipeDetails() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const recipeId = urlParams.get('id');
+    <h1>Rezeptdetails</h1>
+    <button onclick="window.location.href='/index.html'">🏠 Zur Hauptseite</button>
 
-    if (!recipeId) {
-        console.warn("❗️ Keine Rezept-ID gefunden.");
-        alert("Fehler: Keine Rezept-ID gefunden.");
-        return;
-    }
+    <form id="recipe-form">
+        <label for="recipe-name">Name:</label>
+        <input type="text" id="recipe-name" name="recipe-name">
 
-    try {
-        const response = await fetch(`${API_URL}/recipes/${recipeId}`);
-        
-        if (!response.ok) {
-            console.error(`❌ Fehler beim Abrufen der Rezeptdetails: ${response.statusText}`);
-            alert("Fehler: Rezept nicht gefunden.");
-            return;
+        <label for="recipe-calories">Kalorien:</label>
+        <input type="number" id="recipe-calories" name="recipe-calories">
+
+        <label for="recipe-portions">Portionen:</label>
+        <input type="number" id="recipe-portions" name="recipe-portions">
+
+        <label for="recipe-ingredients">Zutaten:</label>
+        <textarea id="recipe-ingredients" name="recipe-ingredients"></textarea>
+
+        <label for="recipe-instructions">Anleitung:</label>
+        <textarea id="recipe-instructions" name="recipe-instructions"></textarea>
+
+        <button type="button" onclick="updateRecipe()">Speichern</button>
+    </form>
+    
+    <script>
+        const API_URL = "https://foodcalculator-server.onrender.com";
+        const params = new URLSearchParams(window.location.search);
+        const recipeId = params.get('id');
+
+        if (!recipeId) {
+            alert('❌ Keine gültige Rezept-ID gefunden.');
+            window.location.href = "/index.html"; // Zurück zur Startseite
         }
 
-        if (!response.ok) {
-    console.error(`❌ Fehler beim Abrufen der Rezeptdetails: ${response.statusText}`);
-    alert("Fehler: Rezept nicht gefunden.");
-    return;
-}
+        async function loadRecipeDetails() {
+            const response = await fetch(`${API_URL}/recipes/${recipeId}`);
 
-const recipe = await response.json();
+            // Debug-Ausgabe
+            const responseText = await response.text();
+            console.log("🔎 Server Response:", responseText);
 
-        document.getElementById("recipe-name").value = recipe.name || '';
-        document.getElementById("recipe-calories").value = recipe.calories || '';
-        document.getElementById("recipe-portions").value = recipe.portions || '';
-        document.getElementById("recipe-ingredients").value = recipe.ingredients || '';
-        document.getElementById("recipe-instructions").value = recipe.instructions || '';
-
-    } catch (error) {
-        console.error("❌ Fehler beim Abrufen der Rezeptdetails:", error);
-        alert("Fehler beim Laden der Rezeptdetails.");
-    }
-}
-
-async function updateRecipe() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const recipeId = urlParams.get('id');
-
-    const name = document.getElementById('recipe-name').value;
-    const calories = parseInt(document.getElementById('recipe-calories').value);
-    const portions = parseInt(document.getElementById("recipe-portions").value) || 0; 
-    const ingredients = document.getElementById('recipe-ingredients').value;
-    const instructions = document.getElementById('recipe-instructions').value;
-
-    if (!name || !calories) {
-        alert('❌ Name und Kalorien sind erforderlich!');
-        return;
-    }
-
-    try {
-        const response = await fetch(`${API_URL}/recipes/${recipeId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, calories, portions, ingredients, instructions })
-        });
-
-        const result = await response.json();
-        console.log("🔎 PUT-Antwort:", result);
-
-        if (response.ok) {
-            alert('✅ Rezept erfolgreich aktualisiert!');
-        } else {
-            alert(`❌ Fehler beim Speichern: ${result.error || 'Unbekannter Fehler'}`);
+            try {
+                const recipe = JSON.parse(responseText);
+                document.getElementById('recipe-name').value = recipe.name || '';
+                document.getElementById('recipe-calories').value = recipe.calories || '';
+                document.getElementById('recipe-portions').value = recipe.portions || '';
+                document.getElementById('recipe-ingredients').value = recipe.ingredients || '';
+                document.getElementById('recipe-instructions').value = recipe.instructions || '';
+            } catch (error) {
+                console.error('❌ Fehler beim Parsen der Antwort:', error.message);
+                alert('Fehler beim Abrufen der Rezeptdaten. Bitte überprüfe die Konsole.');
+            }
         }
-    } catch (error) {
-        console.error("❌ Fehler beim PUT-Aufruf:", error);
-        alert('❌ Fehler beim Speichern der Rezeptdaten.');
-    }
-}
 
-// Beim Laden der Seite automatisch Rezeptdetails abrufen
-window.onload = loadRecipeDetails;
+        async function updateRecipe() {
+            const name = document.getElementById('recipe-name').value;
+            const calories = document.getElementById('recipe-calories').value;
+            const portions = parseInt(document.getElementById('recipe-portions').value);
+            const ingredients = document.getElementById('recipe-ingredients').value;
+            const instructions = document.getElementById('recipe-instructions').value;
 
-// Event-Handler für das Absenden des Formulars
-document.getElementById('recipe-form').addEventListener('submit', (event) => {
-    event.preventDefault();
-    updateRecipe();
-});
+            try {
+                const response = await fetch(`${API_URL}/recipes/${recipeId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, calories, portions, ingredients, instructions })
+                });
+
+                if (response.ok) {
+                    alert('✅ Rezept erfolgreich aktualisiert!');
+                } else {
+                    alert('❌ Fehler beim Aktualisieren des Rezepts.');
+                }
+            } catch (error) {
+                console.error("❌ Fehler beim PUT-Aufruf:", error);
+                alert("❌ Fehler beim Speichern der Rezeptdaten.");
+            }
+        }
+
+        window.onload = loadRecipeDetails;
+    </script>
+</body>
+</html>

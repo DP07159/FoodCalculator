@@ -19,7 +19,13 @@ async function loadRecipeDetails() {
             return;
         }
 
-        const recipe = await response.json();
+        if (!response.ok) {
+    console.error(`❌ Fehler beim Abrufen der Rezeptdetails: ${response.statusText}`);
+    alert("Fehler: Rezept nicht gefunden.");
+    return;
+}
+
+const recipe = await response.json();
 
         document.getElementById("recipe-name").value = recipe.name || '';
         document.getElementById("recipe-calories").value = recipe.calories || '';

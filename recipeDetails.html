@@ -7,8 +7,21 @@
 </head>
 <body>
     <h1>Rezeptdetails</h1>
+    <button onclick="window.location.href='/index.html'">🏠 Zur Hauptseite</button>
+
+    <div class="recipe-info">
+        <h2 id="display-recipe-name"></h2>
+        <p id="display-recipe-calories"></p>
+        <p id="display-recipe-portions"></p>
+    </div>
 
     <form id="recipe-form">
+        <h3>Zutaten:</h3>
+<ul id="display-recipe-ingredients"></ul>
+
+<h3>Anleitung:</h3>
+<div id="display-recipe-instructions"></div>
+
         <label for="recipe-name">Name:</label>
         <input type="text" id="recipe-name" name="recipe-name">
 

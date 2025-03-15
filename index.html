@@ -9,7 +9,7 @@
 <body>
     <div class="container">
 
-        <!-- 🌟 Header mit Logo (kommt später) -->
+        <!-- 🌟 Header mit Logo -->
         <header>
             <h1>Food Calculator</h1>
         </header>
@@ -37,7 +37,6 @@
         <!-- 🌟 Wochenplan-Verwaltung -->
         <section id="plan-management">
             <div class="plan-actions">
-                <!-- 🌟 Neuen Plan anlegen -->
                 <div class="new-plan">
                     <p class="small-title">Neuen Plan anlegen</p>
                     <div class="plan-input-wrapper">
@@ -46,7 +45,6 @@
                     </div>
                 </div>
 
-                <!-- 🌟 Pläne verwalten -->
                 <div class="existing-plans">
                     <p class="small-title">Pläne verwalten</p>
                     <div class="plan-controls">
@@ -58,7 +56,6 @@
                 </div>
             </div>
         </section>
-
 
        <div class="flex-container">
             <!-- 🌟 Rezept hinzufügen -->
@@ -77,58 +74,18 @@
                 <button onclick="addRecipe()">Rezept hinzufügen</button>
             </section>
 
-    <!-- 🌟 Rezeptbuch -->
-    <section id="recipe-book">
-        <h2>Rezeptbuch</h2>
-        <ul id="recipe-list">
-    <!-- Rezepte werden hier dynamisch eingefügt -->
-</ul>
-
-<script>
-    async function loadRecipes() {
-    try {
-        const response = await fetch('/recipes');
-        const responseText = await response.text();  // Rohtext anzeigen
-
-        console.log("🔎 Server Response (Rezeptdaten):", responseText); // ← Das ist der Schlüssel!
-
-        if (responseText.trim().startsWith('{') || responseText.trim().startsWith('[')) {
-            const recipes = JSON.parse(responseText);
-            console.log("✅ Erfolgreiches JSON-Parsing:", recipes);
-
-            const recipeList = document.getElementById('recipe-list');
-            recipeList.innerHTML = '';
-
-            recipes.forEach(recipe => {
-                const listItem = document.createElement('li');
-                listItem.classList.add('recipe-item');
-                listItem.setAttribute('data-id', recipe.id);
-
-                listItem.innerHTML = `<a href="/recipeDetails.html?id=${recipe.id}" class="recipe-link">
-                                        ${recipe.name}
-                                     </a>`;
-                recipeList.appendChild(listItem);
-            });
-        } else {
-            console.error('❌ Antwort war kein JSON:', responseText);
-            alert('Der Server liefert keine gültigen Rezeptdaten. Siehe Konsole für Details.');
-        }
-
-    } catch (error) {
-        console.error("❌ Fehler beim Laden der Rezepte:", error.message);
-        alert('Fehler beim Laden der Rezepte. Siehe Konsole für Details.');
-    }
-}
-
-window.onload = loadRecipes;
-</script>
-
-    </section>
-</div>
-
+            <!-- 🌟 Rezeptbuch -->
+            <section id="recipe-book">
+                <h2>Rezeptbuch</h2>
+                <ul id="recipe-list">
+                    <!-- Rezepte werden hier dynamisch eingefügt -->
+                </ul>
+            </section>
+        </div>
 
     </div>
 
+    <!-- ✅ Korrekte Referenz zur `script.js` -->
     <script src="script.js"></script>
 </body>
 </html>

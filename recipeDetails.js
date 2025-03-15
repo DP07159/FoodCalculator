@@ -1,6 +1,7 @@
 const API_URL = "https://foodcalculator-server.onrender.com";
 
 async function loadRecipeDetails() {
+    document.getElementById("recipe-portions").value = recipe.portions || '';
     const urlParams = new URLSearchParams(window.location.search);
     const recipeId = urlParams.get('id');
 
@@ -54,6 +55,7 @@ instructionsList.innerHTML = recipe.instructions
 }
 
 async function updateRecipe() {
+    const portions = parseInt(document.getElementById("recipe-portions").value);
     const urlParams = new URLSearchParams(window.location.search);
     const recipeId = urlParams.get('id');
 
@@ -71,7 +73,7 @@ async function updateRecipe() {
         const response = await fetch(`${API_URL}/recipes/${recipeId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, calories, ingredients, instructions })
+            body: JSON.stringify({ name, calories, portions, ingredients, instructions })
         });
 
         const result = await response.json();

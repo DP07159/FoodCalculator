@@ -16,6 +16,25 @@ async function loadRecipeDetails() {
 
         console.log("🔎 Geladene Rezeptdaten:", recipe);
 
+        // ✅ Anzeige der Rezeptinfos optimieren
+document.getElementById("display-recipe-name").textContent = recipe.name;
+document.getElementById("display-recipe-calories").textContent = `${recipe.calories} kcal pro Portion`;
+document.getElementById("display-recipe-portions").textContent = `${recipe.portions} Portionen`;
+
+// ✅ Zutaten als Bulletpoints anzeigen
+const ingredientsList = document.getElementById("display-recipe-ingredients");
+ingredientsList.innerHTML = recipe.ingredients
+    .split("\n")
+    .map(ingredient => `<li>● ${ingredient}</li>`)
+    .join("");
+
+// ✅ Anleitung mit Nummerierung anzeigen
+const instructionsList = document.getElementById("display-recipe-instructions");
+instructionsList.innerHTML = recipe.instructions
+    .split("\n")
+    .map((step, index) => `<p>${index + 1}. ${step}</p>`)
+    .join("");
+
         if (!recipe || recipe.error) {
             console.warn("❗️ Rezept nicht gefunden.");
             alert("Fehler: Rezept nicht gefunden.");

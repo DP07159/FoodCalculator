@@ -1,7 +1,13 @@
 const API_URL = "https://foodcalculator-server.onrender.com";
 
+// Sicherheitsfunktion zur Behandlung von Sonderzeichen
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 async function loadRecipeInstructions() {
-    document.getElementById("display-recipe-portions").textContent = `${recipe.portions} Portionen`;
     const urlParams = new URLSearchParams(window.location.search);
     const recipeId = urlParams.get('id');
 
@@ -32,14 +38,14 @@ async function loadRecipeInstructions() {
         const ingredientsList = document.getElementById("display-recipe-ingredients");
         ingredientsList.innerHTML = recipe.ingredients
             .split("\n")
-            .map(ingredient => `<li>● ${ingredient}</li>`)
+            .map(ingredient => `<li>● ${escapeHtml(ingredient)}</li>`)
             .join("");
 
         // ✅ Anleitung mit Nummerierung anzeigen
         const instructionsList = document.getElementById("display-recipe-instructions");
         instructionsList.innerHTML = recipe.instructions
             .split("\n")
-            .map((step, index) => `<p>${index + 1}. ${step}</p>`)
+            .map((step, index) => `<p>${index + 1}. ${escapeHtml(step)}</p>`)
             .join("");
 
     } catch (error) {

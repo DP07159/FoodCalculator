@@ -53,26 +53,29 @@
             }
         }
 
-        document.getElementById('recipe-form').addEventListener('submit', async (event) => {
-            event.preventDefault();
-
+        async function updateRecipe() {
             const name = document.getElementById('recipe-name').value;
             const calories = document.getElementById('recipe-calories').value;
             const ingredients = document.getElementById('recipe-ingredients').value;
             const instructions = document.getElementById('recipe-instructions').value;
 
-            const response = await fetch(`${API_URL}/recipes/${recipeId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, calories, ingredients, instructions })
-            });
+            try {
+                const response = await fetch(`${API_URL}/recipes/${recipeId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, calories, ingredients, instructions })
+                });
 
-            if (response.ok) {
-                alert('✅ Rezept erfolgreich aktualisiert!');
-            } else {
-                alert('❌ Fehler beim Aktualisieren des Rezepts.');
+                if (response.ok) {
+                    alert('✅ Rezept erfolgreich aktualisiert!');
+                } else {
+                    alert('❌ Fehler beim Aktualisieren des Rezepts.');
+                }
+            } catch (error) {
+                console.error("❌ Fehler beim PUT-Aufruf:", error);
+                alert("❌ Fehler beim Speichern der Rezeptdaten.");
             }
-        });
+        }
 
         window.onload = loadRecipeDetails;
     </script>

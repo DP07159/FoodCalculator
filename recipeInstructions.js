@@ -5,6 +5,7 @@ async function loadRecipeInstructions() {
     const recipeId = urlParams.get('id');
 
     if (!recipeId) {
+        console.warn("❗️ Keine Rezept-ID gefunden.");
         alert("Fehler: Keine Rezept-ID gefunden.");
         return;
     }
@@ -13,19 +14,38 @@ async function loadRecipeInstructions() {
         const response = await fetch(`${API_URL}/recipes/${recipeId}`);
         const recipe = await response.json();
 
+        console.log("🔎 Geladene Rezeptdaten:", recipe);
+
         if (!recipe || recipe.error) {
+            console.warn("❗️ Rezept nicht gefunden.");
             alert("Fehler: Rezept nicht gefunden.");
             return;
         }
 
-        // ✅ Kochanleitung anzeigen
-        document.getElementById("recipe-title").innerHTML = `<strong>Gericht:</strong> ${recipe.name}`;
-        document.getElementById("recipe-instructions").textContent = recipe.instructions || "Keine Kochanleitung vorhanden.";
+        // ✅ Anzeige der Rezeptinfos optimieren
+        document.getElementById("display-recipe-name").textContent = recipe.name;
+        document.getElementById("display-recipe-calories").textContent = `${recipe.calories} kcal pro Portion`;
+        document.getElementById("display-recipe-portions").textContent = `${recipe.portions} Portionen`;
+
+        // ✅ Zutaten als Bulletpoints anzeigen
+        const ingredientsList = document.getElementById("display-recipe-ingredients");
+        ingredientsList.innerHTML = recipe.ingredients
+            .split("\n")
+            .map(ingredient => `<li>● ${ingredient}</li>`)
+            .join("");
+
+        // ✅ Anleitung mit Nummerierung anzeigen
+        const instructionsList = document.getElementById("display-recipe-instructions");
+        instructionsList.innerHTML = recipe.instructions
+            .split("\n")
+            .map((step, index) => `<p>${index + 1}. ${step}</p>`)
+            .join("");
+
     } catch (error) {
-        console.error("❌ Fehler beim Abrufen der Kochanleitung:", error);
-        alert("Fehler beim Laden der Kochanleitung.");
+        console.error("❌ Fehler beim Abrufen der Rezeptdetails:", error);
+        alert("Fehler beim Laden der Rezeptdetails.");
     }
 }
 
-// Beim Laden der Seite automatisch Kochanleitung abrufen
+// Beim Laden der Seite automatisch Rezeptdetails abrufen
 window.onload = loadRecipeInstructions;

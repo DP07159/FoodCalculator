@@ -128,6 +128,32 @@ button:hover {
     text-decoration: none;  /* Dezentere Link-Anzeige beim Hover */
 }
 
+.edit-button {
+    background-color: #4CAF50; /* Grüner Button */
+    color: #fff;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 5px;
+}
+
+.edit-button:hover {
+    background-color: #45a049;
+}
+
+.recipe-delete-btn {
+    background-color: #f44336; /* Roter Button */
+    color: #fff;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.recipe-delete-btn:hover {
+    background-color: #e53935;
+}
 
 /* 🚀 Mobile Optimierung */
 @media (max-width: 768px) {

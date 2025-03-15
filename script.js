@@ -122,9 +122,13 @@ function populateRecipeList() {
 
     recipes.forEach(recipe => {
         const li = document.createElement("li");
-        li.innerHTML = `<strong>${recipe.name}</strong> - ${recipe.calories} kcal | ${recipe.mealTypes.join(", ")}`;
 
-        // ✅ Bearbeitungs-Button hinzufügen
+        // ✅ Klickbar für die Kochanleitung
+        const linkToInstructions = document.createElement("a");
+        linkToInstructions.href = `/recipeInstructions.html?id=${recipe.id}`;
+        linkToInstructions.textContent = recipe.name;
+        linkToInstructions.classList.add("recipe-link");
+
         const editButton = document.createElement("button");
         editButton.textContent = "✏️ Bearbeiten";
         editButton.classList.add("edit-button");
@@ -137,8 +141,9 @@ function populateRecipeList() {
         deleteButton.classList.add("recipe-delete-btn");
         deleteButton.onclick = () => deleteRecipe(recipe.id);
 
-        li.appendChild(editButton); // 🟩 Bearbeiten-Button einfügen
-        li.appendChild(deleteButton); // 🟥 Löschen-Button einfügen
+        li.appendChild(linkToInstructions);  // 🟩 Klickbarer Link zur Kochanleitung
+        li.appendChild(editButton);         // 🟦 Button zur Bearbeitungsseite
+        li.appendChild(deleteButton);       // 🟥 Button zum Löschen
         recipeList.appendChild(li);
     });
 }

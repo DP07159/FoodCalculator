@@ -25,48 +25,46 @@
     </form>
     
     <script>
+        const API_URL = "https://foodcalculator-server.onrender.com";
         const params = new URLSearchParams(window.location.search);
         const recipeId = params.get('id');
 
-if (!recipeId) {
-    alert('❌ Keine gültige Rezept-ID gefunden.');
-    window.location.href = "/index.html"; // Zurück zur Startseite
-}
-
-        async function loadRecipeDetails() {
-    const response = await fetch(`/recipes/${recipeId}`);
-
-    // Debug-Ausgabe
-    const responseText = await response.text();
-    console.log("🔎 Server Response:", responseText);
-
-    try {
-        const recipe = JSON.parse(responseText);
-        document.getElementById('recipeName').value = recipe.name || '';
-        document.getElementById('ingredients').value = recipe.ingredients || '';
-        document.getElementById('instructions').value = recipe.instructions || '';
-    } catch (error) {
-        console.error('❌ Fehler beim Parsen der Antwort:', error.message);
-        alert('Fehler beim Abrufen der Rezeptdaten. Bitte überprüfe die Konsole.');
-    }
-}
-
-
-            document.getElementById('recipeName').value = recipe.name || '';
-            document.getElementById('ingredients').value = recipe.ingredients || '';
-            document.getElementById('instructions').value = recipe.instructions || '';
+        if (!recipeId) {
+            alert('❌ Keine gültige Rezept-ID gefunden.');
+            window.location.href = "/index.html"; // Zurück zur Startseite
         }
 
-        document.getElementById('recipeForm').addEventListener('submit', async (event) => {
+        async function loadRecipeDetails() {
+            const response = await fetch(`${API_URL}/recipes/${recipeId}`);
+
+            // Debug-Ausgabe
+            const responseText = await response.text();
+            console.log("🔎 Server Response:", responseText);
+
+            try {
+                const recipe = JSON.parse(responseText);
+                document.getElementById('recipe-name').value = recipe.name || '';
+                document.getElementById('recipe-calories').value = recipe.calories || '';
+                document.getElementById('recipe-ingredients').value = recipe.ingredients || '';
+                document.getElementById('recipe-instructions').value = recipe.instructions || '';
+            } catch (error) {
+                console.error('❌ Fehler beim Parsen der Antwort:', error.message);
+                alert('Fehler beim Abrufen der Rezeptdaten. Bitte überprüfe die Konsole.');
+            }
+        }
+
+        document.getElementById('recipe-form').addEventListener('submit', async (event) => {
             event.preventDefault();
 
-            const ingredients = document.getElementById('ingredients').value;
-            const instructions = document.getElementById('instructions').value;
+            const name = document.getElementById('recipe-name').value;
+            const calories = document.getElementById('recipe-calories').value;
+            const ingredients = document.getElementById('recipe-ingredients').value;
+            const instructions = document.getElementById('recipe-instructions').value;
 
-            const response = await fetch(`/recipes/${recipeId}`, {
+            const response = await fetch(`${API_URL}/recipes/${recipeId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ingredients, instructions })
+                body: JSON.stringify({ name, calories, ingredients, instructions })
             });
 
             if (response.ok) {

@@ -14,7 +14,7 @@ async function loadRecipeDetails() {
         const response = await fetch(`${API_URL}/recipes/${recipeId}`);
         const recipe = await response.json();
 
-        console.log("🔎 Geladene Rezeptdaten:", recipe); // DEBUG
+        console.log("🔎 Geladene Rezeptdaten:", recipe);
 
         if (!recipe || recipe.error) {
             console.warn("❗️ Rezept nicht gefunden.");

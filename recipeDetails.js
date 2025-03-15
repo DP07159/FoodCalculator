@@ -1,7 +1,6 @@
 const API_URL = "https://foodcalculator-server.onrender.com";
 
 async function loadRecipeDetails() {
-    document.getElementById("recipe-portions").value = recipe.portions || '';
     const urlParams = new URLSearchParams(window.location.search);
     const recipeId = urlParams.get('id');
 
@@ -17,25 +16,6 @@ async function loadRecipeDetails() {
 
         console.log("🔎 Geladene Rezeptdaten:", recipe);
 
-        // ✅ Anzeige der Rezeptinfos optimieren
-document.getElementById("display-recipe-name").textContent = recipe.name;
-document.getElementById("display-recipe-calories").textContent = `${recipe.calories} kcal pro Portion`;
-document.getElementById("display-recipe-portions").textContent = `${recipe.portions} Portionen`;
-
-// ✅ Zutaten als Bulletpoints anzeigen
-const ingredientsList = document.getElementById("display-recipe-ingredients");
-ingredientsList.innerHTML = recipe.ingredients
-    .split("\n")
-    .map(ingredient => `<li>● ${ingredient}</li>`)
-    .join("");
-
-// ✅ Anleitung mit Nummerierung anzeigen
-const instructionsList = document.getElementById("display-recipe-instructions");
-instructionsList.innerHTML = recipe.instructions
-    .split("\n")
-    .map((step, index) => `<p>${index + 1}. ${step}</p>`)
-    .join("");
-
         if (!recipe || recipe.error) {
             console.warn("❗️ Rezept nicht gefunden.");
             alert("Fehler: Rezept nicht gefunden.");
@@ -45,6 +25,7 @@ instructionsList.innerHTML = recipe.instructions
         console.log("✅ Rezeptdaten erfolgreich geladen.");
         document.getElementById("recipe-name").value = recipe.name || '';
         document.getElementById("recipe-calories").value = recipe.calories || '';
+        document.getElementById("recipe-portions").value = recipe.portions || '';
         document.getElementById("recipe-ingredients").value = recipe.ingredients || '';
         document.getElementById("recipe-instructions").value = recipe.instructions || '';
 
@@ -55,12 +36,12 @@ instructionsList.innerHTML = recipe.instructions
 }
 
 async function updateRecipe() {
-    const portions = parseInt(document.getElementById("recipe-portions").value);
     const urlParams = new URLSearchParams(window.location.search);
     const recipeId = urlParams.get('id');
 
     const name = document.getElementById('recipe-name').value;
     const calories = parseInt(document.getElementById('recipe-calories').value);
+    const portions = parseInt(document.getElementById("recipe-portions").value);
     const ingredients = document.getElementById('recipe-ingredients').value;
     const instructions = document.getElementById('recipe-instructions').value;
 

@@ -23,12 +23,6 @@ async function loadRecipeDetails() {
         }
 
         console.log("✅ Rezeptdaten erfolgreich geladen.");
-        console.log(`➡️ Name: ${recipe.name}`);
-        console.log(`➡️ Kalorien: ${recipe.calories}`);
-        console.log(`➡️ Zutaten: ${recipe.ingredients}`);
-        console.log(`➡️ Anleitung: ${recipe.instructions}`);
-
-        // ✅ Felder vorausfüllen
         document.getElementById("recipe-name").value = recipe.name || '';
         document.getElementById("recipe-calories").value = recipe.calories || '';
         document.getElementById("recipe-ingredients").value = recipe.ingredients || '';
@@ -40,5 +34,46 @@ async function loadRecipeDetails() {
     }
 }
 
+async function updateRecipe() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const recipeId = urlParams.get('id');
+
+    const name = document.getElementById('recipe-name').value;
+    const calories = parseInt(document.getElementById('recipe-calories').value);
+    const ingredients = document.getElementById('recipe-ingredients').value;
+    const instructions = document.getElementById('recipe-instructions').value;
+
+    if (!name || !calories) {
+        alert('❌ Name und Kalorien sind erforderlich!');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/recipes/${recipeId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, calories, ingredients, instructions })
+        });
+
+        const result = await response.json();
+        console.log("🔎 PUT-Antwort:", result);
+
+        if (response.ok) {
+            alert('✅ Rezept erfolgreich aktualisiert!');
+        } else {
+            alert(`❌ Fehler beim Speichern: ${result.error || 'Unbekannter Fehler'}`);
+        }
+    } catch (error) {
+        console.error("❌ Fehler beim PUT-Aufruf:", error);
+        alert('❌ Fehler beim Speichern der Rezeptdaten.');
+    }
+}
+
 // Beim Laden der Seite automatisch Rezeptdetails abrufen
 window.onload = loadRecipeDetails;
+
+// Event-Handler für das Absenden des Formulars
+document.getElementById('recipe-form').addEventListener('submit', (event) => {
+    event.preventDefault();
+    updateRecipe();
+});

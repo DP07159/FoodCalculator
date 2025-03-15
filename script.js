@@ -36,6 +36,7 @@ function populateRecipeList() {
 
     recipes.forEach(recipe => {
         const li = document.createElement("li");
+        li.classList.add("recipe-item"); // WICHTIG für die Klickbarkeit!
 
         const linkToInstructions = document.createElement("a");
         linkToInstructions.href = `/recipeInstructions.html?id=${recipe.id}`;
@@ -64,119 +65,32 @@ function populateRecipeList() {
     });
 }
 
-// **Mahlzeitentabelle aufbauen**
-function populateMealTable() {
-    const mealTable = document.getElementById("meal-table");
-    if (!mealTable) return console.error("❌ Fehler: `meal-table` nicht gefunden!");
-
-    mealTable.innerHTML = "";
-    const weekDays = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
-
-    weekDays.forEach((day) => {
-        const row = document.createElement("tr");
-
-        const dayCell = document.createElement("td");
-        dayCell.textContent = day;
-        row.appendChild(dayCell);
-
-        ["breakfast", "lunch", "dinner", "snack"].forEach((mealType) => {
-            const mealCell = document.createElement("td");
-            const select = document.createElement("select");
-            select.dataset.mealType = mealType;
-            select.dataset.day = day;
-            select.innerHTML = `<option value="">-- Wählen --</option>`;
-
-            recipes.forEach(recipe => {
-                if (recipe.mealTypes.includes(mealType)) {
-                    const option = document.createElement("option");
-                    option.value = recipe.id;
-                    option.textContent = `${recipe.name} (${recipe.calories} kcal)`;
-                    select.appendChild(option);
-                }
-            });
-
-            select.addEventListener("change", calculateCalories);
-            mealCell.appendChild(select);
-            row.appendChild(mealCell);
-        });
-
-        const totalCaloriesCell = document.createElement("td");
-        totalCaloriesCell.classList.add("total-calories");
-        totalCaloriesCell.textContent = "0 kcal";
-        row.appendChild(totalCaloriesCell);
-
-        const remainingCaloriesCell = document.createElement("td");
-        remainingCaloriesCell.classList.add("remaining-calories");
-        remainingCaloriesCell.textContent = `${DAILY_CALORIE_LIMIT} kcal`;
-        row.appendChild(remainingCaloriesCell);
-
-        mealTable.appendChild(row);
-    });
-}
-
-// **Kalorien berechnen**
-function calculateCalories() {
-    document.querySelectorAll("#meal-table tr").forEach(row => {
-        let totalCalories = 0;
-
-        row.querySelectorAll("select").forEach(select => {
-            const selectedRecipe = recipes.find(recipe => recipe.id == select.value);
-            if (selectedRecipe) {
-                totalCalories += selectedRecipe.calories;
-            }
-        });
-
-        row.querySelector(".total-calories").textContent = `${totalCalories} kcal`;
-        const remainingCalories = DAILY_CALORIE_LIMIT - totalCalories;
-        const remainingCaloriesCell = row.querySelector(".remaining-calories");
-        remainingCaloriesCell.textContent = `${remainingCalories} kcal`;
-        remainingCaloriesCell.style.color = remainingCalories < 0 ? "red" : "green";
-    });
-}
-
-// **Rezept hinzufügen**
-function addRecipe() {
-    const name = document.getElementById("recipe-name").value;
-    const calories = parseInt(document.getElementById("recipe-calories").value);
-
-    const mealTypes = Array.from(document.querySelectorAll(".recipe-checkboxes input:checked"))
-        .map(checkbox => checkbox.value);
-
-    if (!name || !calories || mealTypes.length === 0) {
-        alert("Bitte alle Felder ausfüllen und mindestens eine Mahlzeit auswählen.");
+// **Wochenplan laden**
+function loadMealPlan() {
+    const planId = document.getElementById("plan-list").value;
+    if (!planId) {
+        alert("Bitte einen Plan auswählen!");
         return;
     }
 
-    fetch(`${API_URL}/recipes`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, calories, mealTypes })
-    })
-    .then(response => response.json())
-    .then(() => {
-        console.log("✅ Rezept gespeichert");
-        loadRecipes();
+    fetch(`${API_URL}/meal_plans/${planId}`)
+        .then(response => response.json())
+        .then((plan) => {
+            console.log("✅ Plan geladen:", plan);
+            document.querySelectorAll("#meal-table tr").forEach(row => {
+                const day = row.querySelector("td").textContent;
 
-        document.getElementById("recipe-name").value = "";
-        document.getElementById("recipe-calories").value = "";
-        document.querySelectorAll(".recipe-checkboxes input").forEach(cb => cb.checked = false);
-    })
-    .catch(error => console.error("❌ Fehler beim Speichern:", error));
-}
+                row.querySelectorAll("select").forEach(select => {
+                    const mealType = select.dataset.mealType;
+                    select.value = plan.data.find(d => d.day === day)?.meals[mealType] || "";
+                });
+            });
 
-// **Rezept löschen**
-function deleteRecipe(recipeId) {
-    fetch(`${API_URL}/recipes/${recipeId}`, { method: "DELETE" })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`Fehler beim Löschen: ${response.status}`);
-        }
-        console.log(`✅ Rezept mit ID ${recipeId} gelöscht`);
-        recipes = recipes.filter(recipe => recipe.id !== recipeId);
-        populateRecipeList();
-        populateMealTable();
-    })
-    .catch(error => console.error("❌ Fehler beim Löschen:", error));
+            calculateCalories(); // Berechnung aktualisieren
+
+            document.getElementById("current-plan-name").textContent = `Aktueller Wochenplan: ${plan.name}`;
+        })
+        .catch(error => console.error("❌ Fehler beim Laden des Plans:", error));
 }
 
 // **Alle gespeicherten Wochenpläne laden**

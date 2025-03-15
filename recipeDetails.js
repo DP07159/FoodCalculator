@@ -12,15 +12,14 @@ async function loadRecipeDetails() {
 
     try {
         const response = await fetch(`${API_URL}/recipes/${recipeId}`);
+        
         if (!response.ok) {
-            console.error("❌ Fehler beim Abrufen der Rezeptdetails: Not Found");
+            console.error(`❌ Fehler beim Abrufen der Rezeptdetails: ${response.statusText}`);
             alert("Fehler: Rezept nicht gefunden.");
             return;
         }
 
         const recipe = await response.json();
-
-        console.log("🔎 Geladene Rezeptdaten:", recipe);
 
         document.getElementById("recipe-name").value = recipe.name || '';
         document.getElementById("recipe-calories").value = recipe.calories || '';

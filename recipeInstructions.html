@@ -7,7 +7,24 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <nav class="breadcrumb">
+        <a href="/index.html">🏠 Hauptseite</a> > 
+        <a href="/recipeBook.html">📖 Rezeptbuch</a> > 
+        <span>📝 Rezeptdetails</span>
+    </nav>
     <h1>Kochanleitung</h1>
+    <div class="recipe-info">
+    <h2 id="display-recipe-name"></h2>
+    <p id="display-recipe-calories"></p>
+    <p id="display-recipe-portions"></p>
+</div>
+
+<h3>Zutaten:</h3>
+<ul id="display-recipe-ingredients"></ul>
+
+<h3>Anleitung:</h3>
+<div id="display-recipe-instructions"></div>
+
     <div id="instructions-container">
         <p id="recipe-title"><strong>Gericht:</strong> Wird geladen...</p>
         <p id="recipe-instructions">Anleitung wird geladen...</p>

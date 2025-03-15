@@ -2,90 +2,39 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Food Calculator</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
+    <h1>Food Calculator</h1>
 
-        <!-- 🌟 Header mit Logo -->
-        <header>
-            <h1>Food Calculator</h1>
-        </header>
+    <section id="meal-plan">
+        <h2>Wochenplan</h2>
+        <p id="current-plan-name">Kein Plan geladen</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Tag</th>
+                    <th>Frühstück</th>
+                    <th>Mittagessen</th>
+                    <th>Abendessen</th>
+                    <th>Snack</th>
+                    <th>Gesamtkalorien</th>
+                    <th>Restkalorien</th>
+                </tr>
+            </thead>
+            <tbody id="meal-table"></tbody>
+        </table>
+    </section>
 
-        <!-- 🌟 Wochenplan -->
-        <section id="meal-plan">
-            <h2>Wochenplan</h2>
-            <p id="current-plan-name" class="left-align">Kein Plan geladen</p>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Tag</th>
-                        <th>Frühstück</th>
-                        <th>Mittagessen</th>
-                        <th>Abendessen</th>
-                        <th>Snack</th>
-                        <th>Gesamtkalorien</th>
-                        <th>Restkalorien</th>
-                    </tr>
-                </thead>
-                <tbody id="meal-table"></tbody>
-            </table>
-        </section>
+    <section id="recipe-book">
+        <h2>Rezeptbuch</h2>
+        <ul id="recipe-list">
+            <!-- Rezepte werden hier eingefügt -->
+        </ul>
+    </section>
 
-        <!-- 🌟 Wochenplan-Verwaltung -->
-        <section id="plan-management">
-            <div class="plan-actions">
-                <div class="new-plan">
-                    <p class="small-title">Neuen Plan anlegen</p>
-                    <div class="plan-input-wrapper">
-                        <input type="text" id="plan-name" placeholder="Name für neuen Plan">
-                        <button onclick="saveMealPlan()">Speichern</button>
-                    </div>
-                </div>
-
-                <div class="existing-plans">
-                    <p class="small-title">Pläne verwalten</p>
-                    <div class="plan-controls">
-                        <select id="plan-list"></select>
-                        <button onclick="loadMealPlan()">Laden</button>
-                        <button onclick="updateMealPlan()">Aktualisieren</button>
-                        <button class="icon-button" onclick="deleteMealPlan()">🗑️</button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-       <div class="flex-container">
-            <!-- 🌟 Rezept hinzufügen -->
-            <section id="add-recipe">
-                <p class="small-title">Rezept hinzufügen</p>
-                <div class="recipe-inputs">
-                    <input type="text" id="recipe-name" placeholder="Rezeptname">
-                    <input type="number" id="recipe-calories" placeholder="Kalorien">
-                </div>
-                <div class="recipe-checkboxes">
-                    <label><input type="checkbox" value="breakfast"> Frühstück</label>
-                    <label><input type="checkbox" value="lunch"> Mittagessen</label>
-                    <label><input type="checkbox" value="dinner"> Abendessen</label>
-                    <label><input type="checkbox" value="snack"> Snack</label>
-                </div>
-                <button onclick="addRecipe()">Rezept hinzufügen</button>
-            </section>
-
-            <!-- 🌟 Rezeptbuch -->
-            <section id="recipe-book">
-                <h2>Rezeptbuch</h2>
-                <ul id="recipe-list">
-                    <!-- Rezepte werden hier dynamisch eingefügt -->
-                </ul>
-            </section>
-        </div>
-
-    </div>
-
-    <!-- ✅ Korrekte Referenz zur `script.js` -->
     <script src="script.js"></script>
 </body>
 </html>
+

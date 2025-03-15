@@ -22,7 +22,7 @@ async function loadRecipeDetails() {
             return;
         }
 
-        console.log("✅ Rezeptdaten erfolgreich geladen.");
+        // ✅ Felder vorausfüllen
         document.getElementById("recipe-name").value = recipe.name || '';
         document.getElementById("recipe-calories").value = recipe.calories || '';
         document.getElementById("recipe-portions").value = recipe.portions || '';
@@ -41,7 +41,7 @@ async function updateRecipe() {
 
     const name = document.getElementById('recipe-name').value;
     const calories = parseInt(document.getElementById('recipe-calories').value);
-    const portions = parseInt(document.getElementById("recipe-portions").value);
+    const portions = parseInt(document.getElementById("recipe-portions").value) || 0; 
     const ingredients = document.getElementById('recipe-ingredients').value;
     const instructions = document.getElementById('recipe-instructions').value;
 

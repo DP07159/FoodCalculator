@@ -1,6 +1,7 @@
 const API_URL = "https://foodcalculator-server.onrender.com";
 
 async function loadRecipeInstructions() {
+    document.getElementById("display-recipe-portions").textContent = `${recipe.portions} Portionen`;
     const urlParams = new URLSearchParams(window.location.search);
     const recipeId = urlParams.get('id');
 

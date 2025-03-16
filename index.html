@@ -8,7 +8,6 @@
 <body>
     <h1>Food Calculator</h1>
 
-    <!-- 🌟 Wochenplanbereich -->
     <section id="meal-plan">
         <h2>Wochenplan</h2>
         <p id="current-plan-name">Kein Plan geladen</p>
@@ -28,28 +27,6 @@
         </table>
     </section>
 
-    <!-- 🌟 Wochenplan-Verwaltung -->
-    <section id="plan-management">
-        <h2>Wochenplanverwaltung</h2>
-        
-        <!-- Neuen Plan anlegen -->
-        <div class="plan-actions">
-            <p class="small-title">Neuen Plan anlegen</p>
-            <input type="text" id="plan-name" placeholder="Name für neuen Plan">
-            <button onclick="saveMealPlan()">Speichern</button>
-        </div>
-
-        <!-- Bestehende Pläne verwalten -->
-        <div class="existing-plans">
-            <p class="small-title">Pläne verwalten</p>
-            <select id="plan-list"></select>
-            <button onclick="loadMealPlan()">Laden</button>
-            <button onclick="updateMealPlan()">Aktualisieren</button>
-            <button onclick="deleteMealPlan()">🗑️ Löschen</button>
-        </div>
-    </section>
-
-    <!-- 🌟 Rezeptbuch -->
     <section id="recipe-book">
         <h2>Rezeptbuch</h2>
         <ul id="recipe-list">

@@ -8,6 +8,7 @@
 <body>
     <h1>Food Calculator</h1>
 
+    <!-- 🌟 Wochenplanbereich -->
     <section id="meal-plan">
         <h2>Wochenplan</h2>
         <p id="current-plan-name">Kein Plan geladen</p>
@@ -25,13 +26,43 @@
             </thead>
             <tbody id="meal-table"></tbody>
         </table>
+
+        <!-- 🌟 Wochenplanverwaltung -->
+        <div class="plan-management">
+            <input type="text" id="plan-name" placeholder="Name für neuen Plan">
+            <button id="save-plan-btn">Speichern</button>
+
+            <select id="plan-list">
+                <option value="">-- Plan auswählen --</option>
+            </select>
+            <button id="load-plan-btn">Laden</button>
+            <button id="update-plan-btn">Aktualisieren</button>
+            <button id="delete-plan-btn">🗑️ Löschen</button>
+        </div>
     </section>
 
+    <!-- 🌟 Rezeptbuchbereich -->
     <section id="recipe-book">
         <h2>Rezeptbuch</h2>
         <ul id="recipe-list">
             <!-- Rezepte werden hier eingefügt -->
         </ul>
+    </section>
+
+    <!-- 🌟 Rezept hinzufügen -->
+    <section id="add-recipe">
+        <h2>Neues Rezept hinzufügen</h2>
+        <input type="text" id="recipe-name" placeholder="Rezeptname">
+        <input type="number" id="recipe-calories" placeholder="Kalorien">
+        
+        <div class="recipe-checkboxes">
+            <label><input type="checkbox" value="breakfast"> Frühstück</label>
+            <label><input type="checkbox" value="lunch"> Mittagessen</label>
+            <label><input type="checkbox" value="dinner"> Abendessen</label>
+            <label><input type="checkbox" value="snack"> Snack</label>
+        </div>
+
+        <button id="add-recipe-btn">Rezept hinzufügen</button>
     </section>
 
     <script src="script.js"></script>

@@ -109,10 +109,7 @@
                                      </a>`;
                 recipeList.appendChild(listItem);
             });
-        } else {
-            console.error('❌ Antwort war kein JSON:', responseText);
-            alert('Der Server liefert keine gültigen Rezeptdaten. Siehe Konsole für Details.');
-        }
+        } 
 
     } catch (error) {
         console.error("❌ Fehler beim Laden der Rezepte:", error.message);

@@ -161,4 +161,3 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("delete-plan-btn").addEventListener("click", deleteMealPlan);
     document.getElementById("update-plan-btn").addEventListener("click", updateMealPlan);
 });
-

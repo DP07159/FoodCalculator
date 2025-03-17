@@ -34,48 +34,32 @@
             </table>
         </section>
 
-        <!-- 🌟 Wochenplan-Verwaltung -->
-        <section id="plan-management">
-            <div class="plan-actions">
-                <!-- 🌟 Neuen Plan anlegen -->
-                <div class="new-plan">
-                    <p class="small-title">Neuen Plan anlegen</p>
-                    <div class="plan-input-wrapper">
-                        <input type="text" id="plan-name" placeholder="Name für neuen Plan">
-                        <button onclick="saveMealPlan()">Speichern</button>
-                    </div>
-                </div>
+        <div class="plan-and-recipe-container">
+    <!-- 🌟 Neuen Plan anlegen -->
+    <section id="add-plan">
+        <p class="small-title">Neuen Plan anlegen</p>
+        <div class="plan-input-wrapper">
+            <input type="text" id="plan-name" placeholder="Name für neuen Plan">
+            <button onclick="saveMealPlan()">Speichern</button>
+        </div>
+    </section>
 
-                <!-- 🌟 Pläne verwalten -->
-                <div class="existing-plans">
-                    <p class="small-title">Pläne verwalten</p>
-                    <div class="plan-controls">
-                        <select id="plan-list"></select>
-                        <button onclick="loadMealPlan()">Laden</button>
-                        <button onclick="updateMealPlan()">Aktualisieren</button>
-                        <button class="icon-button" onclick="deleteMealPlan()">🗑️</button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-
-       <div class="flex-container">
-            <!-- 🌟 Rezept hinzufügen -->
-            <section id="add-recipe">
-                <p class="small-title">Rezept hinzufügen</p>
-                <div class="recipe-inputs">
-                    <input type="text" id="recipe-name" placeholder="Rezeptname">
-                    <input type="number" id="recipe-calories" placeholder="Kalorien">
-                </div>
-                <div class="recipe-checkboxes">
-                    <label><input type="checkbox" value="breakfast"> Frühstück</label>
-                    <label><input type="checkbox" value="lunch"> Mittagessen</label>
-                    <label><input type="checkbox" value="dinner"> Abendessen</label>
-                    <label><input type="checkbox" value="snack"> Snack</label>
-                </div>
-                <button onclick="addRecipe()">Rezept hinzufügen</button>
-            </section>
+    <!-- 🌟 Rezept hinzufügen -->
+    <section id="add-recipe">
+        <p class="small-title">Rezept hinzufügen</p>
+        <div class="recipe-inputs">
+            <input type="text" id="recipe-name" placeholder="Rezeptname">
+            <input type="number" id="recipe-calories" placeholder="Kalorien">
+        </div>
+        <div class="recipe-checkboxes">
+            <label><input type="checkbox" value="breakfast"> Frühstück</label>
+            <label><input type="checkbox" value="lunch"> Mittagessen</label>
+            <label><input type="checkbox" value="dinner"> Abendessen</label>
+            <label><input type="checkbox" value="snack"> Snack</label>
+        </div>
+        <button onclick="addRecipe()">Rezept hinzufügen</button>
+    </section>
+</div>
 
     <!-- 🌟 Rezeptbuch -->
     <section id="recipe-book">

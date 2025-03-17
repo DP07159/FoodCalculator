@@ -42,6 +42,17 @@
             <input type="text" id="plan-name" placeholder="Name für neuen Plan">
             <button onclick="saveMealPlan()">Speichern</button>
         </div>
+
+        <!-- 🌟 Pläne verwalten -->
+        <div id="plan-management">
+            <p class="small-title">Pläne verwalten</p>
+            <div class="plan-controls">
+                <select id="plan-list"></select>
+                <button onclick="loadMealPlan()">Laden</button>
+                <button onclick="updateMealPlan()">Aktualisieren</button>
+                <button class="icon-button" onclick="deleteMealPlan()">🗑️</button>
+            </div>
+        </div>
     </section>
 
     <!-- 🌟 Rezept hinzufügen -->

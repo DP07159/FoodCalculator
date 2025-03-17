@@ -123,6 +123,8 @@ function populateRecipeList() {
     recipes.forEach(recipe => {
         const li = document.createElement("li");
         li.classList.add("recipe-item");
+        li.style.cursor = "pointer";  // 🟠 Klickbare Fläche kennzeichnen
+        li.onclick = () => window.location.href = `/recipeInstructions.html?id=${recipe.id}`;
 
         // ✅ Neues Bearbeiten-Icon hinzufügen
         const editButton = document.createElement("button");

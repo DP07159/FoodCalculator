@@ -123,24 +123,35 @@ function populateRecipeList() {
     recipes.forEach(recipe => {
         const li = document.createElement("li");
         li.classList.add("recipe-item");
-        li.style.cursor = "pointer";  // 🟠 Klickbare Fläche kennzeichnen
-        li.onclick = () => window.location.href = `/recipeInstructions.html?id=${recipe.id}`;
 
-        // ✅ Neues Bearbeiten-Icon hinzufügen
+        // ✅ Rezeptname als klickbare Verlinkung zur Anleitungsseite
+        const recipeLink = document.createElement("a");
+        recipeLink.href = `/recipeInstructions.html?id=${recipe.id}`;
+        recipeLink.textContent = recipe.name;
+        recipeLink.classList.add("recipe-link");  // Optional für Styling
+
+        // ✅ Bearbeiten-Icon bleibt erhalten
         const editButton = document.createElement("button");
-        editButton.innerHTML = "✏️"; // Bearbeiten-Icon
+        editButton.innerHTML = "✏️"; 
         editButton.classList.add("edit-button");
-        editButton.onclick = () => window.location.href = `/recipeDetails.html?id=${recipe.id}`;
+        editButton.onclick = (event) => {
+            event.stopPropagation();
+            window.location.href = `/recipeDetails.html?id=${recipe.id}`;
+        };
 
-        // ✅ Müllkorb-Icon bleibt zum Löschen
+        // ✅ Müllkorb-Icon bleibt erhalten
         const deleteButton = document.createElement("button");
-        deleteButton.innerHTML = "🗑️"; // Müll-Icon
+        deleteButton.innerHTML = "🗑️"; 
         deleteButton.classList.add("recipe-delete-btn");
-        deleteButton.onclick = () => deleteRecipe(recipe.id);
+        deleteButton.onclick = (event) => {
+            event.stopPropagation();
+            deleteRecipe(recipe.id);
+        };
 
-        li.innerHTML = `<strong>${recipe.name}</strong> - ${recipe.calories} kcal | ${recipe.mealTypes.join(", ")}`;
-        li.appendChild(editButton);  // Bearbeiten-Icon hinzufügen
-        li.appendChild(deleteButton);  // Müll-Icon bleibt für das Löschen
+        li.appendChild(recipeLink);       // Rezeptname als Link
+        li.innerHTML += ` - ${recipe.calories} kcal | ${recipe.mealTypes.join(", ")}`;
+        li.appendChild(editButton);       // Bearbeiten-Icon
+        li.appendChild(deleteButton);     // Müll-Icon
         recipeList.appendChild(li);
     });
 }

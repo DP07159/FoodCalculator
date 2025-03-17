@@ -41,7 +41,7 @@ async function updateRecipe() {
 
     const name = document.getElementById('recipe-name').value;
     const calories = parseInt(document.getElementById('recipe-calories').value);
-    const portions = parseInt(document.getElementById("recipe-portions").value);
+    const portions = parseInt(document.getElementById('recipe-portions').value); // 🟠 Hier wird die Portionen-Anzahl korrekt ausgelesen
     const ingredients = document.getElementById('recipe-ingredients').value;
     const instructions = document.getElementById('recipe-instructions').value;
 
@@ -54,7 +54,13 @@ async function updateRecipe() {
         const response = await fetch(`${API_URL}/recipes/${recipeId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, calories, portions, ingredients, instructions })
+            body: JSON.stringify({ 
+                name, 
+                calories, 
+                portions,   // 🟢 Hier wird die Portionen-Anzahl hinzugefügt
+                ingredients, 
+                instructions 
+            })
         });
 
         const result = await response.json();

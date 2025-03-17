@@ -122,17 +122,23 @@ function populateRecipeList() {
 
     recipes.forEach(recipe => {
         const li = document.createElement("li");
-        li.classList.add("recipe-item");   // ✅ Klasse für Klickbarkeit hinzufügen
-        li.setAttribute('data-id', recipe.id);  // ✅ data-id hinzufügen
+        li.classList.add("recipe-item");
 
-        li.innerHTML = `<strong>${recipe.name}</strong> - ${recipe.calories} kcal | ${recipe.mealTypes.join(", ")}`;
+        // ✅ Neues Bearbeiten-Icon hinzufügen
+        const editButton = document.createElement("button");
+        editButton.innerHTML = "✏️"; // Bearbeiten-Icon
+        editButton.classList.add("edit-button");
+        editButton.onclick = () => window.location.href = `/recipeDetails.html?id=${recipe.id}`;
 
+        // ✅ Müllkorb-Icon bleibt zum Löschen
         const deleteButton = document.createElement("button");
-        deleteButton.innerHTML = "🗑️"; // Mülleimer-Icon
+        deleteButton.innerHTML = "🗑️"; // Müll-Icon
         deleteButton.classList.add("recipe-delete-btn");
         deleteButton.onclick = () => deleteRecipe(recipe.id);
 
-        li.appendChild(deleteButton);
+        li.innerHTML = `<strong>${recipe.name}</strong> - ${recipe.calories} kcal | ${recipe.mealTypes.join(", ")}`;
+        li.appendChild(editButton);  // Bearbeiten-Icon hinzufügen
+        li.appendChild(deleteButton);  // Müll-Icon bleibt für das Löschen
         recipeList.appendChild(li);
     });
 }

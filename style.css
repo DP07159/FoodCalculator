@@ -47,6 +47,27 @@ input, button {
     border-radius: 8px;
 }
 
+/* 🌟 Wochenplantabelle */
+#meal-plan {
+    background-color: #ffffff;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    max-width: 600px;  /* Breite der Box festlegen */
+    margin: 0 auto;    /* Tabelle zentrieren */
+}
+
+#meal-table {
+    width: 100%;       /* Tabelle füllt die Box aus */
+    border-collapse: collapse;
+}
+
+#meal-table th, #meal-table td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: center;
+}
+
 /* 🌟 Neuen Plan anlegen + Pläne verwalten */
 #add-plan {
     background-color: #ffffff;

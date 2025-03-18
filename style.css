@@ -47,18 +47,22 @@ input, button {
     border-radius: 8px;
 }
 
-/* 🌟 Wochenplantabelle */
+/* 🌟 Wochenplan - Weiße Box als Hintergrund */
 #meal-plan {
     background-color: #ffffff;
+    width: 100%;         /* Volle Breite der Seite */
+    max-width: 100%;     /* Begrenzung auf die Bildschirmbreite */
     padding: 20px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
-    max-width: 600px;  /* Breite der Box festlegen */
-    margin: 0 auto;    /* Tabelle zentrieren */
+    box-sizing: border-box; /* Sorgt dafür, dass Padding und Breite korrekt berechnet werden */
 }
 
+/* 🌟 Wochenplantabelle */
 #meal-table {
-    width: 100%;       /* Tabelle füllt die Box aus */
+    width: 100%;         /* Tabelle füllt die gesamte Box aus */
+    max-width: 600px;    /* Maximale Breite der Tabelle */
+    margin: 0 auto;      /* Tabelle zentrieren */
     border-collapse: collapse;
 }
 

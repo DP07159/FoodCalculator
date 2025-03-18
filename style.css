@@ -151,6 +151,18 @@ body {
     accent-color: #007bff;
 }
 
+/* 🌟 Rezeptbuch - Ohne Bulletpoints & linksbündig */
+#recipe-list {
+    list-style-type: none;  /* Entfernt Bulletpoints */
+    padding-left: 0;        /* Entfernt den zusätzlichen Abstand durch Bulletpoints */
+    text-align: left;       /* Texte linksbündig ausrichten */
+}
+
+#recipe-list li {
+    padding: 8px 0;         /* Einheitlicher Abstand zwischen den Rezepten */
+    border-bottom: 1px solid #ddd; /* Dezente Trennlinie für mehr Übersicht */
+}
+
 /* 🍳 Kochanleitungsseite (recipeInstructions.html) */
 #recipe-instructions {
     background-color: #fff;

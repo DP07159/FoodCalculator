@@ -44,6 +44,27 @@ body {
     margin: 0 auto;    /* Zentrierung auf der Seite */
 }
 
+/* 🌟 Flexibles Layout für kleine Bildschirme */
+@media (max-width: 600px) {
+    .info-container {
+        display: flex;
+        flex-direction: column; /* Elemente stapeln sich vertikal */
+        align-items: flex-end;  /* Portionen/Kalorien rechts ausrichten */
+        margin-top: 10px;      /* Abstand zur Headline */
+    }
+
+    .home-button {
+        position: static;     /* Vermeidet Überlagerungen */
+        margin-bottom: 10px;  /* Sorgt für Abstand zur Headline */
+    }
+
+    #display-recipe-portions,
+    #display-recipe-calories {
+        display: inline-block; /* In einer Zeile anzeigbar */
+        margin-right: 10px;
+    }
+}
+
 /* 🌍 LAYOUT-STILE (z.B. Flexbox-Strukturen) */
 .container {
     max-width: 1200px;

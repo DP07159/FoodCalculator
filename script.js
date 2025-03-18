@@ -149,7 +149,13 @@ function populateRecipeList() {
         };
 
         li.appendChild(recipeLink);       // Rezeptname als Link
-        li.innerHTML += ` - ${recipe.calories} kcal | ${recipe.mealTypes.join(", ")}`;
+        li.innerHTML = `
+            <strong>${recipe.name}</strong>
+            <div class="recipe-icons">
+                <button class="edit-button" onclick="window.location.href='/recipeDetails.html?id=${recipe.id}'">✏️</button>
+                <button class="recipe-delete-btn" onclick="deleteRecipe(${recipe.id})">🗑️</button>
+            </div>
+        `;
         li.appendChild(editButton);       // Bearbeiten-Icon
         li.appendChild(deleteButton);     // Müll-Icon
         recipeList.appendChild(li);

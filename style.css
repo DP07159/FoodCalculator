@@ -183,6 +183,14 @@ body {
     text-decoration: underline;
 }
 
+/* 🌟 Mahlzeiten-Info zentriert in der Zeile */
+.meal-types {
+    flex-grow: 1;         /* Nimmt den verfügbaren Platz ein */
+    text-align: center;   /* Zentrierte Anzeige */
+    font-style: italic;   /* Optional: leichte Kursivdarstellung für dezente Wirkung */
+    color: #666;          /* Dezente Farbe */
+}
+
 /* 🍳 Kochanleitungsseite (recipeInstructions.html) */
 #recipe-instructions {
     background-color: #fff;

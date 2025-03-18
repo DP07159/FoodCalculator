@@ -13,6 +13,17 @@ input, button {
     border-radius: 4px;
 }
 
+/* 🌟 Globaler Seitenrand */
+body {
+    padding: 0 20px;  /* Gleichmäßiger Rand links und rechts */
+    box-sizing: border-box;  /* Padding wird in die Gesamtbreite eingerechnet */
+}
+
+.container {
+    max-width: 1200px; /* Begrenzung der maximalen Breite */
+    margin: 0 auto;    /* Zentrierung auf der Seite */
+}
+
 /* 🌍 LAYOUT-STILE (z.B. Flexbox-Strukturen) */
 .container {
     max-width: 1200px;

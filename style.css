@@ -172,28 +172,15 @@ body {
     gap: 12px; /* Abstand zwischen den Icons */
 }
 
-.edit-button, .recipe-delete-btn {
-    padding: 5px 10px;
-    border-radius: 4px;
+/* Klickbarer Rezeptname als Link */
+.recipe-link {
+    text-decoration: none;
+    color: #007bff;
     cursor: pointer;
 }
 
-.edit-button {
-    background-color: #4CAF50; /* Grün für Bearbeiten */
-    color: #fff;
-}
-
-.recipe-delete-btn {
-    background-color: #f44336; /* Rot für Löschen */
-    color: #fff;
-}
-
-.edit-button:hover {
-    background-color: #45a049;
-}
-
-.recipe-delete-btn:hover {
-    background-color: #e53935;
+.recipe-link:hover {
+    text-decoration: underline;
 }
 
 /* 🍳 Kochanleitungsseite (recipeInstructions.html) */

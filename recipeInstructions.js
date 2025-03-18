@@ -31,8 +31,8 @@ async function loadRecipeInstructions() {
 
         // ✅ Anzeige der Rezeptinfos optimieren
         document.getElementById("display-recipe-name").textContent = recipe.name;
-        document.getElementById("display-recipe-calories").textContent = `${recipe.calories} kcal pro Portion`;
-        document.getElementById("display-recipe-portions").textContent = `${recipe.portions} Portionen`;
+        document.getElementById("display-recipe-portions").textContent = recipe.portions;
+        document.getElementById("display-recipe-calories").textContent = recipe.calories;
 
         // ✅ Zutaten als zweispaltige Liste anzeigen (leere Zeilen ohne Bulletpoint)
         const ingredientsList = document.getElementById("display-recipe-ingredients");

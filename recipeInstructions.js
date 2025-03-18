@@ -34,13 +34,16 @@ async function loadRecipeInstructions() {
         document.getElementById("display-recipe-calories").textContent = `${recipe.calories} kcal pro Portion`;
         document.getElementById("display-recipe-portions").textContent = `${recipe.portions} Portionen`;
 
-        // ✅ Zutaten als zweispaltige Liste anzeigen (ohne leere Zeilen)
+        // ✅ Zutaten als zweispaltige Liste anzeigen (leere Zeilen ohne Bulletpoint)
         const ingredientsList = document.getElementById("display-recipe-ingredients");
         ingredientsList.innerHTML = recipe.ingredients
             .split("\n")
-            .filter(ingredient => ingredient.trim() !== "")  // 🚨 Leere Zeilen herausfiltern
-            .map(ingredient => `<li>● ${escapeHtml(ingredient)}</li>`)
+            .map(ingredient => ingredient.trim() === "" 
+                ? `<li class="empty-line">&nbsp;</li>`  // 🚨 Leere Zeilen ohne Bulletpoint
+                : `<li>● ${escapeHtml(ingredient)}</li>`
+            )
             .join("");
+
 
         // ✅ Anleitung mit Nummerierung anzeigen
         const instructionsList = document.getElementById("display-recipe-instructions");

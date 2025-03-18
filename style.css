@@ -163,6 +163,44 @@ body {
     border-bottom: 1px solid #ddd; /* Dezente Trennlinie für mehr Übersicht */
 }
 
+/* 🌟 Rezeptbuch - Icons am rechten Rand & mit Abstand */
+#recipe-list li {
+    display: flex;
+    justify-content: space-between; /* Rezeptname links, Icons rechts */
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #ddd; /* Dezente Trennlinie */
+}
+
+.recipe-icons {
+    display: flex;
+    gap: 12px; /* Abstand zwischen den Icons */
+}
+
+.edit-button, .recipe-delete-btn {
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.edit-button {
+    background-color: #4CAF50; /* Grün für Bearbeiten */
+    color: #fff;
+}
+
+.recipe-delete-btn {
+    background-color: #f44336; /* Rot für Löschen */
+    color: #fff;
+}
+
+.edit-button:hover {
+    background-color: #45a049;
+}
+
+.recipe-delete-btn:hover {
+    background-color: #e53935;
+}
+
 /* 🍳 Kochanleitungsseite (recipeInstructions.html) */
 #recipe-instructions {
     background-color: #fff;

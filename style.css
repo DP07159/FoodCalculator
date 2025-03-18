@@ -158,11 +158,6 @@ body {
     text-align: left;       /* Texte linksbündig ausrichten */
 }
 
-#recipe-list li {
-    padding: 8px 0;         /* Einheitlicher Abstand zwischen den Rezepten */
-    border-bottom: 1px solid #ddd; /* Dezente Trennlinie für mehr Übersicht */
-}
-
 /* 🌟 Rezeptbuch - Icons am rechten Rand & mit Abstand */
 #recipe-list li {
     display: flex;

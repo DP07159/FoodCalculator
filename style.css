@@ -141,18 +141,18 @@ input, button {
     gap: 8px;
 }
 
-/* 🌟 Zutatenliste - Zweispaltige Darstellung */
+/* 🌟 Zutatenliste - Zweispaltig mit vertikaler Anordnung */
 #display-recipe-ingredients {
-    display: grid;
-    grid-template-columns: 1fr 1fr;  /* Zwei gleich breite Spalten */
-    gap: 10px 20px;                 /* Vertikaler und horizontaler Abstand */
+    column-count: 2;         /* Zwei Spalten */
+    column-gap: 20px;        /* Abstand zwischen den Spalten */
     padding: 0;
-    list-style: none;               /* Entfernt Standard-Bulletpoints */
+    list-style: none;        /* Entfernt Standard-Bulletpoints */
 }
 
 #display-recipe-ingredients li {
-    text-align: left;                /* Linksbündige Ausrichtung für bessere Lesbarkeit */
-    padding: 5px 0;
+    break-inside: avoid;     /* Verhindert, dass Elemente mitten im Umbruch geteilt werden */
+    margin-bottom: 4px;      /* Reduzierter Abstand zwischen den Zeilen */
+    text-align: left;        /* Linksbündige Ausrichtung für bessere Lesbarkeit */
 }
 
 /* ✏️ Rezeptdetailseite (recipeDetails.html) */

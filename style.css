@@ -180,6 +180,30 @@ button:hover {
     background-color: #e53935;
 }
 
+    /* 🌟 Container für Portionen- und Kalorienangabe */
+.info-container {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    text-align: right;
+    font-size: 1.2rem;
+}
+
+/* 🥄 Portionen-Angabe */
+.portion-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;   /* Abstand zwischen Icon und Zahl */
+    margin-bottom: 8px;  /* Abstand zur Kalorienangabe */
+}
+
+/* 🍫 Kalorien-Angabe */
+.calorie-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;   /* Abstand zwischen Icon und Zahl */
+}
+
 /* 🚀 Mobile Optimierung */
 @media (max-width: 768px) {
     #plan-container {

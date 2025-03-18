@@ -130,34 +130,27 @@ function populateRecipeList() {
         recipeLink.textContent = recipe.name;
         recipeLink.classList.add("recipe-link");  // Optional für Styling
 
-        // ✅ Bearbeiten-Icon bleibt erhalten
+        // Icons für Bearbeiten und Löschen in einen Container
+        const iconContainer = document.createElement("div");
+        iconContainer.classList.add("recipe-icons");
+
         const editButton = document.createElement("button");
-        editButton.innerHTML = "✏️"; 
+        editButton.innerHTML = "✏️";
         editButton.classList.add("edit-button");
-        editButton.onclick = (event) => {
-            event.stopPropagation();
-            window.location.href = `/recipeDetails.html?id=${recipe.id}`;
-        };
+        editButton.onclick = () => window.location.href = `/recipeDetails.html?id=${recipe.id}`;
 
-        // ✅ Müllkorb-Icon bleibt erhalten
         const deleteButton = document.createElement("button");
-        deleteButton.innerHTML = "🗑️"; 
+        deleteButton.innerHTML = "🗑️";
         deleteButton.classList.add("recipe-delete-btn");
-        deleteButton.onclick = (event) => {
-            event.stopPropagation();
-            deleteRecipe(recipe.id);
-        };
+        deleteButton.onclick = () => deleteRecipe(recipe.id);
 
-        li.appendChild(recipeLink);       // Rezeptname als Link
-        li.innerHTML = `
-            <strong>${recipe.name}</strong>
-            <div class="recipe-icons">
-                <button class="edit-button" onclick="window.location.href='/recipeDetails.html?id=${recipe.id}'">✏️</button>
-                <button class="recipe-delete-btn" onclick="deleteRecipe(${recipe.id})">🗑️</button>
-            </div>
-        `;
-        li.appendChild(editButton);       // Bearbeiten-Icon
-        li.appendChild(deleteButton);     // Müll-Icon
+        // Zusammenfügen der Elemente
+        iconContainer.appendChild(editButton);
+        iconContainer.appendChild(deleteButton);
+
+        li.appendChild(recipeLink);
+        li.appendChild(iconContainer);
+
         recipeList.appendChild(li);
     });
 }

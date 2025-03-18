@@ -61,6 +61,7 @@ input, button {
 /* 🌟 Wochenplantabelle */
 #meal-table {
     width: 100%;         /* Tabelle füllt die gesamte Box aus */
+    table-layout: auto;  /* 🚀 Spaltenbreiten werden jetzt automatisch angepasst */
     margin: 0 auto;      /* Tabelle zentrieren */
     border-collapse: collapse;
 }
@@ -69,6 +70,17 @@ input, button {
     padding: 10px;
     border: 1px solid #ddd;
     text-align: center;
+    white-space: nowrap; /* Verhindert Umbrüche für bessere Lesbarkeit */
+}
+
+#meal-table th {
+    background-color: #007bff;
+    color: white;
+}
+
+#meal-table td select {
+    width: 100%;  /* Auswahlmenüs füllen die Zelle */
+    padding: 5px;
 }
 
 /* 🌟 Neuen Plan anlegen + Pläne verwalten */

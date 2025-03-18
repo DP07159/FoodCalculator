@@ -35,25 +35,25 @@
         </section>
 
         <div class="plan-and-recipe-container">
-    <!-- 🌟 Neuen Plan anlegen -->
-    <section id="add-plan">
-        <p class="small-title">Neuen Plan anlegen</p>
-        <div class="plan-input-wrapper">
-            <input type="text" id="plan-name" placeholder="Name für neuen Plan">
-            <button onclick="saveMealPlan()">Speichern</button>
-        </div>
+    <!-- 🌟 Neuen Plan anlegen und Pläne verwalten - Gemeinsame Box -->
+<section id="add-plan">
+    <p class="small-title">Neuen Plan anlegen</p>
+    <div class="plan-input-wrapper">
+        <input type="text" id="plan-name" placeholder="Name für neuen Plan">
+        <button onclick="saveMealPlan()">Speichern</button>
+    </div>
 
-        <!-- 🌟 Pläne verwalten -->
-        <div id="plan-management">
-            <p class="small-title">Pläne verwalten</p>
-            <div class="plan-controls">
-                <select id="plan-list"></select>
-                <button onclick="loadMealPlan()">Laden</button>
-                <button onclick="updateMealPlan()">Aktualisieren</button>
-                <button class="icon-button" onclick="deleteMealPlan()">🗑️</button>
-            </div>
+    <!-- 🌟 Pläne verwalten -->
+    <div id="plan-management">
+        <p class="small-title">Pläne verwalten</p>
+        <div class="plan-controls">
+            <select id="plan-list"></select>
+            <button onclick="loadMealPlan()">Laden</button>
+            <button onclick="updateMealPlan()">Aktualisieren</button>
+            <button class="icon-button" onclick="deleteMealPlan()">🗑️</button>
         </div>
-    </section>
+    </div>
+</section>
 
     <!-- 🌟 Rezept hinzufügen -->
     <section id="add-recipe">

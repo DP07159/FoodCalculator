@@ -141,6 +141,20 @@ input, button {
     gap: 8px;
 }
 
+/* 🌟 Zutatenliste - Zweispaltige Darstellung */
+#display-recipe-ingredients {
+    display: grid;
+    grid-template-columns: 1fr 1fr;  /* Zwei gleich breite Spalten */
+    gap: 10px 20px;                 /* Vertikaler und horizontaler Abstand */
+    padding: 0;
+    list-style: none;               /* Entfernt Standard-Bulletpoints */
+}
+
+#display-recipe-ingredients li {
+    text-align: left;                /* Linksbündige Ausrichtung für bessere Lesbarkeit */
+    padding: 5px 0;
+}
+
 /* ✏️ Rezeptdetailseite (recipeDetails.html) */
 #recipe-form {
     background-color: #f0f2f5;

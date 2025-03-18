@@ -47,6 +47,20 @@ input, button {
     border-radius: 8px;
 }
 
+/* 🌟 Neuen Plan anlegen + Pläne verwalten */
+#add-plan {
+    background-color: #ffffff;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+#plan-management {
+    border-top: 2px solid #007bff;  /* Trennlinie für bessere Abgrenzung */
+    margin-top: 20px;
+    padding-top: 15px;
+}
+
 /* ✅ Checkboxen-Optimierung */
 .recipe-checkboxes {
     display: flex;

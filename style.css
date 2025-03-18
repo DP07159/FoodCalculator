@@ -1,4 +1,4 @@
-/* 🎨 Allgemeines Styling */
+/* 🎨 GLOBAL STYLES (für alle Seiten) */
 body {
     font-family: Arial, sans-serif;
     background-color: #f8f9fa;
@@ -7,76 +7,19 @@ body {
     padding: 0;
 }
 
-/* 📝 Login & Registrierung */
-input {
-    display: block;
-    margin: 10px auto;
-    padding: 8px;
-    width: 80%;
-    max-width: 300px;
-}
-
-button {
-    padding: 10px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    cursor: pointer;
-    margin: 5px;
-}
-
-button:hover {
-    background-color: #0056b3;
-}
-
-/* 📊 Food Calculator Tabelle */
-#meal-table {
-    width: 80%;
-    margin: 20px auto;
-    border-collapse: collapse;
-    background: white;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-#meal-table th, #meal-table td {
+input, button {
     padding: 10px;
     border: 1px solid #ddd;
-    text-align: center;
+    border-radius: 4px;
 }
 
-#meal-table th {
-    background-color: #007bff;
-    color: white;
+/* 🌍 LAYOUT-STILE (z.B. Flexbox-Strukturen) */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
 }
 
-#meal-table td select {
-    width: 100%;
-    padding: 5px;
-}
-
-/* ✅ Wochenplan-Verwaltung */
-#plan-container {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    margin-top: 20px;
-}
-
-#plan-container input {
-    padding: 8px;
-    width: 200px;
-}
-
-#plan-container button {
-    padding: 8px;
-    background-color: #28a745;
-}
-
-#plan-container button:hover {
-    background-color: #218838;
-}
-
-/* 🌟 Container für Plan- und Rezeptbereich */
 .plan-and-recipe-container {
     display: flex;
     justify-content: space-between;
@@ -92,95 +35,45 @@ button:hover {
     border-radius: 8px;
 }
 
-#plan-management {
-    margin-top: 20px; /* Abstand zur Planverwaltung */
+/* -------------------------------------- */
+/* 📄 SEITENSPEZIFISCHE STYLES */
+/* -------------------------------------- */
+
+/* 🏠 Startseite (index.html) */
+#meal-plan, #plan-management {
+    background-color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    border-radius: 8px;
 }
 
-/* Optional: Überschriften ausrichten */
-#add-plan .small-title,
-#add-recipe .small-title {
-    text-align: left;
-
-/* 🍽 Rezeptbuch */
-#recipe-container {
+/* ✅ Checkboxen-Optimierung */
+.recipe-checkboxes {
     display: flex;
-    justify-content: space-around;
-    margin-top: 20px;
+    flex-direction: column;
+    gap: 8px;
 }
 
-#recipe-form {
-    text-align: left;
-    width: 40%;
-}
-
-#recipe-list {
-    width: 50%;
-    text-align: left;
-}
-
-#recipe-list li {
+.recipe-checkboxes label {
     display: flex;
-    justify-content: space-between;
-    padding: 8px;
-    background: white;
-    margin-bottom: 5px;
-    border-radius: 4px;
-    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-#recipe-list button {
-    background-color: red;
-    color: white;
-    border: none;
-    padding: 5px;
+    align-items: center;
+    gap: 6px;
     cursor: pointer;
 }
 
-#recipe-list button:hover {
-    background-color: darkred;
+.recipe-checkboxes input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #007bff;
 }
 
-#recipe-link {
-    display: inline-block;
-    color: #4CAF50;  /* Grüne Schrift */
-    text-decoration: underline;  /* Unterstrichen wie ein Link */
-    cursor: pointer;
-    padding: 10px 0;  /* Mehr Platz für Klickfläche */
+/* 🍳 Kochanleitungsseite (recipeInstructions.html) */
+#recipe-instructions {
+    background-color: #fff;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-#recipe-link:hover {
-    color: #45a049;  /* Dunkleres Grün beim Überfahren */
-    text-decoration: none;  /* Dezentere Link-Anzeige beim Hover */
-}
-
-.edit-button {
-    background-color: #4CAF50; /* Grüner Button */
-    color: #fff;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-right: 5px;
-}
-
-.edit-button:hover {
-    background-color: #45a049;
-}
-
-.recipe-delete-btn {
-    background-color: #f44336; /* Roter Button */
-    color: #fff;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.recipe-delete-btn:hover {
-    background-color: #e53935;
-}
-
-    /* 🌟 Container für Portionen- und Kalorienangabe */
 .info-container {
     position: absolute;
     top: 20px;
@@ -189,29 +82,23 @@ button:hover {
     font-size: 1.2rem;
 }
 
-/* 🥄 Portionen-Angabe */
-.portion-info {
+.portion-info, .calorie-info {
     display: flex;
     align-items: center;
-    gap: 8px;   /* Abstand zwischen Icon und Zahl */
-    margin-bottom: 8px;  /* Abstand zur Kalorienangabe */
+    gap: 8px;
 }
 
-/* 🍫 Kalorien-Angabe */
-.calorie-info {
-    display: flex;
-    align-items: center;
-    gap: 8px;   /* Abstand zwischen Icon und Zahl */
+/* ✏️ Rezeptdetailseite (recipeDetails.html) */
+#recipe-form {
+    background-color: #f0f2f5;
+    padding: 20px;
+    border: 2px solid #007bff;
+    border-radius: 10px;
 }
 
 /* 🚀 Mobile Optimierung */
 @media (max-width: 768px) {
-    #plan-container {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    #recipe-container {
+    .plan-and-recipe-container {
         flex-direction: column;
         align-items: center;
     }

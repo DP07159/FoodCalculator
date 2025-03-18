@@ -55,10 +55,13 @@ input, button {
     border-radius: 8px;
 }
 
+/* 🚫 Entferne zusätzliche Box bei 'Pläne verwalten' */
 #plan-management {
-    border-top: 2px solid #007bff;  /* Trennlinie für bessere Abgrenzung */
-    margin-top: 20px;
-    padding-top: 15px;
+    border: none;        /* Entfernt den blauen Rand */
+    margin-top: 20px;    /* Nur für Abstand */
+    padding-top: 15px;   /* Abstand zum vorherigen Bereich */
+    background: none;    /* Entfernt den weißen Hintergrund */
+    box-shadow: none;    /* Entfernt den Schatten */
 }
 
 /* ✅ Checkboxen-Optimierung */

@@ -130,6 +130,11 @@ function populateRecipeList() {
         recipeLink.textContent = recipe.name;
         recipeLink.classList.add("recipe-link");  // Optional für Styling
 
+        // Mahlzeitenangabe (zentriert)
+        const mealTypesInfo = document.createElement("span");
+        mealTypesInfo.textContent = recipe.mealTypes.join(", ");
+        mealTypesInfo.classList.add("meal-types");
+
         // Icons für Bearbeiten und Löschen in einen Container
         const iconContainer = document.createElement("div");
         iconContainer.classList.add("recipe-icons");
@@ -149,6 +154,7 @@ function populateRecipeList() {
         iconContainer.appendChild(deleteButton);
 
         li.appendChild(recipeLink);
+        li.appendChild(mealTypesInfo); // 🟣 Mahlzeiten-Info zentriert einfügen
         li.appendChild(iconContainer);
 
         recipeList.appendChild(li);

@@ -61,7 +61,6 @@ input, button {
 /* 🌟 Wochenplantabelle */
 #meal-table {
     width: 100%;         /* Tabelle füllt die gesamte Box aus */
-    max-width: 600px;    /* Maximale Breite der Tabelle */
     margin: 0 auto;      /* Tabelle zentrieren */
     border-collapse: collapse;
 }

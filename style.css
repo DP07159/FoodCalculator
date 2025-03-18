@@ -13,6 +13,26 @@ input, button {
     border-radius: 4px;
 }
 
+/* 🌟 Home-Button */
+.home-button {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+}
+
+.home-button a {
+    text-decoration: none;
+    background-color: #007bff;
+    color: #fff;
+    padding: 8px 15px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.home-button a:hover {
+    background-color: #0056b3;
+}
+
 /* 🌟 Globaler Seitenrand */
 body {
     padding: 0 20px;  /* Gleichmäßiger Rand links und rechts */

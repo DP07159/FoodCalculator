@@ -180,6 +180,18 @@ body {
     text-align: left;       /* Texte linksbündig ausrichten */
 }
 
+/* 🌟 Weiße Box für Rezept hinzufügen */
+.add-recipe-box {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 1000px;
+    margin: 20px auto;
+    box-sizing: border-box;
+}
+
 /* 🌟 Weiße Box für Rezeptbuch */
 .recipe-book-box {
     background-color: #fff;

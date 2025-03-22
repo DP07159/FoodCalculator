@@ -303,24 +303,6 @@ function updateMealPlan() {
     .catch(error => console.error("❌ Fehler beim Aktualisieren des Plans:", error));
 }
 
-  // Hole den aktuellen Namen des Plans aus dem Dropdown
-  const planName = document.getElementById("plan-list").selectedOptions[0].textContent;
-
-  fetch(`${API_URL}/meal_plans/${planId}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: planName, data: planData })
-  })
-  .then(response => {
-    if (!response.ok) {
-      throw new Error(`Fehler beim Aktualisieren: ${response.status}`);
-    }
-    console.log(`✅ Wochenplan mit ID ${planId} überschrieben`);
-    loadMealPlans(); // Liste aktualisieren
-  })
-  .catch(error => console.error("❌ Fehler beim Aktualisieren des Plans:", error));
-}
-
 // **Alle gespeicherten Wochenpläne laden**
 function loadMealPlans() {
   fetch(`${API_URL}/meal_plans`)

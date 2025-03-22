@@ -301,11 +301,16 @@ body {
 }
 
 /* ✏️ Rezeptdetailseite (recipeDetails.html) */
+/* 🌟 Rezeptdetails - Weiße Box als Hintergrund */
 #recipe-form {
-    background-color: #f0f2f5;
+    background-color: #ffffff;
     padding: 20px;
-    border: 2px solid #007bff;
-    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Gleicher Schatten wie auf der Hauptseite */
+    border-radius: 8px;                        /* Abgerundete Ecken */
+    width: 100%;                               /* Volle Breite nutzen */
+    max-width: 1000px;                         /* Begrenzung der Breite */
+    margin: 20px auto;                         /* Zentrierung */
+    box-sizing: border-box;                    /* Korrekte Größenberechnung */
 }
 
 /* 🚀 Mobile Optimierung */

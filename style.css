@@ -180,15 +180,16 @@ body {
     text-align: left;       /* Texte linksbündig ausrichten */
 }
 
-/* 🌟 Weiße Box für den Rezeptbuch-Bereich */
-#recipe-book {
+/* 🌟 Weiße Box für Rezeptbuch */
+.recipe-book-box {
     background-color: #fff;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 1000px;
     margin: 20px auto;
-    width: 100%; /* Einheitliche Breite mit den anderen Bereichen */
-    max-width: 1000px; /* Begrenzung für große Bildschirme */
+    box-sizing: border-box;
 }
 
 /* 🌟 Rezeptbuch - Icons am rechten Rand & mit Abstand */

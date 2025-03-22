@@ -153,17 +153,18 @@ body {
 }
 
 /* ✅ Checkboxen-Optimierung */
+/* 🌟 Checkboxen für Mahlzeiten - Aufgeräumte Anordnung */
 .recipe-checkboxes {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Zwei gleich große Spalten */
+    gap: 8px 20px;                         /* Vertikaler und horizontaler Abstand */
+    text-align: left;                      /* Text linksbündig für klare Zuordnung */
 }
 
 .recipe-checkboxes label {
     display: flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
+    align-items: center;                   /* Checkbox und Text auf einer Linie */
+    gap: 6px;                              /* Kleiner Abstand zwischen Checkbox und Text */
 }
 
 .recipe-checkboxes input[type="checkbox"] {

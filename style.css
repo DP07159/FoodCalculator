@@ -152,6 +152,40 @@ body {
     box-shadow: none;    /* Entfernt den Schatten */
 }
 
+/* 🌟 Weiße Box für Rezept hinzufügen */
+.add-recipe-box {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 1000px;
+    margin: 20px auto;
+    box-sizing: border-box;
+}
+
+/* 🌟 Rezept hinzufügen - Gleichmäßige vertikale Verteilung */
+#add-recipe {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;  /* Gleichmäßige Verteilung der Inhalte */
+    height: 100%;                    /* Volle Höhe nutzen */
+    gap: 15px;                       /* Abstand zwischen den Elementen */
+}
+
+.recipe-inputs,
+.recipe-checkboxes,
+#add-recipe button {
+    margin-bottom: 10px;             /* Einheitlicher Abstand nach unten */
+}
+
+.recipe-checkboxes {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);  /* Zwei gleich große Spalten */
+    gap: 10px 20px;                         /* Optimierter Abstand */
+    text-align: left;
+}
+
 /* ✅ Checkboxen-Optimierung */
 /* 🌟 Checkboxen für Mahlzeiten - Aufgeräumte Anordnung */
 .recipe-checkboxes {
@@ -178,18 +212,6 @@ body {
     list-style-type: none;  /* Entfernt Bulletpoints */
     padding-left: 0;        /* Entfernt den zusätzlichen Abstand durch Bulletpoints */
     text-align: left;       /* Texte linksbündig ausrichten */
-}
-
-/* 🌟 Weiße Box für Rezept hinzufügen */
-.add-recipe-box {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 1000px;
-    margin: 20px auto;
-    box-sizing: border-box;
 }
 
 /* 🌟 Weiße Box für Rezeptbuch */

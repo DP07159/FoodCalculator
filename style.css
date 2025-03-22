@@ -187,7 +187,7 @@ body {
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     margin: 20px auto;
-    width: 80%; /* Einheitliche Breite mit den anderen Bereichen */
+    width: 100%; /* Einheitliche Breite mit den anderen Bereichen */
     max-width: 1000px; /* Begrenzung für große Bildschirme */
 }
 

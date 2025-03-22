@@ -315,10 +315,14 @@ body {
 
 /* ✏️ Rezeptdetailseite (recipeDetails.html) */
 #recipe-form {
-    background-color: #ffffff;
-    padding: 20px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    padding: 20px 30px; /* Mehr Innenabstand für eine luftige Optik */
     border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 20px; /* Abstand zur nächsten Box */
+    line-height: 1.6;    /* Größerer Zeilenabstand für bessere Lesbarkeit */
     display: flex;
     flex-direction: column;
     gap: 15px;

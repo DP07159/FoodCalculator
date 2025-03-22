@@ -202,6 +202,7 @@ body {
     max-width: 1000px;
     margin: 20px auto;
     box-sizing: border-box;
+    display: block; /* Stellt sicher, dass der Bereich korrekt angezeigt wird */
 }
 
 /* 🌟 Rezeptbuch - Icons am rechten Rand & mit Abstand */

@@ -284,21 +284,20 @@ body {
 /* 🌟 Zutatenliste - Zweispaltig mit vertikaler Anordnung */
 #display-recipe-ingredients {
     background-color: #fff;
-    padding: 20px;
+    padding: 20px 30px;     /* Mehr Innenabstand für angenehme Optik */
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     width: 100%;
     box-sizing: border-box;
-    margin-bottom: 20px; /* Abstand zur nächsten Box */
+    margin-bottom: 20px;    /* Abstand zur nächsten Box */
     column-count: 2;         /* Zwei Spalten */
     column-gap: 20px;        /* Abstand zwischen den Spalten */
-    padding: 0;
     list-style: none;        /* Entfernt Standard-Bulletpoints */
 }
 
 #display-recipe-ingredients li {
     break-inside: avoid;     /* Verhindert, dass Elemente mitten im Umbruch geteilt werden */
-    margin-bottom: 4px;      /* Reduzierter Abstand zwischen den Zeilen */
+    margin-bottom: 6px;      /* Etwas größerer Abstand für mehr Struktur */
     text-align: left;        /* Linksbündige Ausrichtung für bessere Lesbarkeit */
 }
 

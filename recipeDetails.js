@@ -39,11 +39,9 @@ async function updateRecipe() {
     const urlParams = new URLSearchParams(window.location.search);
     const recipeId = urlParams.get('id');
 
-    if (!confirm("Möchtest du dieses Rezept wirklich überschreiben?")) return;
-
     const name = document.getElementById('recipe-name').value;
     const calories = parseInt(document.getElementById('recipe-calories').value);
-    const portions = parseInt(document.getElementById("recipe-portions").value);
+    const portions = parseInt(document.getElementById('recipe-portions').value);
     const ingredients = document.getElementById('recipe-ingredients').value;
     const instructions = document.getElementById('recipe-instructions').value;
 
@@ -59,10 +57,16 @@ async function updateRecipe() {
             body: JSON.stringify({ name, calories, portions, ingredients, instructions })
         });
 
+        const result = await response.json();
+        console.log("🔎 PUT-Antwort:", result);
+
         if (response.ok) {
             alert('✅ Rezept erfolgreich aktualisiert!');
+            
+            // 🚀 Weiterleitung zur Instructions-Seite
+            window.location.href = `/recipeInstructions.html?id=${recipeId}`;
         } else {
-            alert(`❌ Fehler beim Speichern: ${response.status}`);
+            alert(`❌ Fehler beim Speichern: ${result.error || 'Unbekannter Fehler'}`);
         }
     } catch (error) {
         console.error("❌ Fehler beim PUT-Aufruf:", error);

@@ -24,10 +24,10 @@
         <input type="number" id="recipe-portions" name="recipe-portions">
 
         <label for="recipe-ingredients">Zutaten:</label>
-        <textarea id="recipe-ingredients" name="recipe-ingredients" rows="1" oninput="resizeTextArea(this)"></textarea>
+        <textarea id="recipe-ingredients" name="recipe-ingredients" oninput="resizeTextArea(this)"></textarea>
 
         <label for="recipe-instructions">Anleitung:</label>
-        <textarea id="recipe-instructions" name="recipe-instructions" rows="1" oninput="resizeTextArea(this)"></textarea>
+        <textarea id="recipe-instructions" name="recipe-instructions" oninput="resizeTextArea(this)"></textarea>
 
         <button type="button" onclick="updateRecipe()">Speichern</button>
     </form>
@@ -43,31 +43,31 @@
         }
 
         function resizeTextArea(textarea) {
-            textarea.style.height = 'auto';  // Zurücksetzen der Höhe
-            textarea.style.height = textarea.scrollHeight + 'px';  // Anpassen der Höhe
-        }
+    textarea.style.height = 'auto';  // Höhe zurücksetzen
+    textarea.style.height = textarea.scrollHeight + 'px';  // Höhe anpassen
+}
 
-        async function loadRecipeDetails() {
-            const response = await fetch(`${API_URL}/recipes/${recipeId}`);
-            const responseText = await response.text();
+async function loadRecipeDetails() {
+    const response = await fetch(`${API_URL}/recipes/${recipeId}`);
+    const responseText = await response.text();
 
-            try {
-                const recipe = JSON.parse(responseText);
-                document.getElementById('recipe-name').value = recipe.name || '';
-                document.getElementById('recipe-calories').value = recipe.calories || '';
-                document.getElementById('recipe-portions').value = recipe.portions || '';
-                document.getElementById('recipe-ingredients').value = recipe.ingredients || '';
-                document.getElementById('recipe-instructions').value = recipe.instructions || '';
+    try {
+        const recipe = JSON.parse(responseText);
+        document.getElementById('recipe-name').value = recipe.name || '';
+        document.getElementById('recipe-calories').value = recipe.calories || '';
+        document.getElementById('recipe-portions').value = recipe.portions || '';
+        document.getElementById('recipe-ingredients').value = recipe.ingredients || '';
+        document.getElementById('recipe-instructions').value = recipe.instructions || '';
 
-                // 🚀 Automatisches Skalieren der Textfelder nach Laden der Daten
-                resizeTextArea(document.getElementById('recipe-ingredients'));
-                resizeTextArea(document.getElementById('recipe-instructions'));
+        // 🚀 Automatisches Skalieren der Textfelder nach Laden der Daten
+        resizeTextArea(document.getElementById('recipe-ingredients'));
+        resizeTextArea(document.getElementById('recipe-instructions'));
 
-            } catch (error) {
-                console.error('❌ Fehler beim Parsen der Antwort:', error.message);
-                alert('Fehler beim Abrufen der Rezeptdaten. Bitte überprüfe die Konsole.');
-            }
-        }
+    } catch (error) {
+        console.error('❌ Fehler beim Parsen der Antwort:', error.message);
+        alert('Fehler beim Abrufen der Rezeptdaten. Bitte überprüfe die Konsole.');
+    }
+}
 
         async function updateRecipe() {
             const name = document.getElementById('recipe-name').value;

@@ -322,11 +322,12 @@ body {
 
 textarea {
     width: 100%;
-    min-height: 40px;
-    max-height: 500px; /* Verhindert unendlich große Felder */
-    overflow-y: hidden; /* Entfernt unnötige Scrollbalken */
-    resize: none;       /* Verhindert manuelles Vergrößern per Drag & Drop */
-    padding: 8px;       /* Etwas Abstand für angenehmes Tippen */
+    min-height: 40px;    /* Start-Höhe */
+    max-height: 500px;   /* Begrenzung der maximalen Höhe */
+    overflow-y: hidden;  /* Entfernt unnötige Scrollbalken */
+    resize: none;        /* Verhindert manuelles Vergrößern */
+    padding: 8px;        /* Angenehmer Innenabstand */
+    box-sizing: border-box;  /* Padding wird in die Breite eingerechnet */
 }
 
 textarea:focus {

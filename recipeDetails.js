@@ -12,7 +12,6 @@
     </div>
 
     <h1>Rezeptdetails</h1>
-    <button onclick="window.location.href='/index.html'">🏠 Zur Hauptseite</button>
 
     <form id="recipe-form">
         <label for="recipe-name">Name:</label>
@@ -25,10 +24,10 @@
         <input type="number" id="recipe-portions" name="recipe-portions">
 
         <label for="recipe-ingredients">Zutaten:</label>
-        <textarea id="recipe-ingredients" name="recipe-ingredients"></textarea>
+        <textarea id="recipe-ingredients" name="recipe-ingredients" rows="1" oninput="resizeTextArea(this)"></textarea>
 
         <label for="recipe-instructions">Anleitung:</label>
-        <textarea id="recipe-instructions" name="recipe-instructions"></textarea>
+        <textarea id="recipe-instructions" name="recipe-instructions" rows="1" oninput="resizeTextArea(this)"></textarea>
 
         <button type="button" onclick="updateRecipe()">Speichern</button>
     </form>
@@ -43,12 +42,14 @@
             window.location.href = "/index.html"; // Zurück zur Startseite
         }
 
+        function resizeTextArea(textarea) {
+            textarea.style.height = 'auto';  // Zurücksetzen der Höhe
+            textarea.style.height = textarea.scrollHeight + 'px';  // Anpassen der Höhe
+        }
+
         async function loadRecipeDetails() {
             const response = await fetch(`${API_URL}/recipes/${recipeId}`);
-
-            // Debug-Ausgabe
             const responseText = await response.text();
-            console.log("🔎 Server Response:", responseText);
 
             try {
                 const recipe = JSON.parse(responseText);
@@ -57,17 +58,16 @@
                 document.getElementById('recipe-portions').value = recipe.portions || '';
                 document.getElementById('recipe-ingredients').value = recipe.ingredients || '';
                 document.getElementById('recipe-instructions').value = recipe.instructions || '';
+
+                // 🚀 Automatisches Skalieren der Textfelder nach Laden der Daten
+                resizeTextArea(document.getElementById('recipe-ingredients'));
+                resizeTextArea(document.getElementById('recipe-instructions'));
+
             } catch (error) {
                 console.error('❌ Fehler beim Parsen der Antwort:', error.message);
                 alert('Fehler beim Abrufen der Rezeptdaten. Bitte überprüfe die Konsole.');
             }
         }
-
-function resizeTextArea(textarea) {
-    textarea.style.height = 'auto'; // Setzt die Höhe zurück, um Neuberechnung zu ermöglichen
-    textarea.style.height = textarea.scrollHeight + 'px'; // Passt die Höhe automatisch an
-}
-
 
         async function updateRecipe() {
             const name = document.getElementById('recipe-name').value;

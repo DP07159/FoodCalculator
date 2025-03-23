@@ -75,7 +75,7 @@ async function updateRecipe() {
 }
 
 // Beim Laden der Seite automatisch Rezeptdetails abrufen
-window.onload = loadRecipeDetails;
+document.addEventListener('DOMContentLoaded', loadRecipeDetails);
 
 // Event-Handler für das Absenden des Formulars
 document.addEventListener('DOMContentLoaded', () => {

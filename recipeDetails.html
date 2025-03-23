@@ -25,10 +25,10 @@
         <input type="number" id="recipe-portions" name="recipe-portions">
 
         <label for="recipe-ingredients">Zutaten:</label>
-        <textarea id="recipe-ingredients" rows="1" oninput="resizeTextArea(this)"></textarea>
+        <textarea id="recipe-ingredients" name="recipe-ingredients" rows="1" oninput="resizeTextArea(this)"></textarea>
 
         <label for="recipe-instructions">Anleitung:</label>
-        <textarea id="recipe-instructions" rows="1" oninput="resizeTextArea(this)"></textarea>
+        <textarea id="recipe-instructions" name="recipe-instructions" rows="1" oninput="resizeTextArea(this)"></textarea>
 
         <button type="button" onclick="updateRecipe()">Speichern</button>
     </form>

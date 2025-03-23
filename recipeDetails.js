@@ -43,10 +43,11 @@
         }
 
         function resizeTextArea(textarea) {
-    textarea.style.height = 'auto';  // Höhe zurücksetzen
-    textarea.style.height = textarea.scrollHeight + 'px';  // Höhe anpassen
+    textarea.style.height = 'auto';  // Zurücksetzen der Höhe
+    textarea.style.height = textarea.scrollHeight + 'px';  // Automatische Höhenanpassung
 }
 
+// 🚀 Automatisches Anpassen der Textfelder beim Laden der Rezeptdaten
 async function loadRecipeDetails() {
     const response = await fetch(`${API_URL}/recipes/${recipeId}`);
     const responseText = await response.text();
@@ -59,9 +60,13 @@ async function loadRecipeDetails() {
         document.getElementById('recipe-ingredients').value = recipe.ingredients || '';
         document.getElementById('recipe-instructions').value = recipe.instructions || '';
 
-        // 🚀 Automatisches Skalieren der Textfelder nach Laden der Daten
+        // 🚀 Automatisches Skalieren der Textfelder
         resizeTextArea(document.getElementById('recipe-ingredients'));
         resizeTextArea(document.getElementById('recipe-instructions'));
+
+        // 🎯 Textfelder beim Eingeben dynamisch vergrößern
+        document.getElementById('recipe-ingredients').addEventListener('input', (e) => resizeTextArea(e.target));
+        document.getElementById('recipe-instructions').addEventListener('input', (e) => resizeTextArea(e.target));
 
     } catch (error) {
         console.error('❌ Fehler beim Parsen der Antwort:', error.message);

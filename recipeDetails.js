@@ -63,6 +63,12 @@
             }
         }
 
+function resizeTextArea(textarea) {
+    textarea.style.height = 'auto'; // Setzt die Höhe zurück, um Neuberechnung zu ermöglichen
+    textarea.style.height = textarea.scrollHeight + 'px'; // Passt die Höhe automatisch an
+}
+
+
         async function updateRecipe() {
             const name = document.getElementById('recipe-name').value;
             const calories = document.getElementById('recipe-calories').value;

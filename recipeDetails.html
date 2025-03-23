@@ -34,93 +34,68 @@
     </form>
     
     <script>
-        const API_URL = "https://foodcalculator-server.onrender.com";
-        const params = new URLSearchParams(window.location.search);
-        const recipeId = params.get('id');
+    const API_URL = "https://foodcalculator-server.onrender.com";
+    const params = new URLSearchParams(window.location.search);
+    const recipeId = params.get('id');
 
-        if (!recipeId) {
-            alert('❌ Keine gültige Rezept-ID gefunden.');
-            window.location.href = "/index.html"; // Zurück zur Startseite
-        }
-
-        async function loadRecipeDetails() {
-            const response = await fetch(`${API_URL}/recipes/${recipeId}`);
-
-            // Debug-Ausgabe
-            const responseText = await response.text();
-            console.log("🔎 Server Response:", responseText);
-
-            try {
-                const recipe = JSON.parse(responseText);
-                document.getElementById('recipe-name').value = recipe.name || '';
-                document.getElementById('recipe-calories').value = recipe.calories || '';
-                document.getElementById('recipe-portions').value = recipe.portions || '';
-                document.getElementById('recipe-ingredients').value = recipe.ingredients || '';
-                document.getElementById('recipe-instructions').value = recipe.instructions || '';
-            } catch (error) {
-                console.error('❌ Fehler beim Parsen der Antwort:', error.message);
-                alert('Fehler beim Abrufen der Rezeptdaten. Bitte überprüfe die Konsole.');
-            }
-        }
-
-        async function updateRecipe() {
-            const name = document.getElementById('recipe-name').value;
-            const calories = document.getElementById('recipe-calories').value;
-            const portions = parseInt(document.getElementById('recipe-portions').value);
-            const ingredients = document.getElementById('recipe-ingredients').value;
-            const instructions = document.getElementById('recipe-instructions').value;
-
-            try {
-                const response = await fetch(`${API_URL}/recipes/${recipeId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, calories, portions, ingredients, instructions })
-                });
-
-                if (response.ok) {
-                    alert('✅ Rezept erfolgreich aktualisiert!');
-                } else {
-                    alert('❌ Fehler beim Aktualisieren des Rezepts.');
-                }
-            } catch (error) {
-                console.error("❌ Fehler beim PUT-Aufruf:", error);
-                alert("❌ Fehler beim Speichern der Rezeptdaten.");
-            }
-        }
-
-        function resizeTextArea(textarea) {
-    textarea.style.height = 'auto';  // Zurücksetzen der Höhe, um Neuberechnung zu ermöglichen
-    textarea.style.height = textarea.scrollHeight + 'px';  // Automatische Höhenanpassung
-}
-
-// Automatische Skalierung der Textfelder nach Laden der Rezeptdaten
-async function loadRecipeDetails() {
-    const response = await fetch(`${API_URL}/recipes/${recipeId}`);
-    const responseText = await response.text();
-
-    try {
-        const recipe = JSON.parse(responseText);
-        document.getElementById('recipe-name').value = recipe.name || '';
-        document.getElementById('recipe-calories').value = recipe.calories || '';
-        document.getElementById('recipe-portions').value = recipe.portions || '';
-        document.getElementById('recipe-ingredients').value = recipe.ingredients || '';
-        document.getElementById('recipe-instructions').value = recipe.instructions || '';
-
-        // 🚀 Automatisches Skalieren der Textfelder
-        resizeTextArea(document.getElementById('recipe-ingredients'));
-        resizeTextArea(document.getElementById('recipe-instructions'));
-
-        // 🎯 Textfelder beim Eingeben dynamisch vergrößern
-        document.getElementById('recipe-ingredients').addEventListener('input', (e) => resizeTextArea(e.target));
-        document.getElementById('recipe-instructions').addEventListener('input', (e) => resizeTextArea(e.target));
-
-    } catch (error) {
-        console.error('❌ Fehler beim Parsen der Antwort:', error.message);
-        alert('Fehler beim Abrufen der Rezeptdaten. Bitte überprüfe die Konsole.');
+    if (!recipeId) {
+        alert('❌ Keine gültige Rezept-ID gefunden.');
+        window.location.href = "/index.html"; // Zurück zur Startseite
     }
-}
 
-        window.onload = loadRecipeDetails;
-    </script>
+    async function loadRecipeDetails() {
+        const response = await fetch(`${API_URL}/recipes/${recipeId}`);
+        const responseText = await response.text();
+
+        try {
+            const recipe = JSON.parse(responseText);
+            document.getElementById('recipe-name').value = recipe.name || '';
+            document.getElementById('recipe-calories').value = recipe.calories || '';
+            document.getElementById('recipe-portions').value = recipe.portions || '';
+            document.getElementById('recipe-ingredients').value = recipe.ingredients || '';
+            document.getElementById('recipe-instructions').value = recipe.instructions || '';
+
+            // 🚀 Automatisches Skalieren der Textfelder
+            resizeTextArea(document.getElementById('recipe-ingredients'));
+            resizeTextArea(document.getElementById('recipe-instructions'));
+
+        } catch (error) {
+            console.error('❌ Fehler beim Parsen der Antwort:', error.message);
+            alert('Fehler beim Abrufen der Rezeptdaten. Bitte überprüfe die Konsole.');
+        }
+    }
+
+    async function updateRecipe() {
+        const name = document.getElementById('recipe-name').value;
+        const calories = document.getElementById('recipe-calories').value;
+        const portions = parseInt(document.getElementById('recipe-portions').value);
+        const ingredients = document.getElementById('recipe-ingredients').value;
+        const instructions = document.getElementById('recipe-instructions').value;
+
+        try {
+            const response = await fetch(`${API_URL}/recipes/${recipeId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, calories, portions, ingredients, instructions })
+            });
+
+            if (response.ok) {
+                alert('✅ Rezept erfolgreich aktualisiert!');
+            } else {
+                alert('❌ Fehler beim Aktualisieren des Rezepts.');
+            }
+        } catch (error) {
+            console.error("❌ Fehler beim PUT-Aufruf:", error);
+            alert("❌ Fehler beim Speichern der Rezeptdaten.");
+        }
+    }
+
+    function resizeTextArea(textarea) {
+        textarea.style.height = 'auto';  // Zurücksetzen der Höhe, um Neuberechnung zu ermöglichen
+        textarea.style.height = textarea.scrollHeight + 'px';  // Automatische Höhenanpassung
+    }
+
+    window.onload = loadRecipeDetails;
+</script>
 </body>
 </html>

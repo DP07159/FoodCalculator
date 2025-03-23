@@ -179,13 +179,6 @@ body {
     margin-bottom: 10px;             /* Einheitlicher Abstand nach unten */
 }
 
-.recipe-checkboxes {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);  /* Zwei gleich große Spalten */
-    gap: 10px 20px;                         /* Optimierter Abstand */
-    text-align: left;
-}
-
 /* ✅ Checkboxen-Optimierung */
 /* 🌟 Checkboxen für Mahlzeiten - Aufgeräumte Anordnung */
 .recipe-checkboxes {
@@ -328,10 +321,12 @@ body {
 }
 
 textarea {
-    width: 100%;        /* Volle Breite innerhalb der Box */
-    min-height: 100px;  /* Mindesthöhe für bessere Lesbarkeit */
-    overflow: hidden;   /* Kein Scrollbalken innerhalb des Textbereichs */
-    resize: none;       /* Manuelle Größenanpassung verhindern */
+    width: 100%;
+    min-height: 40px;
+    max-height: 500px; /* Verhindert unendlich große Felder */
+    overflow-y: hidden; /* Entfernt unnötige Scrollbalken */
+    resize: none;       /* Verhindert manuelles Vergrößern per Drag & Drop */
+    padding: 8px;       /* Etwas Abstand für angenehmes Tippen */
 }
 
 textarea:focus {

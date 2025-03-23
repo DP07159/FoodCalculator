@@ -327,6 +327,17 @@ body {
     gap: 15px;
 }
 
+textarea {
+    width: 100%;        /* Volle Breite innerhalb der Box */
+    min-height: 100px;  /* Mindesthöhe für bessere Lesbarkeit */
+    overflow: hidden;   /* Kein Scrollbalken innerhalb des Textbereichs */
+    resize: none;       /* Manuelle Größenanpassung verhindern */
+}
+
+textarea:focus {
+    outline: 2px solid #007bff;  /* Fokus-Highlight für bessere Benutzerführung */
+}
+
 #recipe-name {
     width: 100%;
     margin-bottom: 15px; /* Name oben, etwas Abstand */

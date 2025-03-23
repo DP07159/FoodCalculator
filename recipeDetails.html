@@ -15,14 +15,23 @@
     <button onclick="window.location.href='/index.html'">🏠 Zur Hauptseite</button>
 
     <form id="recipe-form">
-    <input type="text" id="recipe-name">
-    <input type="number" id="recipe-calories">
-    <input type="number" id="recipe-portions">
-    <textarea id="recipe-ingredients"></textarea>
-    <textarea id="recipe-instructions"></textarea>
-    <button type="submit">Speichern</button>
-</form>
+        <label for="recipe-name">Name:</label>
+        <input type="text" id="recipe-name" name="recipe-name">
 
+        <label for="recipe-calories">Kalorien:</label>
+        <input type="number" id="recipe-calories" name="recipe-calories">
+
+        <label for="recipe-portions">Portionen:</label>
+        <input type="number" id="recipe-portions" name="recipe-portions">
+
+        <label for="recipe-ingredients">Zutaten:</label>
+        <textarea id="recipe-ingredients" name="recipe-ingredients"></textarea>
+
+        <label for="recipe-instructions">Anleitung:</label>
+        <textarea id="recipe-instructions" name="recipe-instructions"></textarea>
+
+        <button type="button" onclick="updateRecipe()">Speichern</button>
+    </form>
     
     <script>
         const API_URL = "https://foodcalculator-server.onrender.com";

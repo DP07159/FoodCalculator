@@ -78,7 +78,16 @@ async function updateRecipe() {
 window.onload = loadRecipeDetails;
 
 // Event-Handler für das Absenden des Formulars
-document.getElementById('recipe-form').addEventListener('submit', (event) => {
-    event.preventDefault();
-    updateRecipe();
+document.addEventListener('DOMContentLoaded', () => {
+    loadRecipeDetails();
+
+    const recipeForm = document.getElementById('recipe-form');
+    if (recipeForm) {
+        recipeForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            updateRecipe();
+        });
+    } else {
+        console.error('❌ Fehler: Formular #recipe-form nicht gefunden.');
+    }
 });

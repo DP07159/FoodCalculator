@@ -91,9 +91,27 @@
     }
 
     function resizeTextArea(textarea) {
-        textarea.style.height = 'auto';  // Zurücksetzen der Höhe, um Neuberechnung zu ermöglichen
-        textarea.style.height = textarea.scrollHeight + 'px';  // Automatische Höhenanpassung
-    }
+    if (!textarea) return;
+    textarea.style.height = 'auto'; // Höhe zurücksetzen
+    textarea.style.height = textarea.scrollHeight + 'px'; // Höhe anpassen
+}
+
+function initAutoResize() {
+    const ingredientsInput = document.getElementById('recipe-ingredients');
+    const instructionsInput = document.getElementById('recipe-instructions');
+
+    [ingredientsInput, instructionsInput].forEach(textarea => {
+        if (textarea) {
+            textarea.addEventListener('input', () => resizeTextArea(textarea));
+            resizeTextArea(textarea); // auch initial anwenden
+        }
+    });
+}
+
+        window.onload = () => {
+    loadRecipeDetails();
+    initAutoResize(); // <– das ist wichtig!
+};
 
     window.onload = loadRecipeDetails;
 </script>

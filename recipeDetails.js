@@ -99,6 +99,18 @@ async function loadRecipeDetails() {
             }
         }
 
+// 👇 Automatisches Mitwachsen der Textfelder bei Eingabe
+document.addEventListener('DOMContentLoaded', () => {
+    const ingredientsInput = document.getElementById('recipe-ingredients');
+    const instructionsInput = document.getElementById('recipe-instructions');
+
+    [ingredientsInput, instructionsInput].forEach(textarea => {
+        if (textarea) {
+            textarea.addEventListener('input', () => resizeTextArea(textarea));
+        }
+    });
+});
+
         window.onload = loadRecipeDetails;
     </script>
 </body>

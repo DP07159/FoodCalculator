@@ -111,7 +111,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-        window.onload = loadRecipeDetails;
+        window.onload = () => {
+    loadRecipeDetails();
+    initAutoResize();
+};
     </script>
 </body>
 </html>

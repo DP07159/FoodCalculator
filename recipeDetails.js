@@ -43,8 +43,21 @@
         }
 
         function resizeTextArea(textarea) {
-    textarea.style.height = 'auto';  // Zurücksetzen der Höhe
-    textarea.style.height = textarea.scrollHeight + 'px';  // Automatische Höhenanpassung
+    if (!textarea) return;
+    textarea.style.height = 'auto';
+    textarea.style.height = textarea.scrollHeight + 'px';
+}
+
+function initAutoResize() {
+    const ingredientsInput = document.getElementById('recipe-ingredients');
+    const instructionsInput = document.getElementById('recipe-instructions');
+
+    [ingredientsInput, instructionsInput].forEach(textarea => {
+        if (textarea) {
+            textarea.addEventListener('input', () => resizeTextArea(textarea));
+            resizeTextArea(textarea); // direkt beim Laden skalieren
+        }
+    });
 }
 
 // 🚀 Automatisches Anpassen der Textfelder beim Laden der Rezeptdaten
@@ -97,16 +110,6 @@ async function loadRecipeDetails() {
                 console.error("❌ Fehler beim PUT-Aufruf:", error);
                 alert("❌ Fehler beim Speichern der Rezeptdaten.");
             }
-        }
-
-// 👇 Automatisches Mitwachsen der Textfelder bei Eingabe
-document.addEventListener('DOMContentLoaded', () => {
-    const ingredientsInput = document.getElementById('recipe-ingredients');
-    const instructionsInput = document.getElementById('recipe-instructions');
-
-    [ingredientsInput, instructionsInput].forEach(textarea => {
-        if (textarea) {
-            textarea.addEventListener('input', () => resizeTextArea(textarea));
         }
     });
 });

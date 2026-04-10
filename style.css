@@ -242,14 +242,28 @@ button:hover {
 
 .plan-and-recipe-container {
     display: flex;
-    gap: var(--space-xl);          /* mehr Abstand zwischen den beiden Kacheln */
-    margin-top: var(--space-xl);
-    align-items: stretch;          /* gleiche Höhe */
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: stretch;
+    gap: 32px;
+    margin-top: 32px;
+    margin-bottom: 32px;
 }
 
-.plan-and-recipe-container > section {
-    flex: 1;                       /* beide Kacheln gleich breit */
-    min-width: 0;                  /* verhindert Layout-Probleme */
+#add-plan,
+#add-recipe {
+    flex: 1 1 0;
+    width: calc(50% - 16px);
+    min-width: 0;
+}
+
+.page-content {
+    width: 100%;
+}
+
+.page-content > section,
+.page-content > div {
+    margin-bottom: 32px;
 }
 
 .plan-input-wrapper,
@@ -347,6 +361,14 @@ button:hover {
 
     .plan-and-recipe-container {
         flex-direction: column;
+        gap: 20px;
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+
+    #add-plan,
+    #add-recipe {
+        width: 100%;
     }
 
     .recipe-row,

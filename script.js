@@ -8,7 +8,102 @@ const MEAL_ROWS = [
     { key: "snack", label: "Snack" }
 ];
 
+function getTodayInGerman() {
+    const days = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
+    return days[new Date().getDay()];
+}
+
+function getRecipeById(recipeId) {
+    return recipes.find(recipe => String(recipe.id) === String(recipeId));
+}
+
+function getMealsForDay(day) {
+    const meals = {};
+
+    MEAL_ROWS.forEach(meal => {
+        const select = document.querySelector(
+            `#meal-table select[data-day="${day}"][data-meal-type="${meal.key}"]`
+        );
+
+        meals[meal.key] = select ? select.value : "";
+    });
+
+    return meals;
+}
+
+function renderDayDetail(day) {
+    const panel = document.getElementById("day-detail-panel");
+    if (!panel) return;
+
+    const mealsForDay = getMealsForDay(day);
+
+    let totalCalories = 0;
+
+    const mealCardsHtml = MEAL_ROWS.map(meal => {
+        const recipeId = mealsForDay[meal.key];
+        const recipe = recipeId ? getRecipeById(recipeId) : null;
+
+        if (recipe) {
+            totalCalories += Number(recipe.calories) || 0;
+        }
+
+        return `
+            <div class="day-detail-meal-card">
+                <div class="day-detail-meal-label">${meal.label}</div>
+                <div class="day-detail-meal-value">
+                    ${recipe ? recipe.name : "Noch nichts gewählt"}
+                </div>
+                <div class="day-detail-meal-calories">
+                    ${recipe ? `${recipe.calories} kcal` : "–"}
+                </div>
+            </div>
+        `;
+    }).join("");
+
+    const remainingCalories = DAILY_CALORIE_LIMIT - totalCalories;
+    const remainingClass = remainingCalories < 0
+        ? "day-detail-stat-value is-negative"
+        : "day-detail-stat-value is-positive";
+
+    panel.innerHTML = `
+        <div class="day-detail-card">
+            <div class="day-detail-header">
+                <div>
+                    <div class="day-detail-title">${day}</div>
+                    <div class="day-detail-subtitle">Dein Tagesplan</div>
+                </div>
+
+                <div class="day-detail-stats">
+                    <div class="day-detail-stat">
+                        <span class="day-detail-stat-label">Gesamt</span>
+                        <span class="day-detail-stat-value">${totalCalories} kcal</span>
+                    </div>
+                    <div class="day-detail-stat">
+                        <span class="day-detail-stat-label">Rest</span>
+                        <span class="${remainingClass}">${remainingCalories} kcal</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="day-detail-meals">
+                ${mealCardsHtml}
+            </div>
+        </div>
+    `;
+}
+
+function setSelectedDay(day) {
+    selectedDay = day;
+
+    document.querySelectorAll(".plan-day-header").forEach(header => {
+        header.classList.toggle("is-active", header.dataset.day === day);
+    });
+
+    renderDayDetail(day);
+}
+
 let recipes = [];
+let selectedDay = getTodayInGerman();
 
 /* -------------------------------------- */
 /* REZEPTE LADEN */
@@ -52,11 +147,26 @@ function populateMealTable() {
     mealTable.appendChild(cornerCell);
 
     WEEK_DAYS.forEach(day => {
-        const dayHeader = document.createElement("div");
-        dayHeader.className = "plan-day-header";
-        dayHeader.textContent = day;
-        mealTable.appendChild(dayHeader);
+    const dayHeader = document.createElement("div");
+    dayHeader.className = "plan-day-header";
+    dayHeader.textContent = day;
+    dayHeader.dataset.day = day;
+
+    if (day === selectedDay) {
+        dayHeader.classList.add("is-active");
+    }
+
+    dayHeader.addEventListener("click", () => {
+        setSelectedDay(day);
     });
+
+    mealTable.appendChild(dayHeader);
+if (!WEEK_DAYS.includes(selectedDay)) {
+    selectedDay = "Montag";
+}
+
+renderDayDetail(selectedDay);
+});
 
     MEAL_ROWS.forEach(meal => {
         const rowLabel = document.createElement("div");
@@ -441,6 +551,7 @@ function loadMealPlan() {
             });
 
             calculateCalories();
+	    setSelectedDay(selectedDay);
 
             const currentPlanName = document.getElementById("current-plan-name");
             if (currentPlanName) {

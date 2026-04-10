@@ -9,119 +9,104 @@
 <body>
     <div class="container">
 
-        <!-- 🌟 Header mit Logo (kommt später) -->
-        <header>
+        <header class="page-header">
             <h1>Food Calculator</h1>
         </header>
 
-        <!-- 🌟 Wochenplan -->
-        <section id="meal-plan">
-            <h2>Wochenplan</h2>
-            <p id="current-plan-name" class="left-align">Kein Plan geladen</p>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Tag</th>
-                        <th>Frühstück</th>
-                        <th>Mittagessen</th>
-                        <th>Abendessen</th>
-                        <th>Snack</th>
-                        <th>Gesamtkalorien</th>
-                        <th>Restkalorien</th>
-                    </tr>
-                </thead>
-                <tbody id="meal-table"></tbody>
-            </table>
-        </section>
+        <main class="page-content">
 
-        <div class="plan-and-recipe-container">
-    <!-- 🌟 Neuen Plan anlegen und Pläne verwalten - Gemeinsame Box -->
-<section id="add-plan">
-    <p class="small-title">Neuen Plan anlegen</p>
-    <div class="plan-input-wrapper">
-        <input type="text" id="plan-name" placeholder="Name für neuen Plan">
-        <button onclick="saveMealPlan()">Speichern</button>
-    </div>
+            <!-- 🌟 Wochenplan -->
+            <section id="meal-plan" class="section-card">
+                <div class="section-header">
+                    <h2>Wochenplan</h2>
+                    <p id="current-plan-name" class="left-align">Kein Plan geladen</p>
+                </div>
 
-    <!-- 🌟 Pläne verwalten -->
-    <div id="plan-management">
-        <p class="small-title">Pläne verwalten</p>
-        <div class="plan-controls">
-            <select id="plan-list"></select>
-            <button onclick="loadMealPlan()">Laden</button>
-            <button onclick="updateMealPlan()">Aktualisieren</button>
-            <button class="icon-button" onclick="deleteMealPlan()">🗑️</button>
-        </div>
-    </div>
-</section>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Tag</th>
+                                <th>Frühstück</th>
+                                <th>Mittagessen</th>
+                                <th>Abendessen</th>
+                                <th>Snack</th>
+                                <th>Gesamtkalorien</th>
+                                <th>Restkalorien</th>
+                            </tr>
+                        </thead>
+                        <tbody id="meal-table"></tbody>
+                    </table>
+                </div>
+            </section>
 
-    <!-- 🌟 Rezept hinzufügen -->
-    <section id="add-recipe">
-        <p class="small-title">Rezept hinzufügen</p>
-        <div class="recipe-inputs">
-            <input type="text" id="recipe-name" placeholder="Rezeptname">
-            <input type="number" id="recipe-calories" placeholder="Kalorien">
-        </div>
-        <div class="recipe-checkboxes">
-            <label><input type="checkbox" value="breakfast"> Frühstück</label>
-            <label><input type="checkbox" value="lunch"> Mittagessen</label>
-            <label><input type="checkbox" value="dinner"> Abendessen</label>
-            <label><input type="checkbox" value="snack"> Snack</label>
-        </div>
-        <button onclick="addRecipe()">Rezept hinzufügen</button>
-    </section>
-</div>
+            <!-- 🌟 Plan + Rezept nebeneinander -->
+            <div class="plan-and-recipe-container">
 
-    <!-- 🌟 Rezeptbuch -->
-   <div class="recipe-book-box">
-    <section id="recipe-book">
-        <h2>Rezeptbuch</h2>
-        <ul id="recipe-list">
-            <!-- Rezepte werden hier dynamisch eingefügt -->
-        </ul>
-    </section>
-</div>
+                <!-- 🌟 Plan -->
+                <section id="add-plan" class="section-card">
 
-<script>
-    async function loadRecipes() {
-    try {
-        const response = await fetch('/recipes');
-        const responseText = await response.text();  // Rohtext anzeigen
+                    <div class="section-block">
+                        <p class="small-title">Neuen Plan anlegen</p>
+                        <div class="plan-input-wrapper">
+                            <input type="text" id="plan-name" placeholder="Name für neuen Plan">
+                            <button onclick="saveMealPlan()">Speichern</button>
+                        </div>
+                    </div>
 
-        console.log("🔎 Server Response (Rezeptdaten):", responseText); // ← Das ist der Schlüssel!
+                    <div id="plan-management" class="section-block">
+                        <p class="small-title">Pläne verwalten</p>
+                        <div class="plan-controls">
+                            <select id="plan-list"></select>
+                            <button onclick="loadMealPlan()">Laden</button>
+                            <button onclick="updateMealPlan()">Aktualisieren</button>
+                            <button class="icon-button" onclick="deleteMealPlan()">🗑️</button>
+                        </div>
+                    </div>
 
-        if (responseText.trim().startsWith('{') || responseText.trim().startsWith('[')) {
-            const recipes = JSON.parse(responseText);
-            console.log("✅ Erfolgreiches JSON-Parsing:", recipes);
+                </section>
 
-            const recipeList = document.getElementById('recipe-list');
-            recipeList.innerHTML = '';
+                <!-- 🌟 Rezept hinzufügen -->
+                <section id="add-recipe" class="section-card">
 
-            recipes.forEach(recipe => {
-                const listItem = document.createElement('li');
-                listItem.classList.add('recipe-item');
-                listItem.setAttribute('data-id', recipe.id);
+                    <div class="section-block">
+                        <p class="small-title">Rezept hinzufügen</p>
 
-                listItem.innerHTML = `<a href="/recipeDetails.html?id=${recipe.id}" class="recipe-link">
-                                        ${recipe.name}
-                                     </a>`;
-                recipeList.appendChild(listItem);
-            });
-        } 
+                        <div class="recipe-inputs">
+                            <input type="text" id="recipe-name" placeholder="Rezeptname">
+                            <input type="number" id="recipe-calories" placeholder="Kalorien">
+                        </div>
 
-    } catch (error) {
-        console.error("❌ Fehler beim Laden der Rezepte:", error.message);
-        alert('Fehler beim Laden der Rezepte. Siehe Konsole für Details.');
-    }
-}
+                        <div class="recipe-checkboxes">
+                            <label><input type="checkbox" value="breakfast"> Frühstück</label>
+                            <label><input type="checkbox" value="lunch"> Mittagessen</label>
+                            <label><input type="checkbox" value="dinner"> Abendessen</label>
+                            <label><input type="checkbox" value="snack"> Snack</label>
+                        </div>
 
-window.onload = loadRecipes;
-</script>
+                        <button onclick="addRecipe()">Rezept hinzufügen</button>
+                    </div>
 
-    </section>
-</div>
+                </section>
 
+            </div>
 
+            <!-- 🌟 Rezeptbuch -->
+            <section class="recipe-book-box section-card">
+
+                <div id="recipe-book">
+                    <div class="section-header">
+                        <h2>Rezeptbuch</h2>
+                    </div>
+
+                    <ul id="recipe-list">
+                        <!-- Wird dynamisch gefüllt -->
+                    </ul>
+                </div>
+
+            </section>
+
+        </main>
     </div>
 
     <script src="script.js"></script>

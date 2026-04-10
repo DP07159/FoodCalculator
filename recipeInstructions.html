@@ -7,29 +7,38 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="container">
 
-    <div class="header-container">
         <div class="home-button">
             <a href="/index.html">🏠 Home</a>
         </div>
 
-        <div class="recipe-info">
-            <h2 id="display-recipe-name"></h2>
-        </div>
+        <main class="page-content recipe-instructions-page">
 
-        <div class="portion-calories">
-            🍽️ <span id="display-recipe-portions"></span>
-            🍫 <span id="display-recipe-calories"></span>
-        </div>
+            <header class="header-container">
+                <div class="recipe-info">
+                    <h2 id="display-recipe-name"></h2>
+                </div>
+
+                <div class="portion-calories">
+                    <div>🍽️ <span id="display-recipe-portions"></span></div>
+                    <div>🍫 <span id="display-recipe-calories"></span></div>
+                </div>
+            </header>
+
+            <section class="content-section">
+                <h3>Zutaten</h3>
+                <ul id="display-recipe-ingredients"></ul>
+            </section>
+
+            <section class="content-section">
+                <h3>Anleitung</h3>
+                <div id="display-recipe-instructions"></div>
+            </section>
+
+        </main>
     </div>
-
-    <h3>Zutaten:</h3>
-    <ul id="display-recipe-ingredients"></ul>
-
-    <h3>Anleitung:</h3>
-    <div id="display-recipe-instructions"></div>
 
     <script src="recipeInstructions.js"></script>
 </body>
 </html>
-

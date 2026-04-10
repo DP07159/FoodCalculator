@@ -1,19 +1,182 @@
-/* 🎨 GLOBAL STYLES (für alle Seiten) */
+:root {
+    /* Farben */
+    --color-page-bg: #f5f7fb;
+    --color-surface: #ffffff;
+    --color-primary: #007bff;
+    --color-primary-hover: #0056b3;
+    --color-text: #222222;
+    --color-text-muted: #666666;
+    --color-border: #dddddd;
+
+    /* Typografie */
+    --font-family-base: Arial, sans-serif;
+    --font-size-base: 16px;
+    --font-size-lg: 20px;
+    --font-size-xl: 28px;
+
+    /* Abstände */
+    --space-xs: 6px;
+    --space-sm: 10px;
+    --space-md: 15px;
+    --space-lg: 20px;
+    --space-xl: 30px;
+
+    /* Rundungen */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+
+    /* Schatten */
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.08);
+    --shadow-md: 0 2px 8px rgba(0,0,0,0.1);
+
+    /* Layout */
+    --container-max-width: 1200px;
+    --content-max-width: 1000px;
+}
+
+/* -------------------------------------- */
+/* BASIS */
+/* -------------------------------------- */
+
+* {
+    box-sizing: border-box;
+}
+
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f8f9fa;
-    text-align: center;
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-base);
+    background-color: var(--color-page-bg);
+    color: var(--color-text);
     margin: 0;
-    padding: 0;
+    padding: 0 20px;
+    text-align: center;
 }
 
-input, button {
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+.container {
+    max-width: var(--container-max-width);
+    margin: 0 auto;
+    padding: var(--space-lg);
 }
 
-/* 🌟 Home-Button */
+h1 {
+    font-size: var(--font-size-xl);
+    margin-bottom: var(--space-lg);
+}
+
+h2 {
+    margin-bottom: var(--space-md);
+}
+
+h3 {
+    text-align: left;
+    margin-bottom: var(--space-md);
+}
+
+.small-title {
+    font-size: var(--font-size-lg);
+    font-weight: bold;
+    text-align: left;
+}
+
+.left-align {
+    text-align: left;
+}
+
+/* -------------------------------------- */
+/* STRUKTUR (NEU) */
+/* -------------------------------------- */
+
+.page-header {
+    margin-bottom: var(--space-lg);
+}
+
+.page-content {
+    width: 100%;
+}
+
+.section-card {
+    width: 100%;
+}
+
+.section-header {
+    margin-bottom: var(--space-md);
+}
+
+.section-header h2,
+.section-header p {
+    margin-top: 0;
+}
+
+.section-block + .section-block {
+    margin-top: var(--space-lg);
+}
+
+.form-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    text-align: left;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: var(--space-sm);
+}
+
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.content-section {
+    width: 100%;
+    max-width: var(--content-max-width);
+    margin: 0 auto var(--space-xl);
+}
+
+/* -------------------------------------- */
+/* FORM ELEMENTE */
+/* -------------------------------------- */
+
+input,
+select,
+textarea {
+    width: 100%;
+    padding: var(--space-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+}
+
+textarea {
+    resize: none;
+}
+
+/* -------------------------------------- */
+/* BUTTONS */
+/* -------------------------------------- */
+
+button {
+    padding: var(--space-sm) var(--space-md);
+    border: none;
+    border-radius: var(--radius-sm);
+    background-color: var(--color-primary);
+    color: #fff;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: var(--color-primary-hover);
+}
+
+.icon-button {
+    padding: var(--space-sm);
+}
+
+/* -------------------------------------- */
+/* HOME BUTTON */
+/* -------------------------------------- */
+
 .home-button {
     position: absolute;
     top: 20px;
@@ -21,377 +184,160 @@ input, button {
 }
 
 .home-button a {
-    text-decoration: none;
-    background-color: #007bff;
+    background-color: var(--color-primary);
     color: #fff;
     padding: 8px 15px;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.home-button a:hover {
-    background-color: #0056b3;
-}
-
-/* 🌟 Globaler Seitenrand */
-body {
-    padding: 0 20px;  /* Gleichmäßiger Rand links und rechts */
-    box-sizing: border-box;  /* Padding wird in die Gesamtbreite eingerechnet */
-}
-
-.container {
-    max-width: 1200px; /* Begrenzung der maximalen Breite */
-    margin: 0 auto;    /* Zentrierung auf der Seite */
-}
-
-/* 🌟 Flexibles Layout für kleine Bildschirme */
-@media (max-width: 600px) {
-    .info-container {
-        display: flex;
-        flex-direction: column; /* Elemente stapeln sich vertikal */
-        align-items: flex-end;  /* Portionen/Kalorien rechts ausrichten */
-        margin-top: 10px;      /* Abstand zur Headline */
-    }
-
-    .home-button {
-        position: static;     /* Vermeidet Überlagerungen */
-        margin-bottom: 10px;  /* Sorgt für Abstand zur Headline */
-    }
-
-    #display-recipe-portions,
-    #display-recipe-calories {
-        display: inline-block; /* In einer Zeile anzeigbar */
-        margin-right: 10px;
-    }
-}
-
-/* 🌍 LAYOUT-STILE (z.B. Flexbox-Strukturen) */
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-.plan-and-recipe-container {
-    display: flex;
-    justify-content: space-between;
-    gap: 20px;
-    margin-top: 20px;
-}
-
-#add-plan, #add-recipe {
-    flex: 1;
-    background: #fff;
-    padding: 20px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    box-shadow: var(--shadow-sm);
 }
 
 /* -------------------------------------- */
-/* 📄 SEITENSPEZIFISCHE STYLES */
+/* CARDS / BOXEN */
 /* -------------------------------------- */
 
-/* 🏠 Startseite (index.html) */
-#meal-plan, #plan-management {
-    background-color: #ffffff;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    border-radius: 8px;
+#meal-plan,
+#add-plan,
+#add-recipe,
+.recipe-book-box,
+#recipe-form,
+#display-recipe-ingredients,
+#display-recipe-instructions {
+    background-color: var(--color-surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    padding: var(--space-lg);
 }
 
-/* 🌟 Wochenplan - Weiße Box als Hintergrund */
-#meal-plan {
-    background-color: #ffffff;
-    width: 100%;         /* Volle Breite der Seite */
-    max-width: 100%;     /* Begrenzung auf die Bildschirmbreite */
-    padding: 20px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    box-sizing: border-box; /* Sorgt dafür, dass Padding und Breite korrekt berechnet werden */
-}
+/* -------------------------------------- */
+/* WOCHENPLAN */
+/* -------------------------------------- */
 
-/* 🌟 Wochenplantabelle */
 #meal-table {
-    width: 100%;         /* Tabelle füllt die gesamte Box aus */
-    table-layout: auto;  /* 🚀 Spaltenbreiten werden jetzt automatisch angepasst */
-    margin: 0 auto;      /* Tabelle zentrieren */
+    width: 100%;
     border-collapse: collapse;
 }
 
-#meal-table th, #meal-table td {
-    padding: 10px;
-    border: 1px solid #ddd;
-    text-align: center;
-    white-space: nowrap; /* Verhindert Umbrüche für bessere Lesbarkeit */
+#meal-table th,
+#meal-table td {
+    padding: var(--space-sm);
+    border: 1px solid var(--color-border);
 }
 
 #meal-table th {
-    background-color: #007bff;
+    background-color: var(--color-primary);
     color: white;
 }
 
-#meal-table td select {
-    width: 100%;  /* Auswahlmenüs füllen die Zelle */
-    padding: 5px;
-}
+/* -------------------------------------- */
+/* LAYOUT */
+/* -------------------------------------- */
 
-/* 🌟 Neuen Plan anlegen + Pläne verwalten */
-#add-plan {
-    background-color: #ffffff;
-    padding: 20px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-}
-
-/* 🚫 Entferne zusätzliche Box bei 'Pläne verwalten' */
-#plan-management {
-    border: none;        /* Entfernt den blauen Rand */
-    margin-top: 20px;    /* Nur für Abstand */
-    padding-top: 15px;   /* Abstand zum vorherigen Bereich */
-    background: none;    /* Entfernt den weißen Hintergrund */
-    box-shadow: none;    /* Entfernt den Schatten */
-}
-
-/* 🌟 Weiße Box für Rezept hinzufügen */
-.add-recipe-box {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 1000px;
-    margin: 20px auto;
-    box-sizing: border-box;
-}
-
-/* 🌟 Rezept hinzufügen - Gleichmäßige vertikale Verteilung */
-#add-recipe {
+.plan-and-recipe-container {
     display: flex;
-    flex-direction: column;
-    justify-content: space-between;  /* Gleichmäßige Verteilung der Inhalte */
-    height: 100%;                    /* Volle Höhe nutzen */
-    gap: 15px;                       /* Abstand zwischen den Elementen */
+    gap: var(--space-lg);
+    margin-top: var(--space-lg);
 }
 
-.recipe-inputs,
-.recipe-checkboxes,
-#add-recipe button {
-    margin-bottom: 10px;             /* Einheitlicher Abstand nach unten */
+.plan-input-wrapper,
+.plan-controls,
+.recipe-inputs {
+    display: flex;
+    gap: var(--space-sm);
 }
 
-/* ✅ Checkboxen-Optimierung */
-/* 🌟 Checkboxen für Mahlzeiten - Aufgeräumte Anordnung */
 .recipe-checkboxes {
     display: grid;
-    grid-template-columns: repeat(2, 1fr); /* Zwei gleich große Spalten */
-    gap: 8px 20px;                         /* Vertikaler und horizontaler Abstand */
-    text-align: left;                      /* Text linksbündig für klare Zuordnung */
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    text-align: left;
 }
 
-.recipe-checkboxes label {
-    display: flex;
-    align-items: center;                   /* Checkbox und Text auf einer Linie */
-    gap: 6px;                              /* Kleiner Abstand zwischen Checkbox und Text */
-}
+/* -------------------------------------- */
+/* REZEPTBUCH */
+/* -------------------------------------- */
 
-.recipe-checkboxes input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
-    accent-color: #007bff;
-}
-
-/* 🌟 Rezeptbuch - Ohne Bulletpoints & linksbündig */
-#recipe-list {
-    list-style-type: none;  /* Entfernt Bulletpoints */
-    padding-left: 0;        /* Entfernt den zusätzlichen Abstand durch Bulletpoints */
-    text-align: left;       /* Texte linksbündig ausrichten */
-}
-
-/* 🌟 Weiße Box für Rezeptbuch */
 .recipe-book-box {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 1000px;
-    margin: 20px auto;
-    box-sizing: border-box;
-    display: block; /* Stellt sicher, dass der Bereich korrekt angezeigt wird */
+    max-width: var(--content-max-width);
+    margin: var(--space-lg) auto;
 }
 
-/* 🌟 Rezeptbuch - Icons am rechten Rand & mit Abstand */
+#recipe-list {
+    list-style: none;
+    padding: 0;
+    text-align: left;
+}
+
 #recipe-list li {
     display: flex;
-    justify-content: space-between; /* Rezeptname links, Icons rechts */
-    align-items: center;
+    justify-content: space-between;
     padding: 8px 0;
-    border-bottom: 1px solid #ddd; /* Dezente Trennlinie */
+    border-bottom: 1px solid var(--color-border);
 }
 
-.recipe-icons {
-    display: flex;
-    gap: 12px; /* Abstand zwischen den Icons */
-}
-
-/* Klickbarer Rezeptname als Link */
 .recipe-link {
+    color: var(--color-primary);
     text-decoration: none;
-    color: #007bff;
-    cursor: pointer;
 }
 
 .recipe-link:hover {
     text-decoration: underline;
 }
 
-/* 🌟 Mahlzeiten-Info zentriert in der Zeile */
-.meal-types {
-    flex-grow: 1;         /* Nimmt den verfügbaren Platz ein */
-    text-align: center;   /* Zentrierte Anzeige */
-    font-style: italic;   /* Optional: leichte Kursivdarstellung für dezente Wirkung */
-    color: #666;          /* Dezente Farbe */
-}
+/* -------------------------------------- */
+/* REZEPTDETAIL */
+/* -------------------------------------- */
 
-/* 🍳 Kochanleitungsseite (recipeInstructions.html) */
-#recipe-instructions {
-    background-color: #fff;
-    padding: 20px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.info-container {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    text-align: right;
-    font-size: 1.2rem;
-}
-
-.portion-info, .calorie-info {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-/* 🌟 Zutatenliste - Zweispaltig mit vertikaler Anordnung */
-#display-recipe-ingredients {
-    background-color: #fff;
-    padding: 20px 30px;     /* Mehr Innenabstand für angenehme Optik */
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    box-sizing: border-box;
-    margin-bottom: 20px;    /* Abstand zur nächsten Box */
-    column-count: 2;         /* Zwei Spalten */
-    column-gap: 20px;        /* Abstand zwischen den Spalten */
-    list-style: none;        /* Entfernt Standard-Bulletpoints */
-}
-
-#display-recipe-ingredients li {
-    break-inside: avoid;     /* Verhindert, dass Elemente mitten im Umbruch geteilt werden */
-    margin-bottom: 6px;      /* Etwas größerer Abstand für mehr Struktur */
-    text-align: left;        /* Linksbündige Ausrichtung für bessere Lesbarkeit */
-}
-
-/* 🌟 Anleitung - Links ausgerichtet */
-#display-recipe-instructions {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    box-sizing: border-box;
-    text-align: left;
-}
-
-/* ✏️ Rezeptdetailseite (recipeDetails.html) */
 #recipe-form {
-    background-color: #fff;
-    padding: 20px 30px; /* Mehr Innenabstand für eine luftige Optik */
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    box-sizing: border-box;
-    margin-bottom: 20px; /* Abstand zur nächsten Box */
-    line-height: 1.6;    /* Größerer Zeilenabstand für bessere Lesbarkeit */
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-textarea {
-    width: 100%;
-    min-height: 40px;    /* Start-Höhe */
-    max-height: 500px;   /* Begrenzung der maximalen Höhe */
-    overflow-y: hidden;  /* Entfernt unnötige Scrollbalken */
-    resize: none;        /* Verhindert manuelles Vergrößern */
-    padding: 8px;        /* Angenehmer Innenabstand */
-    box-sizing: border-box;  /* Padding wird in die Breite eingerechnet */
-}
-
-textarea:focus {
-    outline: 2px solid #007bff;  /* Fokus-Highlight für bessere Benutzerführung */
-}
-
-#recipe-name {
-    width: 100%;
-    margin-bottom: 15px; /* Name oben, etwas Abstand */
+    max-width: var(--content-max-width);
+    margin: 100px auto var(--space-lg);
 }
 
 .recipe-inline-fields {
     display: flex;
-    gap: 20px; /* Abstand zwischen Kalorien und Portionen */
-}
-
-#recipe-calories, #recipe-portions {
-    flex: 1; /* Beide Felder gleich breit */
+    gap: var(--space-lg);
 }
 
 .recipe-row {
     display: flex;
-    gap: 20px; /* Zutaten und Anleitung nebeneinander */
+    gap: var(--space-lg);
 }
 
-#recipe-ingredients, #recipe-instructions {
-    flex: 1;
-    height: 150px; /* Einheitliche Höhe für beide Felder */
+/* -------------------------------------- */
+/* KOCHANLEITUNG */
+/* -------------------------------------- */
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    margin: 80px auto var(--space-xl);
+    max-width: var(--content-max-width);
 }
 
-/* Entfernen des grauen "Zur Hauptseite"-Buttons */
-button[onclick*="window.location.href='/index.html'"] {
-    display: none;
+.portion-calories {
+    text-align: right;
 }
 
-/* 🚀 Mobile Optimierung */
+/* -------------------------------------- */
+/* RESPONSIVE */
+/* -------------------------------------- */
+
 @media (max-width: 768px) {
+
     .plan-and-recipe-container {
         flex-direction: column;
-        align-items: center;
     }
 
-    #recipe-form, #recipe-list {
-        width: 100%;
-    }
-}
-
-/* 🌟 Flexibles Layout für kleine Bildschirme */
-@media (max-width: 600px) {
-    .info-container {
-        display: flex;
-        flex-direction: column; /* Elemente stapeln sich vertikal */
-        align-items: flex-end;  /* Portionen/Kalorien rechts ausrichten */
-        margin-top: 10px;      /* Abstand zur Headline */
+    .recipe-row,
+    .recipe-inline-fields {
+        flex-direction: column;
     }
 
-    .home-button {
-        position: static;     /* Vermeidet Überlagerungen */
-        margin-bottom: 10px;  /* Sorgt für Abstand zur Headline */
+    #display-recipe-ingredients {
+        column-count: 1;
     }
 
-    #display-recipe-portions,
-    #display-recipe-calories {
-        display: inline-block; /* In einer Zeile anzeigbar */
-        margin-right: 10px;
+    .header-container {
+        flex-direction: column;
     }
 }

@@ -676,6 +676,23 @@ button:active {
     box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
 }
 
+.plan-value-cell {
+    font-size: 16px;
+    letter-spacing: 0.3px;
+}
+
+.total-calories {
+    background-color: #eef5ff;
+    border: 1px solid #d7e6ff;
+    border-radius: 12px;
+}
+
+.remaining-calories {
+    background-color: #f3faf5;
+    border: 1px solid #d7f0dc;
+    border-radius: 12px;
+}
+
 @media (max-width: 1200px) {
     .weekly-plan-board {
         overflow-x: auto;

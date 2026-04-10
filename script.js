@@ -51,7 +51,10 @@ function renderDayDetail(day) {
             <div class="day-detail-meal-card">
                 <div class="day-detail-meal-label">${meal.label}</div>
                 <div class="day-detail-meal-value">
-                    ${recipe ? recipe.name : "Noch nichts gewählt"}
+                    ${recipe 
+    ? `<a href="/recipeInstructions.html?id=${recipe.id}" class="day-detail-link">${recipe.name}</a>` 
+    : "Noch nichts gewählt"
+}
                 </div>
                 <div class="day-detail-meal-calories">
                     ${recipe ? `${recipe.calories} kcal` : "–"}
@@ -153,8 +156,12 @@ function populateMealTable() {
     dayHeader.dataset.day = day;
 
     if (day === selectedDay) {
-        dayHeader.classList.add("is-active");
-    }
+    dayHeader.classList.add("is-active");
+}
+
+if (day === getTodayInGerman()) {
+    dayHeader.classList.add("is-today");
+}
 
     dayHeader.addEventListener("click", () => {
         setSelectedDay(day);

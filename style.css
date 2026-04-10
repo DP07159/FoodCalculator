@@ -266,6 +266,14 @@ button:hover {
     text-align: left;
 }
 
+.section-card {
+    margin-bottom: var(--space-xl);   /* Abstand nach unten zwischen Kacheln */
+}
+
+.page-content > * {
+    margin-bottom: var(--space-xl);
+}
+
 /* -------------------------------------- */
 /* REZEPTBUCH */
 /* -------------------------------------- */

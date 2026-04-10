@@ -615,7 +615,6 @@ button:active {
     font-weight: 700;
     color: #174a8b;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-    .plan-day-header {
     position: sticky;
     top: 0;
     z-index: 2;

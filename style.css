@@ -615,9 +615,8 @@ button:active {
     font-weight: 700;
     color: #174a8b;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-    position: sticky;
-    top: 0;
-    z-index: 2;
+    background: linear-gradient(180deg, #e3efff 0%, #d7e6ff 100%);
+    border-bottom: 2px solid #c4d8ff;
 }
 
 .plan-row-label {

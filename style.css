@@ -242,8 +242,14 @@ button:hover {
 
 .plan-and-recipe-container {
     display: flex;
-    gap: var(--space-lg);
-    margin-top: var(--space-lg);
+    gap: var(--space-xl);          /* mehr Abstand zwischen den beiden Kacheln */
+    margin-top: var(--space-xl);
+    align-items: stretch;          /* gleiche Höhe */
+}
+
+.plan-and-recipe-container > section {
+    flex: 1;                       /* beide Kacheln gleich breit */
+    min-width: 0;                  /* verhindert Layout-Probleme */
 }
 
 .plan-input-wrapper,

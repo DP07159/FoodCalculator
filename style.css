@@ -671,6 +671,11 @@ button:active {
     color: #2e7d32;
 }
 
+.plan-cell:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+}
+
 @media (max-width: 1200px) {
     .weekly-plan-board {
         overflow-x: auto;

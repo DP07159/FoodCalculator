@@ -204,9 +204,16 @@ button:hover {
 #display-recipe-ingredients,
 #display-recipe-instructions {
     background-color: var(--color-surface);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-md);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
     padding: var(--space-lg);
+    transition: all 0.2s ease;
+#meal-plan:hover,
+#add-plan:hover,
+#add-recipe:hover,
+.recipe-book-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
 }
 
 /* -------------------------------------- */

@@ -655,13 +655,12 @@ button:active {
 .plan-cell {
     display: flex;
     align-items: center;
-    padding: 4px;
-    min-height: 44px;
-    background-color: #ffffff;
-    border: 1px solid #e8edf3;
-    border-radius: 12px;
-    box-shadow: 0 1px 4px rgba(17, 24, 39, 0.03);
-    transition: border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+    padding: 0;
+    min-height: 40px;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
 }
 
 .plan-cell:hover {
@@ -677,9 +676,9 @@ button:active {
 .meal-select,
 .plan-cell select {
     width: 100%;
-    min-height: 36px;
-    padding: 7px 30px 7px 10px;
-    border-radius: 10px;
+    min-height: 40px;
+    padding: 8px 32px 8px 12px;
+    border-radius: 12px;
     border: 1px solid #d9e1ea;
     background-color: #f9fbfd;
     font: inherit;

@@ -72,8 +72,7 @@ function renderDayDetail(day) {
         <div class="day-detail-card">
             <div class="day-detail-header">
                 <div>
-                    <div class="day-detail-title">${day}</div>
-                    <div class="day-detail-subtitle">Dein Tagesplan</div>
+                    <div class="day-detail-title">Dein Tagesplan für ${day}</div>
                 </div>
 
                 <div class="day-detail-stats">

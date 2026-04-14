@@ -950,3 +950,116 @@ button:active {
     color: #1f4f96;
     border-bottom-color: #1f4f96;
 }
+
+/* -------------------------------------- */
+/* WOCHENPLAN TOPBAR / PLAN-AKTIONEN */
+/* -------------------------------------- */
+
+.meal-plan-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+}
+
+.meal-plan-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 180px;
+}
+
+.meal-plan-title-group h2 {
+    margin: 0;
+}
+
+.meal-plan-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    flex: 1;
+}
+
+.meal-plan-toolbar input,
+.meal-plan-toolbar select {
+    min-height: 40px;
+    padding: 8px 12px;
+    border-radius: 12px;
+    border: 1px solid #d9e1ea;
+    background-color: #f9fbfd;
+    font-size: 14px;
+    color: #25324a;
+    min-width: 180px;
+}
+
+.meal-plan-toolbar input:focus,
+.meal-plan-toolbar select:focus {
+    outline: none;
+    border-color: #9bbcf3;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.10);
+}
+
+.meal-plan-toolbar button {
+    min-height: 40px;
+    padding: 8px 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.plan-delete-button {
+    min-width: 40px;
+    padding: 8px 10px;
+}
+
+/* -------------------------------------- */
+/* REZEPT-HINZUFÜGEN NACH ENTFERNUNG DER PLAN-KACHEL */
+/* -------------------------------------- */
+
+.plan-and-recipe-container {
+    display: block;
+    margin-top: 0;
+    margin-bottom: 30px;
+}
+
+#add-recipe {
+    max-width: 100%;
+}
+
+/* -------------------------------------- */
+/* RESPONSIVE */
+/* -------------------------------------- */
+
+@media (max-width: 900px) {
+    .meal-plan-topbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .meal-plan-toolbar {
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 768px) {
+    .meal-plan-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .meal-plan-toolbar input,
+    .meal-plan-toolbar select,
+    .meal-plan-toolbar button {
+        width: 100%;
+    }
+
+    .plan-delete-button {
+        width: 100%;
+    }
+}

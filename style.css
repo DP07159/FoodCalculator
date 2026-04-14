@@ -655,12 +655,12 @@ button:active {
 .plan-cell {
     display: flex;
     align-items: center;
-    padding: 8px;
-    min-height: 56px;
+    padding: 4px;
+    min-height: 44px;
     background-color: #ffffff;
     border: 1px solid #e8edf3;
-    border-radius: 16px;
-    box-shadow: 0 2px 8px rgba(17, 24, 39, 0.03);
+    border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(17, 24, 39, 0.03);
     transition: border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
 }
 
@@ -677,13 +677,13 @@ button:active {
 .meal-select,
 .plan-cell select {
     width: 100%;
-    min-height: 38px;
-    padding: 8px 34px 8px 12px;
-    border-radius: 12px;
+    min-height: 36px;
+    padding: 7px 30px 7px 10px;
+    border-radius: 10px;
     border: 1px solid #d9e1ea;
     background-color: #f9fbfd;
     font: inherit;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 500;
     color: #25324a;
     box-shadow: none;
@@ -694,8 +694,8 @@ button:active {
         linear-gradient(45deg, transparent 50%, #7c8aa5 50%),
         linear-gradient(135deg, #7c8aa5 50%, transparent 50%);
     background-position:
-        calc(100% - 18px) calc(50% - 2px),
-        calc(100% - 13px) calc(50% - 2px);
+        calc(100% - 16px) calc(50% - 2px),
+        calc(100% - 11px) calc(50% - 2px);
     background-size: 5px 5px, 5px 5px;
     background-repeat: no-repeat;
     transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;

@@ -309,6 +309,12 @@ button:active {
     width: 100%;
     min-width: 0;
     text-align: left;
+    background-color: #ffffff;
+    padding: 20px;
+    border: 1px solid #e7edf5;
+    border-radius: 18px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    box-sizing: border-box;
 }
 
 #plan-management {
@@ -333,10 +339,11 @@ button:active {
     flex: 1;
 }
 
-#add-recipe .section-block {
+#add-recipe .section-block,
+#add-plan .section-block {
     display: flex;
     flex-direction: column;
-    gap: var(--space-md);
+    gap: 14px;
 }
 
 .recipe-checkboxes {

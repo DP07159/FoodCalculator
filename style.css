@@ -975,17 +975,46 @@ button:active {
     margin: 0;
 }
 
-.meal-plan-toolbar {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    justify-content: flex-end;
+.meal-plan-toolbar-custom {
     flex: 1;
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) auto auto auto;
+    grid-template-areas:
+        "select load update delete"
+        ". save save save"
+        ". input input input";
+    gap: 10px;
+    align-items: center;
 }
 
-.meal-plan-toolbar input,
-.meal-plan-toolbar select {
+.toolbar-plan-select {
+    grid-area: select;
+}
+
+.toolbar-load-button {
+    grid-area: load;
+}
+
+.toolbar-update-button {
+    grid-area: update;
+}
+
+.toolbar-delete-button {
+    grid-area: delete;
+}
+
+.toolbar-save-button {
+    grid-area: save;
+    justify-self: end;
+}
+
+.toolbar-plan-name {
+    grid-area: input;
+    justify-self: stretch;
+}
+
+.meal-plan-toolbar-custom input,
+.meal-plan-toolbar-custom select {
     min-height: 40px;
     padding: 8px 12px;
     border-radius: 12px;
@@ -993,18 +1022,19 @@ button:active {
     background-color: #f9fbfd;
     font-size: 14px;
     color: #25324a;
-    min-width: 180px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-.meal-plan-toolbar input:focus,
-.meal-plan-toolbar select:focus {
+.meal-plan-toolbar-custom input:focus,
+.meal-plan-toolbar-custom select:focus {
     outline: none;
     border-color: #9bbcf3;
     background-color: #ffffff;
     box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.10);
 }
 
-.meal-plan-toolbar button {
+.meal-plan-toolbar-custom button {
     min-height: 40px;
     padding: 8px 14px;
     border-radius: 12px;
@@ -1013,9 +1043,48 @@ button:active {
     white-space: nowrap;
 }
 
-.plan-delete-button {
-    min-width: 40px;
-    padding: 8px 10px;
+.toolbar-delete-button {
+    background-color: #eef3f8;
+    color: #25324a;
+    border: 1px solid #d7e0ea;
+}
+
+.toolbar-delete-button:hover {
+    background-color: #e3ebf3;
+}
+
+@media (max-width: 900px) {
+    .meal-plan-topbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .meal-plan-toolbar-custom {
+        grid-template-columns: 1fr 1fr;
+        grid-template-areas:
+            "select select"
+            "load update"
+            "delete delete"
+            "save save"
+            "input input";
+    }
+
+    .toolbar-save-button {
+        justify-self: stretch;
+    }
+}
+
+@media (max-width: 600px) {
+    .meal-plan-toolbar-custom {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "select"
+            "load"
+            "update"
+            "delete"
+            "save"
+            "input";
+    }
 }
 
 /* -------------------------------------- */

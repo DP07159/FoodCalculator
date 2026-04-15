@@ -24,15 +24,16 @@
         <p id="current-plan-name" class="left-align">Kein Plan geladen</p>
     </div>
 
-    <div class="meal-plan-toolbar">
-        <input type="text" id="plan-name" placeholder="Neuen Plan speichern als ...">
+    <div class="meal-plan-toolbar-custom">
+        <select id="plan-list" class="toolbar-plan-select"></select>
 
-        <select id="plan-list"></select>
+        <button type="button" class="toolbar-load-button" onclick="loadMealPlan()">Plan laden</button>
+        <button type="button" class="toolbar-update-button" onclick="updateMealPlan()">Plan aktualisieren</button>
+        <button type="button" class="toolbar-delete-button" onclick="deleteMealPlan()">Plan löschen</button>
 
-        <button type="button" onclick="saveMealPlan()">Speichern</button>
-        <button type="button" onclick="loadMealPlan()">Laden</button>
-        <button type="button" onclick="updateMealPlan()">Aktualisieren</button>
-        <button type="button" class="icon-button plan-delete-button" onclick="deleteMealPlan()">🗑️</button>
+        <button type="button" class="toolbar-save-button" onclick="saveMealPlan()">Neuen Plan anlegen</button>
+
+        <input type="text" id="plan-name" class="toolbar-plan-name" placeholder="Neuen Plan anlegen">
     </div>
 </div>
 

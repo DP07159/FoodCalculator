@@ -993,7 +993,6 @@ button:active {
     background-color: #f9fbfd;
     font-size: 14px;
     color: #25324a;
-    width: fit-content;
     min-width: 180px;
     max-width: 50%;
     box-sizing: border-box;
@@ -1044,23 +1043,6 @@ button:active {
     background-color: #f9e8e8;
 }
 
-.meal-plan-toolbar-custom {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 10px;
-    min-width: 260px;
-}
-
-.toolbar-save-button {
-    min-height: 40px;
-    padding: 8px 14px;
-    border-radius: 12px;
-    font-size: 14px;
-    font-weight: 600;
-    white-space: nowrap;
-}
-
 .toolbar-plan-name {
     min-height: 40px;
     padding: 8px 12px;
@@ -1069,8 +1051,26 @@ button:active {
     background-color: #f9fbfd;
     font-size: 14px;
     color: #25324a;
-    width: min(420px, 100%);
+    width: clamp(220px, 28vw, 360px);
     box-sizing: border-box;
+    margin-left: auto;
+}
+
+.toolbar-plan-name:focus {
+    outline: none;
+    border-color: #9bbcf3;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.10);
+}
+
+.toolbar-save-button {
+    background-color: #eef5ff;
+    color: #1f4f96;
+    border: 1px solid #d7e6ff;
+}
+
+.toolbar-save-button:hover {
+    background-color: #e3efff;
 }
 
 .toolbar-plan-name:focus {
@@ -1086,14 +1086,13 @@ button:active {
         align-items: stretch;
     }
 
-    .meal-plan-title-group,
-    .meal-plan-toolbar-custom {
+    .meal-plan-title-group {
         width: 100%;
         min-width: 0;
     }
 
-    .meal-plan-toolbar-custom {
-        align-items: stretch;
+    .meal-plan-toolbar-inline {
+        flex-wrap: wrap;
     }
 
     .toolbar-plan-select {
@@ -1101,18 +1100,21 @@ button:active {
     }
 
     .toolbar-plan-name {
+        margin-left: 0;
         width: 100%;
     }
 }
 
 @media (max-width: 600px) {
     .meal-plan-toolbar-inline {
-        flex-wrap: wrap;
+        gap: 8px;
     }
 
-    .toolbar-plan-select {
-        min-width: 100%;
+    .toolbar-plan-select,
+    .toolbar-plan-name {
+        width: 100%;
         max-width: 100%;
+        min-width: 100%;
     }
 }
 

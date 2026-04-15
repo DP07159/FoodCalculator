@@ -959,7 +959,7 @@ button:active {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    gap: 20px;
+    gap: 24px;
     margin-bottom: 18px;
     flex-wrap: wrap;
 }
@@ -967,54 +967,25 @@ button:active {
 .meal-plan-title-group {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    min-width: 180px;
+    align-items: flex-start;
+    gap: 8px;
+    min-width: 280px;
+    flex: 1;
 }
 
 .meal-plan-title-group h2 {
     margin: 0;
 }
 
-.meal-plan-toolbar-custom {
-    flex: 1;
-    display: grid;
-    grid-template-columns: minmax(220px, 1fr) auto auto auto;
-    grid-template-areas:
-        "select load update delete"
-        ". save save save"
-        ". input input input";
-    gap: 10px;
+.meal-plan-toolbar-inline {
+    display: flex;
     align-items: center;
+    gap: 10px;
+    flex-wrap: nowrap;
+    width: 100%;
 }
 
 .toolbar-plan-select {
-    grid-area: select;
-}
-
-.toolbar-load-button {
-    grid-area: load;
-}
-
-.toolbar-update-button {
-    grid-area: update;
-}
-
-.toolbar-delete-button {
-    grid-area: delete;
-}
-
-.toolbar-save-button {
-    grid-area: save;
-    justify-self: end;
-}
-
-.toolbar-plan-name {
-    grid-area: input;
-    justify-self: stretch;
-}
-
-.meal-plan-toolbar-custom input,
-.meal-plan-toolbar-custom select {
     min-height: 40px;
     padding: 8px 12px;
     border-radius: 12px;
@@ -1022,19 +993,66 @@ button:active {
     background-color: #f9fbfd;
     font-size: 14px;
     color: #25324a;
-    width: 100%;
+    width: fit-content;
+    min-width: 180px;
+    max-width: 50%;
     box-sizing: border-box;
+    flex: 0 1 auto;
 }
 
-.meal-plan-toolbar-custom input:focus,
-.meal-plan-toolbar-custom select:focus {
+.toolbar-plan-select:focus {
     outline: none;
     border-color: #9bbcf3;
     background-color: #ffffff;
     box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.10);
 }
 
-.meal-plan-toolbar-custom button {
+.toolbar-icon-button {
+    min-width: 40px;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.toolbar-load-button,
+.toolbar-update-button {
+    background-color: #f4f8fc;
+    color: #25324a;
+    border: 1px solid #d7e0ea;
+}
+
+.toolbar-load-button:hover,
+.toolbar-update-button:hover {
+    background-color: #eaf1f8;
+}
+
+.toolbar-delete-button {
+    background-color: #fdf4f4;
+    color: #8f2d2d;
+    border: 1px solid #f0d4d4;
+}
+
+.toolbar-delete-button:hover {
+    background-color: #f9e8e8;
+}
+
+.meal-plan-toolbar-custom {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+    min-width: 260px;
+}
+
+.toolbar-save-button {
     min-height: 40px;
     padding: 8px 14px;
     border-radius: 12px;
@@ -1043,14 +1061,23 @@ button:active {
     white-space: nowrap;
 }
 
-.toolbar-delete-button {
-    background-color: #eef3f8;
+.toolbar-plan-name {
+    min-height: 40px;
+    padding: 8px 12px;
+    border-radius: 12px;
+    border: 1px solid #d9e1ea;
+    background-color: #f9fbfd;
+    font-size: 14px;
     color: #25324a;
-    border: 1px solid #d7e0ea;
+    width: min(420px, 100%);
+    box-sizing: border-box;
 }
 
-.toolbar-delete-button:hover {
-    background-color: #e3ebf3;
+.toolbar-plan-name:focus {
+    outline: none;
+    border-color: #9bbcf3;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.10);
 }
 
 @media (max-width: 900px) {
@@ -1059,31 +1086,33 @@ button:active {
         align-items: stretch;
     }
 
+    .meal-plan-title-group,
     .meal-plan-toolbar-custom {
-        grid-template-columns: 1fr 1fr;
-        grid-template-areas:
-            "select select"
-            "load update"
-            "delete delete"
-            "save save"
-            "input input";
+        width: 100%;
+        min-width: 0;
     }
 
-    .toolbar-save-button {
-        justify-self: stretch;
+    .meal-plan-toolbar-custom {
+        align-items: stretch;
+    }
+
+    .toolbar-plan-select {
+        max-width: 100%;
+    }
+
+    .toolbar-plan-name {
+        width: 100%;
     }
 }
 
 @media (max-width: 600px) {
-    .meal-plan-toolbar-custom {
-        grid-template-columns: 1fr;
-        grid-template-areas:
-            "select"
-            "load"
-            "update"
-            "delete"
-            "save"
-            "input";
+    .meal-plan-toolbar-inline {
+        flex-wrap: wrap;
+    }
+
+    .toolbar-plan-select {
+        min-width: 100%;
+        max-width: 100%;
     }
 }
 

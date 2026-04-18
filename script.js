@@ -319,22 +319,30 @@ function populateRecipeList() {
 /* REZEPT HINZUFÜGEN */
 /* -------------------------------------- */
 
+function toggleRecipeToolbar() {
+    const panel = document.getElementById("recipe-add-panel");
+    if (!panel) return;
+
+    panel.classList.toggle("is-hidden");
+}
+
 function addRecipe() {
-    const name = document.getElementById("recipe-name")?.value;
+    const name = document.getElementById("recipe-name")?.value?.trim();
     const calories = parseInt(document.getElementById("recipe-calories")?.value, 10);
+    const portions = parseInt(document.getElementById("recipe-portions")?.value, 10);
 
     const mealTypes = Array.from(document.querySelectorAll(".recipe-checkboxes input:checked"))
         .map(checkbox => checkbox.value);
 
-    if (!name || !calories || mealTypes.length === 0) {
-        alert("Bitte alle Felder ausfüllen und mindestens eine Mahlzeit auswählen.");
+    if (!name || !calories || !portions || mealTypes.length === 0) {
+        alert("Bitte alle Felder ausfüllen, eine Anzahl Mahlzeiten wählen und mindestens eine Mahlzeit auswählen.");
         return;
     }
 
     fetch(`${API_URL}/recipes`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, calories, mealTypes })
+        body: JSON.stringify({ name, calories, portions, mealTypes })
     })
     .then(response => response.json())
     .then(() => {
@@ -343,13 +351,20 @@ function addRecipe() {
 
         const nameInput = document.getElementById("recipe-name");
         const caloriesInput = document.getElementById("recipe-calories");
+        const portionsSelect = document.getElementById("recipe-portions");
 
         if (nameInput) nameInput.value = "";
         if (caloriesInput) caloriesInput.value = "";
+        if (portionsSelect) portionsSelect.value = "";
 
         document.querySelectorAll(".recipe-checkboxes input").forEach(cb => {
             cb.checked = false;
         });
+
+        const panel = document.getElementById("recipe-add-panel");
+        if (panel) {
+            panel.classList.add("is-hidden");
+        }
     })
     .catch(error => console.error("❌ Fehler beim Speichern:", error));
 }

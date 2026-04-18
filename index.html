@@ -66,10 +66,18 @@
                 <h2>Rezeptbuch</h2>
             </div>
 
-            <div class="recipe-book-toolbar">
-                <input type="text" id="recipe-name" class="recipe-toolbar-name" placeholder="Rezeptname">
-                <input type="number" id="recipe-calories" class="recipe-toolbar-calories" placeholder="Kalorien">
+            <button
+                type="button"
+                class="recipe-toolbar-toggle-button"
+                onclick="toggleRecipeToolbar()"
+                title="Rezept hinzufügen"
+                aria-label="Rezept hinzufügen">
+                ＋
+            </button>
+        </div>
 
+        <div id="recipe-add-panel" class="recipe-add-panel is-hidden">
+            <div class="recipe-book-toolbar">
                 <div class="recipe-checkboxes recipe-toolbar-checkboxes">
                     <label><input type="checkbox" value="breakfast"> Frühstück</label>
                     <label><input type="checkbox" value="lunch"> Mittagessen</label>
@@ -77,8 +85,33 @@
                     <label><input type="checkbox" value="snack"> Snack</label>
                 </div>
 
-                <button type="button" class="recipe-toolbar-add-button" onclick="addRecipe()" title="Rezept hinzufügen" aria-label="Rezept hinzufügen">
-                    ＋
+                <input type="text" id="recipe-name" class="recipe-toolbar-name" placeholder="Rezeptname">
+
+                <input type="number" id="recipe-calories" class="recipe-toolbar-calories" placeholder="Kalorien">
+
+                <select id="recipe-portions" class="recipe-toolbar-portions">
+                    <option value="">Anzahl Mahlzeiten</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                </select>
+
+                <button
+                    type="button"
+                    class="recipe-toolbar-save-button"
+                    onclick="addRecipe()"
+                    title="Rezept speichern"
+                    aria-label="Rezept speichern">
+                    💾
                 </button>
             </div>
         </div>

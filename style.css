@@ -1168,62 +1168,64 @@ button:active {
 /* REZEPTBUCH TOPBAR / REZEPT HINZUFÜGEN */
 /* -------------------------------------- */
 
+/* -------------------------------------- */
+/* REZEPTBUCH: TOGGLE + EINGABEZEILE */
+/* -------------------------------------- */
+
 .recipe-book-topbar {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    gap: 24px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 18px;
 }
 
 .recipe-book-title-group {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 6px;
-    min-width: 160px;
+    gap: 4px;
 }
 
 .recipe-book-title-group h2 {
     margin: 0;
 }
 
+.recipe-toolbar-toggle-button {
+    min-width: 40px;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    line-height: 1;
+    font-weight: 600;
+    background-color: #eef5ff;
+    color: #1f4f96;
+    border: 1px solid #d7e6ff;
+}
+
+.recipe-toolbar-toggle-button:hover {
+    background-color: #e3efff;
+}
+
+.recipe-add-panel {
+    margin-bottom: 18px;
+}
+
+.recipe-add-panel.is-hidden {
+    display: none;
+}
+
 .recipe-book-toolbar {
-    flex: 1;
     display: flex;
     align-items: center;
     gap: 10px;
     flex-wrap: wrap;
-    justify-content: flex-end;
-}
-
-.recipe-toolbar-name,
-.recipe-toolbar-calories {
-    min-height: 40px;
-    padding: 8px 12px;
-    border-radius: 12px;
-    border: 1px solid #d9e1ea;
-    background-color: #f9fbfd;
-    font-size: 14px;
-    color: #25324a;
-    box-sizing: border-box;
-}
-
-.recipe-toolbar-name {
-    width: clamp(180px, 24vw, 280px);
-}
-
-.recipe-toolbar-calories {
-    width: 120px;
-}
-
-.recipe-toolbar-name:focus,
-.recipe-toolbar-calories:focus {
-    outline: none;
-    border-color: #9bbcf3;
-    background-color: #ffffff;
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.10);
+    justify-content: flex-start;
 }
 
 .recipe-toolbar-checkboxes {
@@ -1253,7 +1255,41 @@ button:active {
     accent-color: #007bff;
 }
 
-.recipe-toolbar-add-button {
+.recipe-toolbar-name,
+.recipe-toolbar-calories,
+.recipe-toolbar-portions {
+    min-height: 40px;
+    padding: 8px 12px;
+    border-radius: 12px;
+    border: 1px solid #d9e1ea;
+    background-color: #f9fbfd;
+    font-size: 14px;
+    color: #25324a;
+    box-sizing: border-box;
+}
+
+.recipe-toolbar-name {
+    width: clamp(180px, 20vw, 260px);
+}
+
+.recipe-toolbar-calories {
+    width: 120px;
+}
+
+.recipe-toolbar-portions {
+    width: 170px;
+}
+
+.recipe-toolbar-name:focus,
+.recipe-toolbar-calories:focus,
+.recipe-toolbar-portions:focus {
+    outline: none;
+    border-color: #9bbcf3;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.10);
+}
+
+.recipe-toolbar-save-button {
     min-width: 40px;
     width: 40px;
     height: 40px;
@@ -1262,7 +1298,7 @@ button:active {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 22px;
+    font-size: 18px;
     line-height: 1;
     font-weight: 600;
     background-color: #eef5ff;
@@ -1270,16 +1306,27 @@ button:active {
     border: 1px solid #d7e6ff;
 }
 
-.recipe-toolbar-add-button:hover {
+.recipe-toolbar-save-button:hover {
     background-color: #e3efff;
 }
 
-/* -------------------------------------- */
-/* ALTE REZEPT-HINZUFÜGEN-KACHEL NEUTRAL */
-/* -------------------------------------- */
+@media (max-width: 900px) {
+    .recipe-book-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
 
-#add-recipe {
-    display: none;
+    .recipe-toolbar-checkboxes,
+    .recipe-toolbar-name,
+    .recipe-toolbar-calories,
+    .recipe-toolbar-portions,
+    .recipe-toolbar-save-button {
+        width: 100%;
+    }
+
+    .recipe-toolbar-save-button {
+        height: 42px;
+    }
 }
 
 /* -------------------------------------- */

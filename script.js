@@ -321,21 +321,45 @@ function populateRecipeList() {
 
 function toggleRecipeToolbar() {
     const panel = document.getElementById("recipe-add-panel");
-    if (!panel) return;
+    const toggleButton = document.querySelector(".recipe-toolbar-toggle-button");
+
+    if (!panel || !toggleButton) return;
+
+    const isHidden = panel.classList.contains("is-hidden");
 
     panel.classList.toggle("is-hidden");
+
+    if (isHidden) {
+        toggleButton.textContent = "✕";
+        toggleButton.title = "Eingabe schließen";
+        toggleButton.setAttribute("aria-label", "Eingabe schließen");
+    } else {
+        toggleButton.textContent = "＋";
+        toggleButton.title = "Rezept hinzufügen";
+        toggleButton.setAttribute("aria-label", "Rezept hinzufügen");
+    }
+}
+
+function allowOnlyWholeNumbers(event) {
+    event.target.value = event.target.value.replace(/\D/g, "");
 }
 
 function addRecipe() {
     const name = document.getElementById("recipe-name")?.value?.trim();
-    const calories = parseInt(document.getElementById("recipe-calories")?.value, 10);
-    const portions = parseInt(document.getElementById("recipe-portions")?.value, 10);
+    const caloriesRaw = document.getElementById("recipe-calories")?.value?.trim();
+    const portionsRaw = document.getElementById("recipe-portions")?.value?.trim();
+
+    const calories = parseInt(caloriesRaw, 10);
+    const portions = parseInt(portionsRaw, 10);
 
     const mealTypes = Array.from(document.querySelectorAll(".recipe-checkboxes input:checked"))
         .map(checkbox => checkbox.value);
 
-    if (!name || !calories || !portions || mealTypes.length === 0) {
-        alert("Bitte alle Felder ausfüllen, eine Anzahl Mahlzeiten wählen und mindestens eine Mahlzeit auswählen.");
+    const caloriesIsValid = /^\d+$/.test(caloriesRaw || "");
+    const portionsIsValid = /^\d+$/.test(portionsRaw || "") && portions > 0;
+
+    if (!name || !caloriesIsValid || !portionsIsValid || mealTypes.length === 0) {
+        alert("Bitte alle Felder korrekt ausfüllen, nur ganze Zahlen verwenden und mindestens eine Mahlzeit auswählen.");
         return;
     }
 
@@ -351,19 +375,26 @@ function addRecipe() {
 
         const nameInput = document.getElementById("recipe-name");
         const caloriesInput = document.getElementById("recipe-calories");
-        const portionsSelect = document.getElementById("recipe-portions");
+        const portionsInput = document.getElementById("recipe-portions");
+        const panel = document.getElementById("recipe-add-panel");
+        const toggleButton = document.querySelector(".recipe-toolbar-toggle-button");
 
         if (nameInput) nameInput.value = "";
         if (caloriesInput) caloriesInput.value = "";
-        if (portionsSelect) portionsSelect.value = "";
+        if (portionsInput) portionsInput.value = "";
 
         document.querySelectorAll(".recipe-checkboxes input").forEach(cb => {
             cb.checked = false;
         });
 
-        const panel = document.getElementById("recipe-add-panel");
         if (panel) {
             panel.classList.add("is-hidden");
+        }
+
+        if (toggleButton) {
+            toggleButton.textContent = "＋";
+            toggleButton.title = "Rezept hinzufügen";
+            toggleButton.setAttribute("aria-label", "Rezept hinzufügen");
         }
     })
     .catch(error => console.error("❌ Fehler beim Speichern:", error));
@@ -598,5 +629,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const currentPlanName = document.getElementById("current-plan-name");
     if (currentPlanName && !currentPlanName.textContent.trim()) {
         currentPlanName.textContent = "Kein Plan geladen";
+    }
+
+    const recipeCaloriesInput = document.getElementById("recipe-calories");
+    if (recipeCaloriesInput) {
+        recipeCaloriesInput.addEventListener("input", allowOnlyWholeNumbers);
     }
 });

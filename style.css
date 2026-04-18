@@ -371,7 +371,7 @@ button:active {
 
 .recipe-book-box {
     width: 100%;
-    max-width: var(--content-max-width);
+    max-width: 100%;
     margin: var(--space-xl) auto 0;
 }
 
@@ -1224,20 +1224,22 @@ button:active {
     display: flex;
     align-items: center;
     gap: 10px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     justify-content: flex-start;
+    width: 100%;
 }
 
 .recipe-toolbar-checkboxes {
     display: flex;
     align-items: center;
     gap: 12px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     padding: 8px 12px;
     min-height: 40px;
     border: 1px solid #d9e1ea;
     border-radius: 12px;
     background-color: #f9fbfd;
+    flex: 0 0 auto;
 }
 
 .recipe-toolbar-checkboxes label {
@@ -1269,15 +1271,18 @@ button:active {
 }
 
 .recipe-toolbar-name {
-    width: clamp(180px, 20vw, 260px);
+    width: 260px;
+    flex: 0 0 260px;
 }
 
 .recipe-toolbar-calories {
-    width: 120px;
+    width: 130px;
+    flex: 0 0 130px;
 }
 
 .recipe-toolbar-portions {
     width: 170px;
+    flex: 0 0 170px;
 }
 
 .recipe-toolbar-name:focus,
@@ -1304,10 +1309,21 @@ button:active {
     background-color: #eef5ff;
     color: #1f4f96;
     border: 1px solid #d7e6ff;
+    flex: 0 0 40px;
 }
 
 .recipe-toolbar-save-button:hover {
     background-color: #e3efff;
+}
+
+@media (max-width: 1100px) {
+    .recipe-book-toolbar {
+        flex-wrap: wrap;
+    }
+
+    .recipe-toolbar-checkboxes {
+        flex-wrap: wrap;
+    }
 }
 
 @media (max-width: 900px) {
@@ -1322,6 +1338,7 @@ button:active {
     .recipe-toolbar-portions,
     .recipe-toolbar-save-button {
         width: 100%;
+        flex: 0 0 auto;
     }
 
     .recipe-toolbar-save-button {

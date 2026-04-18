@@ -55,42 +55,39 @@
 
             <div class="plan-and-recipe-container">
 
-    <section id="add-recipe" class="section-card">
-        <div class="section-block">
-            <p class="small-title">Rezept hinzufügen</p>
-
-            <div class="recipe-inputs">
-                <input type="text" id="recipe-name" placeholder="Rezeptname">
-                <input type="number" id="recipe-calories" placeholder="Kalorien">
-            </div>
-
-            <div class="recipe-checkboxes">
-                <label><input type="checkbox" value="breakfast"> Frühstück</label>
-                <label><input type="checkbox" value="lunch"> Mittagessen</label>
-                <label><input type="checkbox" value="dinner"> Abendessen</label>
-                <label><input type="checkbox" value="snack"> Snack</label>
-            </div>
-
-            <button type="button" onclick="addRecipe()">Rezept hinzufügen</button>
-        </div>
-    </section>
-
 </div>
 
             <!-- 🌟 Rezeptbuch -->
             <section class="recipe-book-box section-card">
+    <div id="recipe-book">
 
-                <div id="recipe-book">
-                    <div class="section-header">
-                        <h2>Rezeptbuch</h2>
-                    </div>
+        <div class="recipe-book-topbar">
+            <div class="recipe-book-title-group">
+                <h2>Rezeptbuch</h2>
+            </div>
 
-                    <ul id="recipe-list">
-                        <!-- Wird dynamisch gefüllt -->
-                    </ul>
+            <div class="recipe-book-toolbar">
+                <input type="text" id="recipe-name" class="recipe-toolbar-name" placeholder="Rezeptname">
+                <input type="number" id="recipe-calories" class="recipe-toolbar-calories" placeholder="Kalorien">
+
+                <div class="recipe-checkboxes recipe-toolbar-checkboxes">
+                    <label><input type="checkbox" value="breakfast"> Frühstück</label>
+                    <label><input type="checkbox" value="lunch"> Mittagessen</label>
+                    <label><input type="checkbox" value="dinner"> Abendessen</label>
+                    <label><input type="checkbox" value="snack"> Snack</label>
                 </div>
 
-            </section>
+                <button type="button" class="recipe-toolbar-add-button" onclick="addRecipe()" title="Rezept hinzufügen" aria-label="Rezept hinzufügen">
+                    ＋
+                </button>
+            </div>
+        </div>
+
+        <ul id="recipe-list">
+            <!-- Wird dynamisch gefüllt -->
+        </ul>
+    </div>
+</section>
 
         </main>
     </div>

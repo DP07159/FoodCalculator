@@ -291,6 +291,27 @@ button:active {
     padding: 5px;
 }
 
+.meal-plan-current-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.meal-plan-current-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+#current-plan-name {
+    margin: 0;
+    color: #666666;
+}
+
 /* -------------------------------------- */
 /* PLAN + REZEPT HINZUFÜGEN */
 /* -------------------------------------- */
@@ -1083,6 +1104,7 @@ button:active {
     gap: 10px;
     flex-wrap: nowrap;
     width: 100%;
+    margin-top: 2px;
 }
 
 .toolbar-plan-select {
@@ -1251,6 +1273,15 @@ button:active {
     .toolbar-plan-name {
         width: 100%;
     }
+
+.meal-plan-current-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .meal-plan-current-actions {
+        align-self: flex-start;
+    }
 }
 
 @media (max-width: 600px) {
@@ -1271,6 +1302,14 @@ button:active {
 
     .toolbar-plan-name,
     .toolbar-save-button {
+        width: 100%;
+    }
+
+.meal-plan-toolbar-inline {
+        flex-wrap: wrap;
+    }
+
+    .meal-plan-current-actions {
         width: 100%;
     }
 }

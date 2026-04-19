@@ -21,18 +21,9 @@
 <div class="meal-plan-topbar">
     <div class="meal-plan-title-group">
         <h2>Wochenplan</h2>
-        <p id="current-plan-name" class="left-align">Kein Plan geladen</p>
 
         <div class="meal-plan-toolbar-inline">
             <select id="plan-list" class="toolbar-plan-select"></select>
-
-            <button type="button" class="toolbar-icon-button toolbar-update-button" onclick="updateMealPlan()" title="Plan aktualisieren" aria-label="Plan aktualisieren">
-                ↻
-            </button>
-
-            <button type="button" class="toolbar-icon-button toolbar-delete-button" onclick="deleteMealPlan()" title="Plan löschen" aria-label="Plan löschen">
-                🗑
-            </button>
 
             <button
                 type="button"
@@ -42,6 +33,30 @@
                 aria-label="Neuen Plan anlegen">
                 ＋
             </button>
+        </div>
+
+        <div class="meal-plan-current-row">
+            <p id="current-plan-name" class="left-align">Aktueller Wochenplan: keiner</p>
+
+            <div class="meal-plan-current-actions">
+                <button
+                    type="button"
+                    class="toolbar-icon-button toolbar-update-button"
+                    onclick="updateMealPlan()"
+                    title="Plan aktualisieren"
+                    aria-label="Plan aktualisieren">
+                    ↻
+                </button>
+
+                <button
+                    type="button"
+                    class="toolbar-icon-button toolbar-delete-button"
+                    onclick="deleteMealPlan()"
+                    title="Plan löschen"
+                    aria-label="Plan löschen">
+                    🗑
+                </button>
+            </div>
         </div>
 
         <div id="plan-save-panel" class="plan-save-panel is-hidden">

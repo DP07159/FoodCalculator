@@ -146,6 +146,8 @@ function setSelectedDay(day) {
 
 let recipes = [];
 let selectedDay = getTodayInGerman();
+let activeMealPlanId = null;
+let activeMealPlanName = "";
 
 /* -------------------------------------- */
 /* REZEPTE LADEN */
@@ -555,13 +557,16 @@ function saveMealPlan() {
         body: JSON.stringify({ name, data: planData })
     })
     .then(response => response.json())
-    .then(() => {
+    .then((savedPlan) => {
         console.log("✅ Wochenplan gespeichert");
         loadMealPlans();
 
+        activeMealPlanId = savedPlan.id;
+        activeMealPlanName = savedPlan.name;
+
         const currentPlanName = document.getElementById("current-plan-name");
         if (currentPlanName) {
-            currentPlanName.textContent = `Aktueller Wochenplan: ${name}`;
+            currentPlanName.textContent = `Aktueller Wochenplan: ${savedPlan.name}`;
         }
 
         const planNameInput = document.getElementById("plan-name");
@@ -590,27 +595,36 @@ function saveMealPlan() {
 /* -------------------------------------- */
 
 function deleteMealPlan() {
-    const planId = document.getElementById("plan-list")?.value;
-    if (!planId) {
-        alert("Bitte einen Plan auswählen!");
+    if (!activeMealPlanId) {
+        alert("Bitte zuerst einen Wochenplan laden.");
         return;
     }
 
     if (!confirm("Möchtest du diesen Wochenplan wirklich löschen?")) return;
 
-    fetch(`${API_URL}/meal_plans/${planId}`, { method: "DELETE" })
+    fetch(`${API_URL}/meal_plans/${activeMealPlanId}`, { method: "DELETE" })
         .then(response => {
             if (!response.ok) {
                 throw new Error(`Fehler beim Löschen: ${response.status}`);
             }
 
-            console.log(`✅ Wochenplan mit ID ${planId} gelöscht`);
+            console.log(`✅ Wochenplan mit ID ${activeMealPlanId} gelöscht`);
+
+            activeMealPlanId = null;
+            activeMealPlanName = "";
+
             loadMealPlans();
 
             const currentPlanName = document.getElementById("current-plan-name");
             if (currentPlanName) {
-                currentPlanName.textContent = "Kein Plan geladen";
+                currentPlanName.textContent = "Aktueller Wochenplan: keiner";
             }
+
+            document.querySelectorAll(`#meal-table select`).forEach(select => {
+                select.value = "";
+            });
+
+            calculateCalories();
         })
         .catch(error => console.error("❌ Fehler beim Löschen des Plans:", error));
 }
@@ -620,9 +634,8 @@ function deleteMealPlan() {
 /* -------------------------------------- */
 
 function updateMealPlan() {
-    const planId = document.getElementById("plan-list")?.value;
-    if (!planId) {
-        alert("Bitte einen Plan auswählen!");
+    if (!activeMealPlanId) {
+        alert("Bitte zuerst einen Wochenplan laden.");
         return;
     }
 
@@ -641,25 +654,22 @@ function updateMealPlan() {
         return { day, meals };
     });
 
-    const planList = document.getElementById("plan-list");
-    const planName = planList?.selectedOptions?.[0]?.textContent || "Wochenplan";
-
-    fetch(`${API_URL}/meal_plans/${planId}`, {
+    fetch(`${API_URL}/meal_plans/${activeMealPlanId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: planName, data: planData })
+        body: JSON.stringify({ name: activeMealPlanName, data: planData })
     })
     .then(response => {
         if (!response.ok) {
             throw new Error(`Fehler beim Aktualisieren: ${response.status}`);
         }
 
-        console.log(`✅ Wochenplan mit ID ${planId} überschrieben`);
+        console.log(`✅ Wochenplan mit ID ${activeMealPlanId} überschrieben`);
         loadMealPlans();
 
         const currentPlanName = document.getElementById("current-plan-name");
         if (currentPlanName) {
-            currentPlanName.textContent = `Aktueller Wochenplan: ${planName}`;
+            currentPlanName.textContent = `Aktueller Wochenplan: ${activeMealPlanName}`;
         }
     })
     .catch(error => console.error("❌ Fehler beim Aktualisieren des Plans:", error));
@@ -722,8 +732,10 @@ function loadMealPlan() {
                 });
             });
 
+            activeMealPlanId = plan.id;
+            activeMealPlanName = plan.name;
+
             calculateCalories();
-	    setSelectedDay(selectedDay);
 
             const currentPlanName = document.getElementById("current-plan-name");
             if (currentPlanName) {

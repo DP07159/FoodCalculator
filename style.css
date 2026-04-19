@@ -1678,17 +1678,53 @@ button:active {
 /* TAGESPLAN: PFEILNAVIGATION */
 /* -------------------------------------- */
 
-.day-detail-title-wrap {
+.day-nav-button {
+    min-width: 38px;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border-radius: 12px;
+    border: 1px solid #d7e0ea;
+    background-color: #f4f8fc;
+    color: #25324a;
+    font-size: 24px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.day-nav-button:hover {
+    background-color: #eaf1f8;
+}
+
+.day-detail-title-line {
     display: flex;
     align-items: center;
     gap: 12px;
     min-width: 0;
+    flex-wrap: nowrap;
 }
 
-.day-detail-title-block {
+.day-detail-title-inline {
     display: flex;
-    flex-direction: column;
+    align-items: baseline;
+    gap: 8px;
     min-width: 0;
+    flex-wrap: wrap;
+}
+
+.day-detail-title-prefix {
+    font-size: 20px;
+    font-weight: 600;
+    color: #25324a;
+}
+
+.day-detail-title-day {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1f4f96;
 }
 
 .day-nav-button {
@@ -1717,4 +1753,18 @@ button:active {
         width: 100%;
         justify-content: space-between;
     }
+
+.day-detail-title-line {
+    width: 100%;
+    justify-content: space-between;
+}
+
+.day-detail-title-inline {
+    justify-content: center;
+    text-align: center;
+}
+
+.day-detail-title-prefix,
+.day-detail-title-day {
+    font-size: 18px;
 }

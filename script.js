@@ -110,8 +110,8 @@ function renderDayDetail(day) {
 
     panel.innerHTML = `
         <div class="day-detail-card">
-            <div class="day-detail-header">
-    <div class="day-detail-title-wrap">
+           <div class="day-detail-header">
+    <div class="day-detail-title-line">
         <button
             type="button"
             class="day-nav-button"
@@ -121,9 +121,9 @@ function renderDayDetail(day) {
             ‹
         </button>
 
-        <div class="day-detail-title-block">
-            <div class="day-detail-title">${day}</div>
-            <div class="day-detail-subtitle">Dein Tagesplan</div>
+        <div class="day-detail-title-inline">
+            <span class="day-detail-title-prefix">Dein Tagesplan für</span>
+            <span class="day-detail-title-day">${day}</span>
         </div>
 
         <button
@@ -166,6 +166,8 @@ function setSelectedDay(day) {
 }
 
 function changeSelectedDay(direction) {
+    if (!Array.isArray(WEEK_DAYS) || !selectedDay) return;
+
     const currentIndex = WEEK_DAYS.indexOf(selectedDay);
     if (currentIndex === -1) return;
 
@@ -179,7 +181,14 @@ function changeSelectedDay(direction) {
         newIndex = 0;
     }
 
-    setSelectedDay(WEEK_DAYS[newIndex]);
+    const newDay = WEEK_DAYS[newIndex];
+
+    if (typeof setSelectedDay === "function") {
+        setSelectedDay(newDay);
+    } else {
+        selectedDay = newDay;
+        renderDayDetail(newDay);
+    }
 }
 
 let recipes = [];

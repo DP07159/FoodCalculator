@@ -1768,3 +1768,32 @@ button:active {
 .day-detail-title-day {
     font-size: 18px;
 }
+
+/* -------------------------------------- */
+/* WOCHENPLAN: DRAG & DROP */
+/* -------------------------------------- */
+
+.plan-cell.is-filled {
+    cursor: grab;
+}
+
+.plan-cell.is-filled:active {
+    cursor: grabbing;
+}
+
+.plan-cell.is-dragging {
+    opacity: 0.45;
+    transform: scale(0.98);
+}
+
+.plan-cell.is-drop-target {
+    outline: 2px dashed #9bbcf3;
+    outline-offset: 2px;
+    border-radius: 12px;
+}
+
+.plan-cell.is-filled .meal-select,
+.plan-cell.is-filled select {
+    border-color: #cfd9e6;
+    background-color: #ffffff;
+}

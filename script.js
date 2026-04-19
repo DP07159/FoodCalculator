@@ -195,6 +195,7 @@ let recipes = [];
 let selectedDay = getTodayInGerman();
 let activeMealPlanId = null;
 let activeMealPlanName = "";
+let draggedMealSource = null;
 
 /* -------------------------------------- */
 /* REZEPTE LADEN */
@@ -261,6 +262,7 @@ if (!WEEK_DAYS.includes(selectedDay)) {
 }
 
 renderDayDetail(selectedDay);
+    attachDragAndDropToPlanCells();
 });
 
     MEAL_ROWS.forEach(meal => {
@@ -349,7 +351,122 @@ function calculateCalories() {
             remainingCell.textContent = `${remainingCalories} kcal`;
             remainingCell.style.color = remainingCalories < 0 ? "#c62828" : "#2e7d32";
         }
+    renderDayDetail(selectedDay);
+    refreshPlanCellStates();
     });
+}
+
+function refreshPlanCellStates() {
+    document.querySelectorAll(".plan-cell").forEach(cell => {
+        const select = cell.querySelector("select");
+        if (!select) return;
+
+        const hasValue = !!select.value;
+
+        cell.classList.toggle("is-filled", hasValue);
+        cell.draggable = hasValue;
+
+        cell.dataset.day = select.dataset.day || "";
+        cell.dataset.mealType = select.dataset.mealType || "";
+    });
+}
+
+function attachDragAndDropToPlanCells() {
+    document.querySelectorAll(".plan-cell").forEach(cell => {
+        cell.addEventListener("dragstart", handlePlanCellDragStart);
+        cell.addEventListener("dragover", handlePlanCellDragOver);
+        cell.addEventListener("dragenter", handlePlanCellDragEnter);
+        cell.addEventListener("dragleave", handlePlanCellDragLeave);
+        cell.addEventListener("drop", handlePlanCellDrop);
+        cell.addEventListener("dragend", handlePlanCellDragEnd);
+    });
+
+    refreshPlanCellStates();
+}
+
+function handlePlanCellDragStart(event) {
+    const cell = event.currentTarget;
+    const select = cell.querySelector("select");
+
+    if (!select || !select.value) {
+        event.preventDefault();
+        return;
+    }
+
+    draggedMealSource = {
+        day: select.dataset.day,
+        mealType: select.dataset.mealType,
+        value: select.value
+    };
+
+    cell.classList.add("is-dragging");
+
+    if (event.dataTransfer) {
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.setData("text/plain", JSON.stringify(draggedMealSource));
+    }
+}
+
+function handlePlanCellDragOver(event) {
+    event.preventDefault();
+
+    if (event.dataTransfer) {
+        event.dataTransfer.dropEffect = "move";
+    }
+}
+
+function handlePlanCellDragEnter(event) {
+    event.preventDefault();
+    event.currentTarget.classList.add("is-drop-target");
+}
+
+function handlePlanCellDragLeave(event) {
+    event.currentTarget.classList.remove("is-drop-target");
+}
+
+function handlePlanCellDrop(event) {
+    event.preventDefault();
+
+    const targetCell = event.currentTarget;
+    targetCell.classList.remove("is-drop-target");
+
+    if (!draggedMealSource) return;
+
+    const targetSelect = targetCell.querySelector("select");
+    if (!targetSelect) return;
+
+    const targetDay = targetSelect.dataset.day;
+    const targetMealType = targetSelect.dataset.mealType;
+
+    const sourceSelect = document.querySelector(
+        `#meal-table select[data-day="${draggedMealSource.day}"][data-meal-type="${draggedMealSource.mealType}"]`
+    );
+
+    if (!sourceSelect) return;
+
+    const sourceValue = sourceSelect.value;
+    const targetValue = targetSelect.value;
+
+    if (
+        draggedMealSource.day === targetDay &&
+        draggedMealSource.mealType === targetMealType
+    ) {
+        return;
+    }
+
+    sourceSelect.value = targetValue || "";
+    targetSelect.value = sourceValue || "";
+
+    calculateCalories();
+    refreshPlanCellStates();
+}
+
+function handlePlanCellDragEnd(event) {
+    document.querySelectorAll(".plan-cell").forEach(cell => {
+        cell.classList.remove("is-dragging", "is-drop-target");
+    });
+
+    draggedMealSource = null;
 }
 
 /* -------------------------------------- */
@@ -784,7 +901,8 @@ function loadMealPlan() {
 
             calculateCalories();
 
-            const currentPlanName = document.getElementById("current-plan-name");
+refreshPlanCellStates();
+const currentPlanName = document.getElementById("current-plan-name");
             if (currentPlanName) {
                 currentPlanName.textContent = `Aktueller Wochenplan: ${plan.name}`;
             }

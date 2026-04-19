@@ -26,10 +26,6 @@
         <div class="meal-plan-toolbar-inline">
             <select id="plan-list" class="toolbar-plan-select"></select>
 
-            <button type="button" class="toolbar-icon-button toolbar-load-button" onclick="loadMealPlan()" title="Plan laden" aria-label="Plan laden">
-                ⤓
-            </button>
-
             <button type="button" class="toolbar-icon-button toolbar-update-button" onclick="updateMealPlan()" title="Plan aktualisieren" aria-label="Plan aktualisieren">
                 ↻
             </button>
@@ -38,11 +34,33 @@
                 🗑
             </button>
 
-            <input type="text" id="plan-name" class="toolbar-plan-name" placeholder="Wochenplan speichern als">
-
-            <button type="button" class="toolbar-icon-button toolbar-save-button" onclick="saveMealPlan()" title="Neuen Plan speichern" aria-label="Neuen Plan speichern">
-                💾
+            <button
+                type="button"
+                class="toolbar-icon-button toolbar-toggle-save-button"
+                onclick="togglePlanSaveToolbar()"
+                title="Neuen Plan anlegen"
+                aria-label="Neuen Plan anlegen">
+                ＋
             </button>
+        </div>
+
+        <div id="plan-save-panel" class="plan-save-panel is-hidden">
+            <div class="meal-plan-save-inline">
+                <input
+                    type="text"
+                    id="plan-name"
+                    class="toolbar-plan-name"
+                    placeholder="Neuen Plan speichern als">
+
+                <button
+                    type="button"
+                    class="toolbar-icon-button toolbar-save-button"
+                    onclick="saveMealPlan()"
+                    title="Neuen Plan speichern"
+                    aria-label="Neuen Plan speichern">
+                    💾
+                </button>
+            </div>
         </div>
     </div>
 </div>

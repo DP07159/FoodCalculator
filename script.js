@@ -421,6 +421,27 @@ function toggleRecipeToolbar() {
     }
 }
 
+function togglePlanSaveToolbar() {
+    const panel = document.getElementById("plan-save-panel");
+    const toggleButton = document.querySelector(".toolbar-toggle-save-button");
+
+    if (!panel || !toggleButton) return;
+
+    const isHidden = panel.classList.contains("is-hidden");
+
+    panel.classList.toggle("is-hidden");
+
+    if (isHidden) {
+        toggleButton.textContent = "✕";
+        toggleButton.title = "Eingabe schließen";
+        toggleButton.setAttribute("aria-label", "Eingabe schließen");
+    } else {
+        toggleButton.textContent = "＋";
+        toggleButton.title = "Neuen Plan anlegen";
+        toggleButton.setAttribute("aria-label", "Neuen Plan anlegen");
+    }
+}
+
 function allowOnlyWholeNumbers(event) {
     event.target.value = event.target.value.replace(/\D/g, "");
 }
@@ -542,6 +563,24 @@ function saveMealPlan() {
         if (currentPlanName) {
             currentPlanName.textContent = `Aktueller Wochenplan: ${name}`;
         }
+
+        const planNameInput = document.getElementById("plan-name");
+        if (planNameInput) {
+            planNameInput.value = "";
+        }
+
+        const panel = document.getElementById("plan-save-panel");
+        const toggleButton = document.querySelector(".toolbar-toggle-save-button");
+
+        if (panel) {
+            panel.classList.add("is-hidden");
+        }
+
+        if (toggleButton) {
+            toggleButton.textContent = "＋";
+            toggleButton.title = "Neuen Plan anlegen";
+            toggleButton.setAttribute("aria-label", "Neuen Plan anlegen");
+        }
     })
     .catch(error => console.error("❌ Fehler beim Speichern des Plans:", error));
 }
@@ -639,7 +678,7 @@ function loadMealPlans() {
             const planList = document.getElementById("plan-list");
             if (!planList) return;
 
-            planList.innerHTML = '<option value="">-- Plan auswählen --</option>';
+            planList.innerHTML = '<option value="">Plan laden</option>';
 
             plans.forEach(plan => {
                 const option = document.createElement("option");
@@ -725,5 +764,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const recipeSortSelect = document.getElementById("recipe-sort");
     if (recipeSortSelect) {
         recipeSortSelect.addEventListener("change", populateRecipeList);
+    }
+
+    const planListSelect = document.getElementById("plan-list");
+    if (planListSelect) {
+        planListSelect.addEventListener("change", () => {
+            if (planListSelect.value) {
+                loadMealPlan();
+            }
+        });
     }
 });

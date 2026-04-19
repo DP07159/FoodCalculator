@@ -196,6 +196,7 @@ let selectedDay = getTodayInGerman();
 let activeMealPlanId = null;
 let activeMealPlanName = "";
 let draggedMealSource = null;
+let tappedMealSource = null;
 
 /* -------------------------------------- */
 /* REZEPTE LADEN */
@@ -267,10 +268,17 @@ function populateMealTable() {
 
         WEEK_DAYS.forEach(day => {
             const cell = document.createElement("div");
-            cell.className = "plan-cell";
+cell.className = "plan-cell plan-input-cell";
 
-            const select = document.createElement("select");
-            select.className = "meal-select";
+const handle = document.createElement("button");
+handle.type = "button";
+handle.className = "plan-drag-handle";
+handle.title = "Mahlzeit verschieben";
+handle.setAttribute("aria-label", "Mahlzeit verschieben");
+handle.textContent = "⋮⋮";
+
+const select = document.createElement("select");
+select.className = "meal-select";
             select.dataset.day = day;
             select.dataset.mealType = meal.key;
             select.innerHTML = `<option value="">-- Wählen --</option>`;
@@ -286,8 +294,9 @@ function populateMealTable() {
 
             select.addEventListener("change", calculateCalories);
 
-            cell.appendChild(select);
-            mealTable.appendChild(cell);
+            cell.appendChild(handle);
+cell.appendChild(select);
+mealTable.appendChild(cell);
         });
     });
 
@@ -358,38 +367,117 @@ function calculateCalories() {
 }
 
 function refreshPlanCellStates() {
-    document.querySelectorAll(".plan-cell").forEach(cell => {
+    document.querySelectorAll(".plan-input-cell").forEach(cell => {
         const select = cell.querySelector("select");
-        if (!select) return;
+        const handle = cell.querySelector(".plan-drag-handle");
+        if (!select || !handle) return;
 
         const hasValue = !!select.value;
 
         cell.classList.toggle("is-filled", hasValue);
-        cell.draggable = hasValue;
+        cell.classList.toggle(
+            "is-selected-source",
+            !!tappedMealSource &&
+            tappedMealSource.day === select.dataset.day &&
+            tappedMealSource.mealType === select.dataset.mealType
+        );
 
         cell.dataset.day = select.dataset.day || "";
         cell.dataset.mealType = select.dataset.mealType || "";
+
+        handle.draggable = hasValue;
+        handle.classList.toggle("is-active", hasValue);
     });
 }
 
 function attachDragAndDropToPlanCells() {
-    document.querySelectorAll(".plan-cell").forEach(cell => {
-        cell.addEventListener("dragstart", handlePlanCellDragStart);
+    document.querySelectorAll(".plan-input-cell").forEach(cell => {
+        const handle = cell.querySelector(".plan-drag-handle");
+        if (!handle) return;
+
+        handle.addEventListener("dragstart", handlePlanCellDragStart);
+        handle.addEventListener("dragend", handlePlanCellDragEnd);
+        handle.addEventListener("click", () => handlePlanCellTap(cell));
+
         cell.addEventListener("dragover", handlePlanCellDragOver);
         cell.addEventListener("dragenter", handlePlanCellDragEnter);
         cell.addEventListener("dragleave", handlePlanCellDragLeave);
         cell.addEventListener("drop", handlePlanCellDrop);
-        cell.addEventListener("dragend", handlePlanCellDragEnd);
     });
 
     refreshPlanCellStates();
 }
 
-function handlePlanCellDragStart(event) {
-    const cell = event.currentTarget;
-    const select = cell.querySelector("select");
+function moveMealEntry(sourceDay, sourceMealType, targetDay, targetMealType) {
+    if (sourceMealType !== targetMealType) {
+        return false;
+    }
 
-    if (!select || !select.value) {
+    const sourceSelect = document.querySelector(
+        `#meal-table select[data-day="${sourceDay}"][data-meal-type="${sourceMealType}"]`
+    );
+
+    const targetSelect = document.querySelector(
+        `#meal-table select[data-day="${targetDay}"][data-meal-type="${targetMealType}"]`
+    );
+
+    if (!sourceSelect || !targetSelect) return false;
+
+    if (sourceDay === targetDay && sourceMealType === targetMealType) {
+        return false;
+    }
+
+    const sourceValue = sourceSelect.value;
+    const targetValue = targetSelect.value;
+
+    sourceSelect.value = targetValue || "";
+    targetSelect.value = sourceValue || "";
+
+    calculateCalories();
+    refreshPlanCellStates();
+    return true;
+}
+
+function handlePlanCellTap(cell) {
+    const select = cell.querySelector("select");
+    if (!select) return;
+
+    const day = select.dataset.day;
+    const mealType = select.dataset.mealType;
+    const hasValue = !!select.value;
+
+    if (!tappedMealSource) {
+        if (!hasValue) return;
+
+        tappedMealSource = { day, mealType };
+        refreshPlanCellStates();
+        return;
+    }
+
+    const source = tappedMealSource;
+
+    if (source.day === day && source.mealType === mealType) {
+        tappedMealSource = null;
+        refreshPlanCellStates();
+        return;
+    }
+
+    const moved = moveMealEntry(source.day, source.mealType, day, mealType);
+
+    if (!moved && source.mealType !== mealType) {
+        alert("Du kannst eine Mahlzeit nur in das passende Mahlzeitenfeld verschieben.");
+    }
+
+    tappedMealSource = null;
+    refreshPlanCellStates();
+}
+
+function handlePlanCellDragStart(event) {
+    const handle = event.currentTarget;
+    const cell = handle.closest(".plan-input-cell");
+    const select = cell?.querySelector("select");
+
+    if (!cell || !select || !select.value) {
         event.preventDefault();
         return;
     }
@@ -406,6 +494,67 @@ function handlePlanCellDragStart(event) {
         event.dataTransfer.effectAllowed = "move";
         event.dataTransfer.setData("text/plain", JSON.stringify(draggedMealSource));
     }
+}
+
+function handlePlanCellDragOver(event) {
+    if (!draggedMealSource) return;
+
+    const targetCell = event.currentTarget;
+    const targetMealType = targetCell.dataset.mealType;
+
+    if (draggedMealSource.mealType !== targetMealType) {
+        return;
+    }
+
+    event.preventDefault();
+
+    if (event.dataTransfer) {
+        event.dataTransfer.dropEffect = "move";
+    }
+}
+
+function handlePlanCellDragEnter(event) {
+    if (!draggedMealSource) return;
+
+    const targetCell = event.currentTarget;
+    const targetMealType = targetCell.dataset.mealType;
+
+    if (draggedMealSource.mealType !== targetMealType) {
+        return;
+    }
+
+    targetCell.classList.add("is-drop-target");
+}
+
+function handlePlanCellDragLeave(event) {
+    event.currentTarget.classList.remove("is-drop-target");
+}
+
+function handlePlanCellDrop(event) {
+    event.preventDefault();
+
+    const targetCell = event.currentTarget;
+    targetCell.classList.remove("is-drop-target");
+
+    if (!draggedMealSource) return;
+
+    const targetDay = targetCell.dataset.day;
+    const targetMealType = targetCell.dataset.mealType;
+
+    moveMealEntry(
+        draggedMealSource.day,
+        draggedMealSource.mealType,
+        targetDay,
+        targetMealType
+    );
+}
+
+function handlePlanCellDragEnd(event) {
+    document.querySelectorAll(".plan-input-cell").forEach(cell => {
+        cell.classList.remove("is-dragging", "is-drop-target");
+    });
+
+    draggedMealSource = null;
 }
 
 function handlePlanCellDragOver(event) {
@@ -460,6 +609,8 @@ function handlePlanCellDrop(event) {
 
     calculateCalories();
     refreshPlanCellStates();
+            tappedMealSource = null;
+            draggedMealSource = null;
 }
 
 function handlePlanCellDragEnd(event) {
@@ -688,6 +839,9 @@ function deleteRecipe(recipeId) {
             populateRecipeList();
             populateMealTable();
             calculateCalories();
+            tappedMealSource = null;
+            draggedMealSource = null;
+            refreshPlanCellStates();
         })
         .catch(error => console.error("❌ Fehler beim Löschen:", error));
 }

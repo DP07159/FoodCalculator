@@ -239,31 +239,25 @@ function populateMealTable() {
     mealTable.appendChild(cornerCell);
 
     WEEK_DAYS.forEach(day => {
-    const dayHeader = document.createElement("div");
-    dayHeader.className = "plan-day-header";
-    dayHeader.textContent = day;
-    dayHeader.dataset.day = day;
+        const dayHeader = document.createElement("div");
+        dayHeader.className = "plan-day-header";
+        dayHeader.textContent = day;
+        dayHeader.dataset.day = day;
 
-    if (day === selectedDay) {
-    dayHeader.classList.add("is-active");
-}
+        if (day === selectedDay) {
+            dayHeader.classList.add("is-active");
+        }
 
-if (day === getTodayInGerman()) {
-    dayHeader.classList.add("is-today");
-}
+        if (day === getTodayInGerman()) {
+            dayHeader.classList.add("is-today");
+        }
 
-    dayHeader.addEventListener("click", () => {
-        setSelectedDay(day);
+        dayHeader.addEventListener("click", () => {
+            setSelectedDay(day);
+        });
+
+        mealTable.appendChild(dayHeader);
     });
-
-    mealTable.appendChild(dayHeader);
-if (!WEEK_DAYS.includes(selectedDay)) {
-    selectedDay = "Montag";
-}
-
-renderDayDetail(selectedDay);
-    attachDragAndDropToPlanCells();
-});
 
     MEAL_ROWS.forEach(meal => {
         const rowLabel = document.createElement("div");
@@ -322,6 +316,13 @@ renderDayDetail(selectedDay);
         remainingCell.textContent = `${DAILY_CALORIE_LIMIT} kcal`;
         mealTable.appendChild(remainingCell);
     });
+
+    if (!WEEK_DAYS.includes(selectedDay)) {
+        selectedDay = "Montag";
+    }
+
+    renderDayDetail(selectedDay);
+    attachDragAndDropToPlanCells();
 }
 
 /* -------------------------------------- */

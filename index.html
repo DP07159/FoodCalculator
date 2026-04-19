@@ -114,9 +114,27 @@
             </div>
         </div>
 
-        <ul id="recipe-list">
-            <!-- Wird dynamisch gefüllt -->
-        </ul>
+        <div class="recipe-book-controls">
+    <input
+        type="text"
+        id="recipe-search"
+        class="recipe-search-input"
+        placeholder="Rezepte durchsuchen ...">
+
+    <select id="recipe-sort" class="recipe-sort-select">
+        <option value="name-asc">Name A–Z</option>
+        <option value="name-desc">Name Z–A</option>
+        <option value="breakfast">Nur Frühstück</option>
+        <option value="lunch">Nur Mittagessen</option>
+        <option value="dinner">Nur Abendessen</option>
+        <option value="snack">Nur Snack</option>
+    </select>
+</div>
+
+<ul id="recipe-list">
+    <!-- Wird dynamisch gefüllt -->
+</ul>
+
     </div>
 </section>
 

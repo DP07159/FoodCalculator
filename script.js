@@ -31,6 +31,46 @@ function getMealsForDay(day) {
     return meals;
 }
 
+function getFilteredAndSortedRecipes() {
+    const searchInput = document.getElementById("recipe-search");
+    const sortSelect = document.getElementById("recipe-sort");
+
+    const searchTerm = (searchInput?.value || "").trim().toLowerCase();
+    const sortValue = sortSelect?.value || "name-asc";
+
+    let filteredRecipes = [...recipes];
+
+    if (searchTerm) {
+        filteredRecipes = filteredRecipes.filter(recipe => {
+            const name = (recipe.name || "").toLowerCase();
+            const ingredients = (recipe.ingredients || "").toLowerCase();
+            const instructions = (recipe.instructions || "").toLowerCase();
+            const mealTypes = Array.isArray(recipe.mealTypes)
+                ? recipe.mealTypes.join(" ").toLowerCase()
+                : "";
+
+            return (
+                name.includes(searchTerm) ||
+                ingredients.includes(searchTerm) ||
+                instructions.includes(searchTerm) ||
+                mealTypes.includes(searchTerm)
+            );
+        });
+    }
+
+    if (["breakfast", "lunch", "dinner", "snack"].includes(sortValue)) {
+        filteredRecipes = filteredRecipes.filter(recipe =>
+            Array.isArray(recipe.mealTypes) && recipe.mealTypes.includes(sortValue)
+        );
+    } else if (sortValue === "name-asc") {
+        filteredRecipes.sort((a, b) => a.name.localeCompare(b.name, "de"));
+    } else if (sortValue === "name-desc") {
+        filteredRecipes.sort((a, b) => b.name.localeCompare(a.name, "de"));
+    }
+
+    return filteredRecipes;
+}
+
 function renderDayDetail(day) {
     const panel = document.getElementById("day-detail-panel");
     if (!panel) return;
@@ -273,19 +313,59 @@ function populateRecipeList() {
 
     recipeList.innerHTML = "";
 
-    recipes.forEach(recipe => {
+    const visibleRecipes = getFilteredAndSortedRecipes();
+
+    if (visibleRecipes.length === 0) {
+        recipeList.innerHTML = `
+            <li class="recipe-empty-state">
+                Keine passenden Rezepte gefunden.
+            </li>
+        `;
+        return;
+    }
+
+    visibleRecipes.forEach(recipe => {
         const li = document.createElement("li");
         li.classList.add("recipe-item");
         li.setAttribute("data-id", recipe.id);
 
-        const recipeLink = document.createElement("a");
-        recipeLink.href = `/recipeInstructions.html?id=${recipe.id}`;
-        recipeLink.textContent = recipe.name;
-        recipeLink.classList.add("recipe-link");
+        const recipeMain = document.createElement("div");
+        recipeMain.classList.add("recipe-main");
 
-        const mealTypesInfo = document.createElement("span");
-        mealTypesInfo.textContent = Array.isArray(recipe.mealTypes) ? recipe.mealTypes.join(", ") : "";
-        mealTypesInfo.classList.add("meal-types");
+        const recipeName = document.createElement("a");
+        recipeName.href = `/recipeInstructions.html?id=${recipe.id}`;
+        recipeName.textContent = recipe.name;
+        recipeName.classList.add("recipe-link");
+
+        const recipeMeta = document.createElement("div");
+        recipeMeta.classList.add("recipe-meta");
+
+        const mealTypesWrapper = document.createElement("div");
+        mealTypesWrapper.classList.add("meal-tags");
+
+        if (Array.isArray(recipe.mealTypes)) {
+            recipe.mealTypes.forEach(type => {
+                const tag = document.createElement("span");
+                tag.classList.add("meal-tag");
+
+                if (type === "breakfast") tag.textContent = "Frühstück";
+                if (type === "lunch") tag.textContent = "Mittagessen";
+                if (type === "dinner") tag.textContent = "Abendessen";
+                if (type === "snack") tag.textContent = "Snack";
+
+                mealTypesWrapper.appendChild(tag);
+            });
+        }
+
+        const recipeCalories = document.createElement("span");
+        recipeCalories.classList.add("recipe-calories-badge");
+        recipeCalories.textContent = `${recipe.calories} kcal`;
+
+        recipeMeta.appendChild(mealTypesWrapper);
+        recipeMeta.appendChild(recipeCalories);
+
+        recipeMain.appendChild(recipeName);
+        recipeMain.appendChild(recipeMeta);
 
         const iconContainer = document.createElement("div");
         iconContainer.classList.add("recipe-icons");
@@ -294,6 +374,7 @@ function populateRecipeList() {
         editButton.innerHTML = "✏️";
         editButton.classList.add("edit-button");
         editButton.type = "button";
+        editButton.title = "Rezept bearbeiten";
         editButton.onclick = () => {
             window.location.href = `/recipeDetails.html?id=${recipe.id}`;
         };
@@ -302,13 +383,13 @@ function populateRecipeList() {
         deleteButton.innerHTML = "🗑️";
         deleteButton.classList.add("recipe-delete-btn");
         deleteButton.type = "button";
+        deleteButton.title = "Rezept löschen";
         deleteButton.onclick = () => deleteRecipe(recipe.id);
 
         iconContainer.appendChild(editButton);
         iconContainer.appendChild(deleteButton);
 
-        li.appendChild(recipeLink);
-        li.appendChild(mealTypesInfo);
+        li.appendChild(recipeMain);
         li.appendChild(iconContainer);
 
         recipeList.appendChild(li);
@@ -634,5 +715,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const recipeCaloriesInput = document.getElementById("recipe-calories");
     if (recipeCaloriesInput) {
         recipeCaloriesInput.addEventListener("input", allowOnlyWholeNumbers);
+    }
+
+    const recipeSearchInput = document.getElementById("recipe-search");
+    if (recipeSearchInput) {
+        recipeSearchInput.addEventListener("input", populateRecipeList);
+    }
+
+    const recipeSortSelect = document.getElementById("recipe-sort");
+    if (recipeSortSelect) {
+        recipeSortSelect.addEventListener("change", populateRecipeList);
     }
 });

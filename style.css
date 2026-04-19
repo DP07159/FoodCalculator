@@ -1773,42 +1773,59 @@ button:active {
 /* WOCHENPLAN: DRAG & DROP / TAP TO MOVE */
 /* -------------------------------------- */
 
+/* -------------------------------------- */
+/* WOCHENPLAN: DRAG & DROP / TAP TO MOVE */
+/* -------------------------------------- */
+
 .plan-input-cell {
     display: grid;
-    grid-template-columns: 34px 1fr;
-    gap: 6px;
+    grid-template-columns: 28px 1fr;
+    gap: 8px;
     align-items: center;
     min-height: 40px;
 }
 
 .plan-drag-handle {
-    min-width: 34px;
-    width: 34px;
+    position: relative;
+    min-width: 28px;
+    width: 28px;
     height: 40px;
     padding: 0;
     border-radius: 10px;
-    border: 1px solid #d7e0ea;
-    background-color: #f4f8fc;
-    color: #4f627a;
+    border: 1px solid transparent;
+    background-color: transparent;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
-    line-height: 1;
     cursor: pointer;
     user-select: none;
     -webkit-user-select: none;
     touch-action: manipulation;
+    transition: background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.plan-drag-handle::before {
+    content: "";
+    width: 10px;
+    height: 16px;
+    display: block;
+    background-image:
+        radial-gradient(circle, #8da0b6 1.4px, transparent 1.5px),
+        radial-gradient(circle, #8da0b6 1.4px, transparent 1.5px);
+    background-size: 6px 6px;
+    background-position: 0 0, 6px 0;
+    background-repeat: repeat-y;
+    opacity: 0.9;
 }
 
 .plan-drag-handle:hover {
-    background-color: #eaf1f8;
+    background-color: #f4f8fc;
+    border-color: #d7e0ea;
 }
 
 .plan-drag-handle.is-active {
-    color: #25324a;
-    background-color: #eef5ff;
-    border-color: #d7e6ff;
+    background-color: #f7faff;
+    border-color: #dfe7f0;
 }
 
 .plan-input-cell.is-filled .plan-drag-handle {
@@ -1820,20 +1837,18 @@ button:active {
 }
 
 .plan-input-cell.is-dragging {
-    opacity: 0.45;
-    transform: scale(0.98);
+    opacity: 0.55;
 }
 
-.plan-input-cell.is-drop-target {
-    outline: 2px dashed #9bbcf3;
-    outline-offset: 2px;
-    border-radius: 12px;
+.plan-input-cell.is-drop-target .meal-select,
+.plan-input-cell.is-drop-target select {
+    border-color: #9bbcf3;
+    box-shadow: 0 0 0 3px rgba(76, 139, 245, 0.10);
 }
 
 .plan-input-cell.is-selected-source .plan-drag-handle {
     background-color: #dfeeff;
     border-color: #aecaef;
-    color: #173d73;
     box-shadow: 0 0 0 3px rgba(76, 139, 245, 0.10);
 }
 
@@ -1843,17 +1858,19 @@ button:active {
     background-color: #ffffff;
 }
 
-/* Mobile etwas größer */
+/* Touch größer und klarer */
 @media (max-width: 900px) {
     .plan-input-cell {
-        grid-template-columns: 40px 1fr;
-        gap: 8px;
+        grid-template-columns: 36px 1fr;
+        gap: 10px;
     }
 
     .plan-drag-handle {
-        min-width: 40px;
-        width: 40px;
+        min-width: 36px;
+        width: 36px;
         height: 42px;
-        font-size: 16px;
+        border-radius: 12px;
+        background-color: #f7faff;
+        border-color: #dfe7f0;
     }
 }

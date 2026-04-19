@@ -111,11 +111,32 @@ function renderDayDetail(day) {
     panel.innerHTML = `
         <div class="day-detail-card">
             <div class="day-detail-header">
-                <div>
-                    <div class="day-detail-title">Dein Tagesplan für ${day}</div>
-                </div>
+    <div class="day-detail-title-wrap">
+        <button
+            type="button"
+            class="day-nav-button"
+            onclick="changeSelectedDay(-1)"
+            title="Vorheriger Tag"
+            aria-label="Vorheriger Tag">
+            ‹
+        </button>
 
-                <div class="day-detail-stats">
+        <div class="day-detail-title-block">
+            <div class="day-detail-title">${day}</div>
+            <div class="day-detail-subtitle">Dein Tagesplan</div>
+        </div>
+
+        <button
+            type="button"
+            class="day-nav-button"
+            onclick="changeSelectedDay(1)"
+            title="Nächster Tag"
+            aria-label="Nächster Tag">
+            ›
+        </button>
+    </div>
+
+    <div class="day-detail-stats">
                     <div class="day-detail-stat">
                         <span class="day-detail-stat-label">Gesamt</span>
                         <span class="day-detail-stat-value">${totalCalories} kcal</span>
@@ -142,6 +163,23 @@ function setSelectedDay(day) {
     });
 
     renderDayDetail(day);
+}
+
+function changeSelectedDay(direction) {
+    const currentIndex = WEEK_DAYS.indexOf(selectedDay);
+    if (currentIndex === -1) return;
+
+    let newIndex = currentIndex + direction;
+
+    if (newIndex < 0) {
+        newIndex = WEEK_DAYS.length - 1;
+    }
+
+    if (newIndex >= WEEK_DAYS.length) {
+        newIndex = 0;
+    }
+
+    setSelectedDay(WEEK_DAYS[newIndex]);
 }
 
 let recipes = [];
@@ -743,6 +781,25 @@ function loadMealPlan() {
             }
         })
         .catch(error => console.error("❌ Fehler beim Laden des Plans:", error));
+}
+
+function changeSelectedDay(direction) {
+    const index = WEEK_DAYS.indexOf(selectedDay);
+    if (index === -1) return;
+
+    let newIndex = index + direction;
+
+    if (newIndex < 0) {
+        newIndex = WEEK_DAYS.length - 1;
+    }
+
+    if (newIndex >= WEEK_DAYS.length) {
+        newIndex = 0;
+    }
+
+    selectedDay = WEEK_DAYS[newIndex];
+
+    updateSelectedDayView();
 }
 
 /* -------------------------------------- */

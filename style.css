@@ -1625,3 +1625,96 @@ button:active {
     background-color: #ffffff;
     box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.10);
 }
+
+/* -------------------------------------- */
+/* TAGESPLAN NAVIGATION */
+/* -------------------------------------- */
+
+.day-navigation-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.day-navigation-header h3 {
+    margin: 0;
+    flex: 1;
+    text-align: center;
+}
+
+.day-nav-button {
+    min-width: 38px;
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    border: 1px solid #d7e0ea;
+    background-color: #f4f8fc;
+    color: #25324a;
+    font-size: 24px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.day-nav-button:hover {
+    background-color: #eaf1f8;
+}
+
+/* -------------------------------------- */
+/* PLUS BUTTON in Action Row */
+/* -------------------------------------- */
+
+.meal-plan-current-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* -------------------------------------- */
+/* TAGESPLAN: PFEILNAVIGATION */
+/* -------------------------------------- */
+
+.day-detail-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.day-detail-title-block {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.day-nav-button {
+    min-width: 38px;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border-radius: 12px;
+    border: 1px solid #d7e0ea;
+    background-color: #f4f8fc;
+    color: #25324a;
+    font-size: 24px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.day-nav-button:hover {
+    background-color: #eaf1f8;
+}
+
+@media (max-width: 768px) {
+    .day-detail-title-wrap {
+        width: 100%;
+        justify-content: space-between;
+    }
+}

@@ -155,7 +155,7 @@ function renderDayDetail(day) {
     `;
 }
 
-function setSelectedDay(day) {
+window.setSelectedDay = function(day) {
     selectedDay = day;
 
     document.querySelectorAll(".plan-day-header").forEach(header => {
@@ -163,9 +163,9 @@ function setSelectedDay(day) {
     });
 
     renderDayDetail(day);
-}
+};
 
-function changeSelectedDay(direction) {
+window.changeSelectedDay = function(direction) {
     if (!Array.isArray(WEEK_DAYS) || !selectedDay) return;
 
     const currentIndex = WEEK_DAYS.indexOf(selectedDay);
@@ -189,7 +189,7 @@ function changeSelectedDay(direction) {
         selectedDay = newDay;
         renderDayDetail(newDay);
     }
-}
+};
 
 let recipes = [];
 let selectedDay = getTodayInGerman();

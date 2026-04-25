@@ -1451,3 +1451,89 @@ button:active {
         padding: 18px 22px 18px 36px;
     }
 }
+
+/* -------------------------------------- */
+/* KOCHANLEITUNG: Zutaten-Bullets schöner */
+/* -------------------------------------- */
+
+#display-recipe-ingredients {
+    list-style-position: outside;
+    padding-left: 30px;
+}
+
+#display-recipe-ingredients li {
+    padding-left: 8px;
+    margin-bottom: 8px;
+    line-height: 1.45;
+}
+
+#display-recipe-ingredients li::marker {
+    color: #1f4f96;
+    font-size: 0.9em;
+}
+
+/* -------------------------------------- */
+/* KOCHANLEITUNG: Zwei-Spalten-Layout */
+/* -------------------------------------- */
+
+.recipe-instructions-page {
+    display: grid;
+    grid-template-columns: minmax(240px, 32%) minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.recipe-instructions-page .header-container {
+    grid-column: 1 / -1;
+    width: 100%;
+    max-width: 100%;
+}
+
+.recipe-instructions-page .content-section {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+}
+
+.recipe-instructions-page .content-section:first-of-type {
+    grid-column: 1;
+}
+
+.recipe-instructions-page .content-section:last-of-type {
+    grid-column: 2;
+}
+
+#display-recipe-ingredients,
+#display-recipe-instructions {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+}
+
+#display-recipe-ingredients {
+    column-count: 1;
+    position: sticky;
+    top: 24px;
+}
+
+#display-recipe-instructions {
+    min-height: 360px;
+}
+
+@media (max-width: 850px) {
+    .recipe-instructions-page {
+        display: block;
+        max-width: 100%;
+    }
+
+    .recipe-instructions-page .content-section {
+        margin-bottom: 22px;
+    }
+
+    #display-recipe-ingredients {
+        position: static;
+        column-count: 1;
+    }
+}

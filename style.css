@@ -1409,3 +1409,45 @@ button:active {
         padding: 18px;
     }
 }
+
+/* -------------------------------------- */
+/* KOCHANLEITUNG: ZUTATENLISTE PREMIUM */
+/* -------------------------------------- */
+
+#display-recipe-ingredients {
+    list-style: disc;
+    list-style-position: outside;
+    column-count: 2;
+    column-gap: 42px;
+    padding: 22px 30px 22px 48px;
+    margin: 0 auto var(--space-lg);
+}
+
+#display-recipe-ingredients li {
+    break-inside: avoid;
+    margin-bottom: 8px;
+    padding-left: 4px;
+    line-height: 1.45;
+}
+
+#display-recipe-ingredients li::marker {
+    color: #1f4f96;
+    font-size: 0.9em;
+}
+
+#display-recipe-ingredients li.empty-line {
+    list-style: none;
+    min-height: 10px;
+    margin-bottom: 4px;
+}
+
+#display-recipe-ingredients li.empty-line::marker {
+    content: "";
+}
+
+@media (max-width: 768px) {
+    #display-recipe-ingredients {
+        column-count: 1;
+        padding: 18px 22px 18px 36px;
+    }
+}

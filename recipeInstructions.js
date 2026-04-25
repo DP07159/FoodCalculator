@@ -37,12 +37,12 @@ async function loadRecipeInstructions() {
         // ✅ Zutaten als zweispaltige Liste anzeigen (leere Zeilen ohne Bulletpoint)
         const ingredientsList = document.getElementById("display-recipe-ingredients");
         ingredientsList.innerHTML = recipe.ingredients
-            .split("\n")
-            .map(ingredient => ingredient.trim() === "" 
-                ? `<li class="empty-line">&nbsp;</li>`  // 🚨 Leere Zeilen ohne Bulletpoint
-                : `<li>● ${escapeHtml(ingredient)}</li>`
-            )
-            .join("");
+    .split("\n")
+    .map(ingredient => ingredient.trim() === ""
+        ? `<li class="empty-line">&nbsp;</li>`
+        : `<li>${escapeHtml(ingredient)}</li>`
+    )
+    .join("");
 
 
         // ✅ Anleitung mit Nummerierung anzeigen

@@ -1358,3 +1358,54 @@ button:active {
 .ingredients-column li {
     list-style: disc;
 }
+
+/* -------------------------------------- */
+/* ZUTATENLISTE: PREMIUM-STYLING */
+/* -------------------------------------- */
+
+#display-recipe-ingredients {
+    list-style: none;
+    padding: 22px 28px;
+    margin: 0 auto var(--space-lg);
+    column-count: 2;
+    column-gap: 36px;
+}
+
+#display-recipe-ingredients li {
+    position: relative;
+    list-style: none;
+    padding-left: 18px;
+    margin-bottom: 8px;
+    line-height: 1.45;
+    color: #25324a;
+    break-inside: avoid;
+}
+
+#display-recipe-ingredients li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.72em;
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background-color: #1f4f96;
+    transform: translateY(-50%);
+}
+
+/* Leere Zutatenzeilen ohne Bulletpoint anzeigen */
+#display-recipe-ingredients li:empty::before {
+    display: none;
+}
+
+#display-recipe-ingredients li:empty {
+    min-height: 10px;
+}
+
+/* Mobile: einspaltig */
+@media (max-width: 768px) {
+    #display-recipe-ingredients {
+        column-count: 1;
+        padding: 18px;
+    }
+}

@@ -1336,3 +1336,25 @@ button:active {
         align-items: flex-start;
     }
 }
+
+/* -------------------------------------- */
+/* ZUTATEN: doppelte Bulletpoints entfernen */
+/* -------------------------------------- */
+
+.ingredients-list {
+    list-style: disc;
+    padding-left: 22px;
+    margin: 0;
+}
+
+.ingredients-list li::before,
+.recipe-ingredients li::before,
+.ingredients-column li::before {
+    content: none !important;
+}
+
+.ingredients-list li,
+.recipe-ingredients li,
+.ingredients-column li {
+    list-style: disc;
+}

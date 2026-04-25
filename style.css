@@ -1978,3 +1978,196 @@ button:active {
     background: #f2fbf5;
     border: 1px solid #d8efdf;
 }
+
+/* -------------------------------------- */
+/* TAGESDETAIL-KARTE: PREMIUM LOOK */
+/* -------------------------------------- */
+
+.day-detail-panel {
+    margin-top: 24px;
+}
+
+.day-detail-card {
+    background: #ffffff;
+    border: 1px solid #e6edf5;
+    border-radius: 22px;
+    padding: 22px;
+    box-shadow: 0 10px 28px rgba(17, 24, 39, 0.06);
+}
+
+.day-detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #edf2f7;
+}
+
+.day-detail-title-line {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.day-detail-title-inline {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.day-detail-title-prefix {
+    font-size: 18px;
+    font-weight: 600;
+    color: #5f6f86;
+}
+
+.day-detail-title-day {
+    font-size: 22px;
+    font-weight: 800;
+    color: #1f4f96;
+}
+
+.day-nav-button {
+    min-width: 38px;
+    width: 38px;
+    height: 38px;
+    border-radius: 999px;
+    border: 1px solid #d7e0ea;
+    background-color: #f7faff;
+    color: #25324a;
+    font-size: 24px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.day-nav-button:hover {
+    background-color: #eaf1f8;
+    border-color: #bfd0e3;
+}
+
+.day-detail-stats {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.day-detail-stat {
+    min-width: 120px;
+    padding: 10px 14px;
+    background: #f8fbfd;
+    border: 1px solid #e2eaf3;
+    border-radius: 16px;
+}
+
+.day-detail-stat-label {
+    display: block;
+    font-size: 12px;
+    color: #7a8798;
+    margin-bottom: 4px;
+}
+
+.day-detail-stat-value {
+    font-size: 16px;
+    font-weight: 800;
+    color: #25324a;
+}
+
+.day-detail-stat-value.is-positive {
+    color: #237a3b;
+}
+
+.day-detail-stat-value.is-negative {
+    color: #c62828;
+}
+
+.day-detail-meals {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(160px, 1fr));
+    gap: 14px;
+}
+
+.day-detail-meal-card {
+    background: #f9fbfd;
+    border: 1px solid #e6edf5;
+    border-radius: 18px;
+    padding: 16px;
+    min-height: 120px;
+    transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.day-detail-meal-card:hover {
+    transform: translateY(-1px);
+    border-color: #d3dfec;
+    box-shadow: 0 8px 18px rgba(17, 24, 39, 0.05);
+}
+
+.day-detail-meal-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #6b778c;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 10px;
+}
+
+.day-detail-meal-value {
+    font-size: 16px;
+    font-weight: 800;
+    color: #25324a;
+    line-height: 1.35;
+    margin-bottom: 10px;
+}
+
+.day-detail-meal-calories {
+    font-size: 13px;
+    font-weight: 600;
+    color: #5f6f86;
+}
+
+.day-detail-link {
+    color: #25324a;
+    text-decoration: none;
+    border-bottom: 1px dashed #c8d3e0;
+}
+
+.day-detail-link:hover {
+    color: #1f4f96;
+    border-bottom-color: #1f4f96;
+}
+
+@media (max-width: 1000px) {
+    .day-detail-meals {
+        grid-template-columns: repeat(2, minmax(180px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .day-detail-card {
+        padding: 16px;
+        border-radius: 18px;
+    }
+
+    .day-detail-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .day-detail-title-line {
+        justify-content: space-between;
+    }
+
+    .day-detail-title-inline {
+        justify-content: center;
+        text-align: center;
+    }
+
+    .day-detail-meals {
+        grid-template-columns: 1fr;
+    }
+}

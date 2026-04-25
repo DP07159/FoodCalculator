@@ -949,11 +949,53 @@ button:active {
 /* REZEPTDETAIL UND KOCHANLEITUNG */
 /* -------------------------------------- */
 
+/* Gemeinsame Unterseiten-Basis */
+#recipe-form,
+#display-recipe-ingredients,
+#display-recipe-instructions {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-card);
+}
+
+/* Rezept bearbeiten / Details */
 #recipe-form {
     width: 100%;
     max-width: var(--content-max-width);
-    margin: 100px auto var(--space-xl);
+    margin: var(--space-xl) auto var(--space-xl);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
     text-align: left;
+}
+
+#recipe-form label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+#recipe-form input,
+#recipe-form textarea {
+    min-height: 42px;
+    padding: 10px 12px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+    background: var(--color-surface-soft);
+    color: var(--color-text);
+    font-size: var(--font-size-md);
+}
+
+#recipe-form input:focus,
+#recipe-form textarea:focus {
+    outline: none;
+    border-color: #8fb5f4;
+    background: #ffffff;
+    box-shadow: var(--shadow-focus);
 }
 
 .recipe-inline-fields,
@@ -969,33 +1011,85 @@ button:active {
 
 #recipe-ingredients,
 #recipe-instructions {
-    min-height: 150px;
+    min-height: 170px;
+    line-height: 1.55;
 }
 
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: var(--space-sm);
+}
+
+.form-actions button {
+    min-height: 42px;
+    padding: 9px 16px;
+    border-radius: var(--radius-md);
+    background: var(--color-primary-soft);
+    color: var(--color-primary-text);
+    border: 1px solid var(--color-primary-border);
+    font-weight: 700;
+}
+
+.form-actions button:hover {
+    background: #e3efff;
+}
+
+/* Kochanleitung / Rezeptansicht */
 .header-container {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
     gap: var(--space-lg);
     max-width: var(--content-max-width);
-    margin: 80px auto var(--space-xl);
+    margin: var(--space-xl) auto var(--space-lg);
+    padding: 22px 24px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-card);
 }
 
 .recipe-info {
     flex: 1;
-    text-align: center;
+    text-align: left;
 }
 
 .recipe-info h2 {
     margin: 0;
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--color-text);
+    line-height: 1.2;
 }
 
 .portion-calories {
     display: flex;
-    flex-direction: column;
     gap: var(--space-sm);
     text-align: right;
     white-space: nowrap;
+}
+
+.portion-calories > div {
+    min-width: 92px;
+    padding: 10px 12px;
+    border-radius: var(--radius-md);
+    background: var(--color-surface-soft);
+    border: 1px solid var(--color-border-soft);
+    font-weight: 800;
+    color: var(--color-text);
+}
+
+.content-section {
+    width: 100%;
+    max-width: var(--content-max-width);
+    margin: 0 auto var(--space-lg);
+}
+
+.content-section h3 {
+    margin: 0 0 var(--space-sm);
+    font-size: 18px;
+    color: var(--color-text);
 }
 
 #display-recipe-ingredients,
@@ -1003,22 +1097,43 @@ button:active {
     width: 100%;
     max-width: var(--content-max-width);
     margin: 0 auto var(--space-lg);
+    padding: 22px 24px;
     text-align: left;
 }
 
 #display-recipe-ingredients {
     column-count: 2;
-    column-gap: 20px;
+    column-gap: 28px;
     list-style: none;
 }
 
 #display-recipe-ingredients li {
     break-inside: avoid;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
+    padding-left: 18px;
+    position: relative;
+    line-height: 1.45;
+}
+
+#display-recipe-ingredients li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.72em;
+    width: 6px;
+    height: 6px;
+    border-radius: var(--radius-pill);
+    background: var(--color-primary);
 }
 
 #display-recipe-instructions {
     margin-bottom: var(--space-xl);
+    line-height: 1.65;
+}
+
+#display-recipe-instructions p,
+#display-recipe-instructions div {
+    margin-bottom: var(--space-sm);
 }
 
 /* -------------------------------------- */

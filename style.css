@@ -1874,3 +1874,107 @@ button:active {
         border-color: #dfe7f0;
     }
 }
+
+/* -------------------------------------- */
+/* WOCHENPLAN: VISUELLER FEINSCHLIFF */
+/* -------------------------------------- */
+
+.weekly-plan-board {
+    gap: 12px;
+    margin-top: 22px;
+}
+
+.plan-day-header {
+    min-height: 48px;
+    border-radius: 16px;
+    background: #f7faff;
+    border: 1px solid #e2eaf5;
+    color: #25324a;
+    font-size: 14px;
+    font-weight: 700;
+    box-shadow: none;
+}
+
+.plan-day-header:hover {
+    background: #eef5ff;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(17, 24, 39, 0.06);
+}
+
+.plan-day-header.is-active {
+    background: #e6f0ff;
+    border-color: #bcd5ff;
+    color: #173d73;
+    box-shadow: 0 6px 18px rgba(23, 61, 115, 0.10);
+}
+
+.plan-day-header.is-today {
+    border: 2px solid #4c8bf5;
+}
+
+.plan-row-label {
+    min-height: 42px;
+    padding: 8px 12px;
+    border-radius: 14px;
+    background: transparent;
+    border: none;
+    color: #5f6f86;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.plan-row-label-accent {
+    color: #1f4f96;
+    background: transparent;
+    border: none;
+}
+
+.plan-input-cell {
+    grid-template-columns: 1fr;
+    min-height: 40px;
+}
+
+.plan-drag-handle {
+    display: none;
+}
+
+.meal-select,
+.plan-cell select {
+    min-height: 40px;
+    border-radius: 14px;
+    border: 1px solid #dfe7f0;
+    background-color: #ffffff;
+    font-size: 13px;
+    color: #25324a;
+    box-shadow: 0 2px 8px rgba(17, 24, 39, 0.03);
+}
+
+.meal-select:hover,
+.plan-cell select:hover {
+    border-color: #bfd0e3;
+    background-color: #ffffff;
+    box-shadow: 0 4px 12px rgba(17, 24, 39, 0.05);
+}
+
+.meal-select:focus,
+.plan-cell select:focus {
+    border-color: #8fb5f4;
+    box-shadow: 0 0 0 3px rgba(76, 139, 245, 0.12);
+}
+
+.plan-value-cell {
+    min-height: 40px;
+    border-radius: 14px;
+    box-shadow: none;
+    font-size: 13px;
+}
+
+.total-calories {
+    background: #eef5ff;
+    border: 1px solid #d7e6ff;
+}
+
+.remaining-calories {
+    background: #f2fbf5;
+    border: 1px solid #d8efdf;
+}

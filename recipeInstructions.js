@@ -59,9 +59,7 @@ async function loadRecipeInstructions() {
 }
 
 // Beim Laden der Seite automatisch Rezeptdetails abrufen
-function getIngredientsTextForSharing() {
-    const recipeName = document.getElementById("display-recipe-name")?.textContent.trim() || "Einkaufsliste";
-
+function getIngredientsTextForCopying() {
     const ingredientItems = Array.from(
         document.querySelectorAll("#display-recipe-ingredients li")
     );
@@ -70,51 +68,36 @@ function getIngredientsTextForSharing() {
         .map(item => item.textContent.replace(/\u00A0/g, "").trim())
         .filter(item => item.length > 0);
 
-    if (ingredients.length === 0) {
-        return "";
-    }
-
-    return `${recipeName}\n\n${ingredients.map(ingredient => `• ${ingredient}`).join("\n")}`;
+    return ingredients.join("\n");
 }
 
-async function shareIngredientsList() {
-    const ingredientsText = getIngredientsTextForSharing();
+async function copyIngredientsOneByOne() {
+    const ingredientsText = getIngredientsTextForCopying();
 
     if (!ingredientsText) {
         alert("Für dieses Rezept wurden keine Zutaten gefunden.");
         return;
     }
 
-    if (navigator.share) {
-        try {
-            await navigator.share({
-                title: "Zutatenliste",
-                text: ingredientsText
-            });
-        } catch (error) {
-            console.log("Teilen wurde abgebrochen oder ist fehlgeschlagen:", error);
-        }
-    } else {
-        try {
-            await navigator.clipboard.writeText(ingredientsText);
-            alert("Die Zutatenliste wurde in die Zwischenablage kopiert.");
-        } catch (error) {
-            console.error("Fehler beim Kopieren der Zutatenliste:", error);
-            alert("Die Zutatenliste konnte leider nicht geteilt oder kopiert werden.");
-        }
+    try {
+        await navigator.clipboard.writeText(ingredientsText);
+        alert("Die Zutaten wurden einzeln zeilenweise kopiert. Du kannst sie nun in Erinnerungen einfügen.");
+    } catch (error) {
+        console.error("Fehler beim Kopieren der Zutaten:", error);
+        alert("Die Zutaten konnten leider nicht kopiert werden.");
     }
 }
 
-function setupShareIngredientsButton() {
-    const shareButton = document.getElementById("share-ingredients-button");
+function setupCopyIngredientsButton() {
+    const copyButton = document.getElementById("copy-ingredients-button");
 
-    if (!shareButton) return;
+    if (!copyButton) return;
 
-    shareButton.addEventListener("click", shareIngredientsList);
+    copyButton.addEventListener("click", copyIngredientsOneByOne);
 }
 
 // Beim Laden der Seite automatisch Rezeptdetails abrufen
 window.onload = function () {
     loadRecipeInstructions();
-    setupShareIngredientsButton();
+    setupCopyIngredientsButton();
 };

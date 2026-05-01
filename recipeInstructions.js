@@ -99,5 +99,5 @@ function setupCopyIngredientsButton() {
 // Beim Laden der Seite automatisch Rezeptdetails abrufen
 window.onload = function () {
     loadRecipeInstructions();
-    setupCopyIngredientsButton();
+    setupShareIngredientsButton();
 };

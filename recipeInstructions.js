@@ -59,4 +59,62 @@ async function loadRecipeInstructions() {
 }
 
 // Beim Laden der Seite automatisch Rezeptdetails abrufen
-window.onload = loadRecipeInstructions;
+function getIngredientsTextForSharing() {
+    const recipeName = document.getElementById("display-recipe-name")?.textContent.trim() || "Einkaufsliste";
+
+    const ingredientItems = Array.from(
+        document.querySelectorAll("#display-recipe-ingredients li")
+    );
+
+    const ingredients = ingredientItems
+        .map(item => item.textContent.replace(/\u00A0/g, "").trim())
+        .filter(item => item.length > 0);
+
+    if (ingredients.length === 0) {
+        return "";
+    }
+
+    return `${recipeName}\n\n${ingredients.map(ingredient => `• ${ingredient}`).join("\n")}`;
+}
+
+async function shareIngredientsList() {
+    const ingredientsText = getIngredientsTextForSharing();
+
+    if (!ingredientsText) {
+        alert("Für dieses Rezept wurden keine Zutaten gefunden.");
+        return;
+    }
+
+    if (navigator.share) {
+        try {
+            await navigator.share({
+                title: "Zutatenliste",
+                text: ingredientsText
+            });
+        } catch (error) {
+            console.log("Teilen wurde abgebrochen oder ist fehlgeschlagen:", error);
+        }
+    } else {
+        try {
+            await navigator.clipboard.writeText(ingredientsText);
+            alert("Die Zutatenliste wurde in die Zwischenablage kopiert.");
+        } catch (error) {
+            console.error("Fehler beim Kopieren der Zutatenliste:", error);
+            alert("Die Zutatenliste konnte leider nicht geteilt oder kopiert werden.");
+        }
+    }
+}
+
+function setupShareIngredientsButton() {
+    const shareButton = document.getElementById("share-ingredients-button");
+
+    if (!shareButton) return;
+
+    shareButton.addEventListener("click", shareIngredientsList);
+}
+
+// Beim Laden der Seite automatisch Rezeptdetails abrufen
+window.onload = function () {
+    loadRecipeInstructions();
+    setupShareIngredientsButton();
+};

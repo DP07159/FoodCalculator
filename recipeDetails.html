@@ -9,9 +9,18 @@
 <body>
     <div class="container">
 
-        <div class="home-button">
-            <a href="/index.html">🏠 Home</a>
-        </div>
+        <div class="burger-menu">
+    <button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen">
+        ☰
+    </button>
+
+    <div id="burger-dropdown" class="burger-dropdown is-hidden">
+        <a href="/index.html">Startseite</a>
+        <a href="/recipeCreate.html">Neues Rezept</a>
+        <a href="/index.html#recipe-book">Rezeptbuch</a>
+        <a href="/index.html#meal-plan">Wochenplan</a>
+    </div>
+</div>
 
         <header class="page-header">
             <h1>Rezeptdetails</h1>
@@ -57,8 +66,10 @@
         </main>
     </div>
 
-    <script>
-        const API_URL = "https://foodcalculator-server.onrender.com";
+    <script src="navigation.js"></script>
+
+<script>
+    const API_URL = "https://foodcalculator-server.onrender.com";
         const params = new URLSearchParams(window.location.search);
         const recipeId = params.get('id');
 
@@ -139,10 +150,11 @@
             });
         }
 
-        window.onload = () => {
-            loadRecipeDetails();
-            initAutoResize();
-        };
+       window.onload = () => {
+    initBurgerMenu();
+    loadRecipeDetails();
+    initAutoResize();
+};
     </script>
 </body>
 </html>

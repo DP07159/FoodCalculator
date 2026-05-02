@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neues Rezept</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+
+        <div class="burger-menu">
+            <button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen">
+                ☰
+            </button>
+
+            <div id="burger-dropdown" class="burger-dropdown is-hidden">
+                <a href="/index.html">Startseite</a>
+                <a href="/recipeCreate.html">Neues Rezept</a>
+                <a href="/index.html#recipe-book">Rezeptbuch</a>
+                <a href="/index.html#meal-plan">Wochenplan</a>
+            </div>
+        </div>
+
+        <header class="page-header">
+            <h1>Neues Rezept</h1>
+        </header>
+
+        <main class="page-content">
+            <form id="recipe-form" class="section-card">
+
+                <div class="form-section">
+                    <label for="recipe-name">Name</label>
+                    <input type="text" id="recipe-name" name="recipe-name">
+                </div>
+
+                <div class="recipe-inline-fields">
+                    <div class="form-section">
+                        <label for="recipe-calories">Kalorien</label>
+                        <input type="number" id="recipe-calories" name="recipe-calories">
+                    </div>
+
+                    <div class="form-section">
+                        <label for="recipe-portions">Portionen</label>
+                        <input type="number" id="recipe-portions" name="recipe-portions">
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <label>Mahlzeiten</label>
+
+                    <div class="recipe-checkboxes recipe-create-checkboxes">
+                        <label><input type="checkbox" value="breakfast"> Frühstück</label>
+                        <label><input type="checkbox" value="lunch"> Mittagessen</label>
+                        <label><input type="checkbox" value="dinner"> Abendessen</label>
+                        <label><input type="checkbox" value="snack"> Snack</label>
+                    </div>
+                </div>
+
+                <div class="recipe-row">
+                    <div class="form-section">
+                        <label for="recipe-ingredients">Zutaten</label>
+                        <textarea id="recipe-ingredients" name="recipe-ingredients" rows="1"></textarea>
+                    </div>
+
+                    <div class="form-section">
+                        <label for="recipe-instructions">Anleitung</label>
+                        <textarea id="recipe-instructions" name="recipe-instructions" rows="1"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" onclick="createRecipe()">Rezept speichern</button>
+                </div>
+
+            </form>
+        </main>
+    </div>
+
+    <script src="navigation.js"></script>
+    <script src="recipeCreate.js"></script>
+</body>
+</html>

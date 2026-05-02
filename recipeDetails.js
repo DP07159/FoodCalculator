@@ -11,9 +11,7 @@ if (!recipeId) {
 async function loadRecipeDetails() {
     try {
         const response = await fetch(`${API_URL}/recipes/${recipeId}`);
-        const responseText = await response.text();
-
-        const recipe = JSON.parse(responseText);
+        const recipe = await response.json();
 
         document.getElementById("recipe-name").value = recipe.name || "";
         document.getElementById("recipe-calories").value = recipe.calories || "";
@@ -25,7 +23,7 @@ async function loadRecipeDetails() {
         resizeTextArea(document.getElementById("recipe-instructions"));
     } catch (error) {
         console.error("Fehler beim Laden der Rezeptdaten:", error);
-        alert("Fehler beim Abrufen der Rezeptdaten. Bitte überprüfe die Konsole.");
+        alert("Fehler beim Abrufen der Rezeptdaten.");
     }
 }
 
@@ -52,10 +50,10 @@ async function updateRecipe() {
         });
 
         if (response.ok) {
-    window.location.href = `/recipeInstructions.html?id=${recipeId}`;
-} else {
-    alert("Fehler beim Aktualisieren des Rezepts.");
-}
+            window.location.href = `/recipeInstructions.html?id=${recipeId}`;
+        } else {
+            alert("Fehler beim Aktualisieren des Rezepts.");
+        }
     } catch (error) {
         console.error("Fehler beim Speichern der Rezeptdaten:", error);
         alert("Fehler beim Speichern der Rezeptdaten.");

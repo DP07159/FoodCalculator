@@ -9,6 +9,12 @@ function initBurgerMenu() {
         burgerDropdown.classList.toggle("is-hidden");
     });
 
+    burgerDropdown.querySelectorAll("a").forEach(link => {
+        link.addEventListener("click", function () {
+            burgerDropdown.classList.add("is-hidden");
+        });
+    });
+
     document.addEventListener("click", function () {
         burgerDropdown.classList.add("is-hidden");
     });

@@ -1585,35 +1585,45 @@ button:active {
 /* BURGER-MENÜ */
 /* -------------------------------------- */
 
+/* -------------------------------------- */
+/* BURGER-MENÜ */
+/* -------------------------------------- */
+
 .burger-menu {
-    position: absolute;
-    top: 20px;
-    left: 20px;
+    position: sticky;
+    top: 0;
     z-index: 1000;
+    width: 100%;
+    max-width: var(--content-max-width);
+    margin: 0 auto var(--space-lg);
+    padding: 12px 0 8px;
+    background: var(--color-page-bg);
     text-align: left;
 }
 
 .burger-button {
-    min-width: 42px;
-    width: 42px;
-    height: 42px;
+    min-width: 36px;
+    width: 36px;
+    height: 36px;
     padding: 0;
-    border-radius: var(--radius-md);
-    color: var(--color-primary-text);
-    background: var(--color-primary-soft);
-    border: 1px solid var(--color-primary-border);
-    font-size: 22px;
-    font-weight: 800;
-    box-shadow: var(--shadow-soft);
+    border: none;
+    border-radius: 8px;
+    color: var(--color-text);
+    background: transparent;
+    font-size: 25px;
+    font-weight: 700;
+    line-height: 1;
+    box-shadow: none;
 }
 
 .burger-button:hover {
-    background: #e3efff;
+    background: var(--color-primary-soft);
+    color: var(--color-primary-text);
 }
 
 .burger-dropdown {
     position: absolute;
-    top: 50px;
+    top: 52px;
     left: 0;
     width: 220px;
     padding: 8px;
@@ -1678,15 +1688,19 @@ button:active {
 
 @media (max-width: 768px) {
     .burger-menu {
-        position: static;
-        margin: var(--space-md) 0;
-    }
+    position: sticky;
+    top: 0;
+    margin: 0 auto var(--space-md);
+    padding: 10px 0 8px;
+}
 
-    .burger-dropdown {
-        position: static;
-        width: 100%;
-        margin-top: 8px;
-    }
+.burger-dropdown {
+    position: absolute;
+    top: 48px;
+    left: 0;
+    width: 100%;
+    margin-top: 0;
+}
 
     .portion-calories {
         display: grid;

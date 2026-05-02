@@ -52,10 +52,10 @@ async function updateRecipe() {
         });
 
         if (response.ok) {
-            alert("Rezept erfolgreich aktualisiert.");
-        } else {
-            alert("Fehler beim Aktualisieren des Rezepts.");
-        }
+    window.location.href = `/recipeInstructions.html?id=${recipeId}`;
+} else {
+    alert("Fehler beim Aktualisieren des Rezepts.");
+}
     } catch (error) {
         console.error("Fehler beim Speichern der Rezeptdaten:", error);
         alert("Fehler beim Speichern der Rezeptdaten.");

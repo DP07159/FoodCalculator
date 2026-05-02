@@ -10,17 +10,17 @@
     <div class="container">
 
         <div class="burger-menu">
-    <button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen">
-        ☰
-    </button>
+            <button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen">
+                ☰
+            </button>
 
-    <div id="burger-dropdown" class="burger-dropdown is-hidden">
-        <a href="/index.html">Startseite</a>
-        <a href="/recipeCreate.html">Neues Rezept</a>
-        <a href="/index.html#recipe-book">Rezeptbuch</a>
-        <a href="/index.html#meal-plan">Wochenplan</a>
-    </div>
-</div>
+            <div id="burger-dropdown" class="burger-dropdown is-hidden">
+                <a href="/index.html">Startseite</a>
+                <a href="/recipeCreate.html">Neues Rezept</a>
+                <a href="/index.html#recipe-book">Rezeptbuch</a>
+                <a href="/index.html#meal-plan">Wochenplan</a>
+            </div>
+        </div>
 
         <main class="page-content recipe-instructions-page">
 
@@ -30,38 +30,36 @@
                 </div>
 
                 <div class="portion-calories">
-    <div>🍽️ <span id="display-recipe-portions"></span></div>
-    <div>🍫 <span id="display-recipe-calories"></span></div>
+                    <div>🍽️ <span id="display-recipe-portions"></span></div>
+                    <div>🍫 <span id="display-recipe-calories"></span></div>
 
-    <button
-        type="button"
-        id="share-ingredients-button"
-        class="header-icon-button"
-        title="Zutatenliste teilen"
-        aria-label="Zutatenliste teilen">
-        ↗
-    </button>
+                    <button
+                        type="button"
+                        id="share-ingredients-button"
+                        class="header-icon-button"
+                        title="Zutatenliste teilen"
+                        aria-label="Zutatenliste teilen">
+                        ↗
+                    </button>
 
-    <button
-        type="button"
-        id="edit-recipe-button"
-        class="header-icon-button"
-        title="Rezept bearbeiten"
-        aria-label="Rezept bearbeiten">
-        ✎
-    </button>
-</div>
+                    <button
+                        type="button"
+                        id="edit-recipe-button"
+                        class="header-icon-button"
+                        title="Rezept bearbeiten"
+                        aria-label="Rezept bearbeiten">
+                        ✎
+                    </button>
+                </div>
             </header>
 
             <section class="content-section ingredients-content-section">
-    <div class="ingredients-section-header">
-        <h3>Zutaten</h3>
+                <div class="ingredients-section-header">
+                    <h3>Zutaten</h3>
+                </div>
 
-        
-    </div>
-
-    <ul id="display-recipe-ingredients"></ul>
-</section>
+                <ul id="display-recipe-ingredients"></ul>
+            </section>
 
             <section class="content-section">
                 <h3>Anleitung</h3>
@@ -72,84 +70,6 @@
     </div>
 
     <script src="navigation.js"></script>
-<script src="recipeInstructions.js"></script>
+    <script src="recipeInstructions.js"></script>
 </body>
-
-function getIngredientsTextForSharing() {
-    const recipeName = document.getElementById("display-recipe-name")?.textContent.trim() || "Einkaufsliste";
-
-    const ingredientItems = Array.from(
-        document.querySelectorAll("#display-recipe-ingredients li")
-    );
-
-    const ingredients = ingredientItems
-        .map(item => item.textContent.replace(/\u00A0/g, "").trim())
-        .filter(item => item.length > 0);
-
-    if (ingredients.length === 0) {
-        return "";
-    }
-
-    return `${recipeName}\n\n${ingredients.map(ingredient => `• ${ingredient}`).join("\n")}`;
-}
-
-async function shareIngredientsList() {
-    const ingredientsText = getIngredientsTextForSharing();
-
-    if (!ingredientsText) {
-        alert("Für dieses Rezept wurden keine Zutaten gefunden.");
-        return;
-    }
-
-    if (navigator.share) {
-        try {
-            await navigator.share({
-                title: "Zutatenliste",
-                text: ingredientsText
-            });
-        } catch (error) {
-            console.log("Teilen wurde abgebrochen oder ist fehlgeschlagen:", error);
-        }
-    } else {
-        try {
-            await navigator.clipboard.writeText(ingredientsText);
-            alert("Die Zutatenliste wurde in die Zwischenablage kopiert.");
-        } catch (error) {
-            console.error("Fehler beim Kopieren:", error);
-            alert("Die Zutatenliste konnte leider nicht kopiert werden.");
-        }
-    }
-}
-
-function setupShareIngredientsButton() {
-    const shareButton = document.getElementById("share-ingredients-button");
-
-    if (!shareButton) return;
-
-    shareButton.addEventListener("click", shareIngredientsList);
-}
-
-function setupEditRecipeButton() {
-    const editButton = document.getElementById("edit-recipe-button");
-
-    if (!editButton) return;
-
-    const params = new URLSearchParams(window.location.search);
-    const recipeId = params.get("id");
-
-    if (!recipeId) return;
-
-    editButton.addEventListener("click", function () {
-        window.location.href = `/recipeDetails.html?id=${recipeId}`;
-    });
-}
-
-// Beim Laden der Seite automatisch Rezeptdetails abrufen
-window.onload = function () {
-    initBurgerMenu();
-    loadRecipeInstructions();
-    setupShareIngredientsButton();
-    setupEditRecipeButton();
-};
-
 </html>

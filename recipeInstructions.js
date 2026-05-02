@@ -113,8 +113,24 @@ function setupShareIngredientsButton() {
     shareButton.addEventListener("click", shareIngredientsList);
 }
 
-// Beim Laden der Seite automatisch Rezeptdetails abrufen
+function setupEditRecipeButton() {
+    const editButton = document.getElementById("edit-recipe-button");
+
+    if (!editButton) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const recipeId = params.get("id");
+
+    if (!recipeId) return;
+
+    editButton.addEventListener("click", function () {
+        window.location.href = `/recipeDetails.html?id=${recipeId}`;
+    });
+}
+
 window.onload = function () {
+    initBurgerMenu();
     loadRecipeInstructions();
     setupShareIngredientsButton();
+    setupEditRecipeButton();
 };

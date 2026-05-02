@@ -1086,6 +1086,8 @@ function changeSelectedDay(direction) {
 /* -------------------------------------- */
 
 document.addEventListener("DOMContentLoaded", () => {
+    initBurgerMenu();
+
     loadMealPlans();
     loadRecipes();
 

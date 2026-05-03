@@ -2,7 +2,6 @@ const API_URL = "https://foodcalculator-server.onrender.com";
 
 function resizeTextArea(textarea) {
     if (!textarea) return;
-
     textarea.style.height = "auto";
     textarea.style.height = textarea.scrollHeight + "px";
 }
@@ -19,6 +18,10 @@ function initAutoResize() {
     });
 }
 
+function wait(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 async function createRecipe() {
     const name = document.getElementById("recipe-name").value.trim();
     const caloriesRaw = document.getElementById("recipe-calories").value.trim();
@@ -32,10 +35,7 @@ async function createRecipe() {
     const mealTypes = Array.from(document.querySelectorAll(".recipe-checkboxes input:checked"))
         .map(checkbox => checkbox.value);
 
-    const caloriesIsValid = /^\d+$/.test(caloriesRaw || "");
-    const portionsIsValid = /^\d+$/.test(portionsRaw || "") && portions > 0;
-
-    if (!name || !caloriesIsValid || !portionsIsValid || mealTypes.length === 0) {
+    if (!name || !/^\d+$/.test(caloriesRaw) || !/^\d+$/.test(portionsRaw) || portions <= 0 || mealTypes.length === 0) {
         alert("Bitte Name, Kalorien, Portionen und mindestens eine Mahlzeit angeben.");
         return;
     }
@@ -48,9 +48,7 @@ async function createRecipe() {
                 name,
                 calories,
                 portions,
-                mealTypes,
-                ingredients,
-                instructions
+                mealTypes
             })
         });
 
@@ -59,43 +57,25 @@ async function createRecipe() {
             return;
         }
 
-        let newRecipeId = null;
+        await wait(300);
 
-        try {
-            const createdRecipe = await createResponse.json();
+        const recipesResponse = await fetch(`${API_URL}/recipes`);
+        const allRecipes = await recipesResponse.json();
 
-            newRecipeId =
-                createdRecipe.id ||
-                createdRecipe.recipeId ||
-                createdRecipe.insertId ||
-                createdRecipe.lastID ||
-                createdRecipe.lastId ||
-                null;
-        } catch (error) {
-            console.log("POST-Antwort enthielt keine JSON-ID. Rezeptliste wird geprüft.");
-        }
+        const newestRecipe = allRecipes
+            .filter(recipe =>
+                recipe.name === name &&
+                Number(recipe.calories) === Number(calories)
+            )
+            .sort((a, b) => Number(b.id) - Number(a.id))[0];
 
-        if (!newRecipeId) {
-            const recipesResponse = await fetch(`${API_URL}/recipes`);
-            const allRecipes = await recipesResponse.json();
-
-            const newestMatchingRecipe = allRecipes
-                .filter(recipe =>
-                    recipe.name === name &&
-                    Number(recipe.calories) === Number(calories)
-                )
-                .sort((a, b) => Number(b.id) - Number(a.id))[0];
-
-            if (newestMatchingRecipe) {
-                newRecipeId = newestMatchingRecipe.id;
-            }
-        }
-
-        if (!newRecipeId) {
+        if (!newestRecipe || !newestRecipe.id) {
             alert("Rezept wurde angelegt, aber die neue Rezept-ID konnte nicht ermittelt werden.");
             window.location.href = "/index.html#recipe-book";
             return;
         }
+
+        const newRecipeId = newestRecipe.id;
 
         const updateResponse = await fetch(`${API_URL}/recipes/${newRecipeId}`, {
             method: "PUT",
@@ -104,7 +84,6 @@ async function createRecipe() {
                 name,
                 calories,
                 portions,
-                mealTypes,
                 ingredients,
                 instructions
             })

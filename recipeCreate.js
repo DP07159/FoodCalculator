@@ -41,8 +41,50 @@ async function createRecipe() {
     }
 
     try {
-        const response = await fetch(`${API_URL}/recipes`, {
+        const createResponse = await fetch(`${API_URL}/recipes`, {
             method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                name,
+                calories,
+                portions,
+                mealTypes
+            })
+        });
+
+        if (!createResponse.ok) {
+            alert("Das Rezept konnte leider nicht gespeichert werden.");
+            return;
+        }
+
+        const createdRecipe = await createResponse.json();
+
+        let newRecipeId = createdRecipe.id;
+
+        if (!newRecipeId) {
+            const recipesResponse = await fetch(`${API_URL}/recipes`);
+            const allRecipes = await recipesResponse.json();
+
+            const matchingRecipes = allRecipes.filter(recipe =>
+                recipe.name === name &&
+                Number(recipe.calories) === calories
+            );
+
+            const newestMatchingRecipe = matchingRecipes[matchingRecipes.length - 1];
+
+            if (newestMatchingRecipe) {
+                newRecipeId = newestMatchingRecipe.id;
+            }
+        }
+
+        if (!newRecipeId) {
+            alert("Rezept wurde angelegt, aber die Details konnten nicht automatisch ergänzt werden.");
+            window.location.href = "/index.html#recipe-book";
+            return;
+        }
+
+        const updateResponse = await fetch(`${API_URL}/recipes/${newRecipeId}`, {
+            method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 name,
@@ -54,13 +96,13 @@ async function createRecipe() {
             })
         });
 
-        if (!response.ok) {
-            alert("Das Rezept konnte leider nicht gespeichert werden.");
+        if (!updateResponse.ok) {
+            alert("Rezept wurde angelegt, aber Zutaten und Anleitung konnten nicht gespeichert werden.");
+            window.location.href = `/recipeDetails.html?id=${newRecipeId}`;
             return;
         }
 
-        alert("Rezept erfolgreich erstellt.");
-        window.location.href = "/index.html#recipe-book";
+        window.location.href = `/recipeInstructions.html?id=${newRecipeId}`;
     } catch (error) {
         console.error("Fehler beim Erstellen des Rezepts:", error);
         alert("Fehler beim Speichern des Rezepts.");

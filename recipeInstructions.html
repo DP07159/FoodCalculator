@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kochanleitung</title>
     <link rel="stylesheet" href="style.css">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#f5f7fb">
 </head>
 <body>
     <div class="container">
@@ -30,7 +32,11 @@
                 </div>
 
                 <div class="portion-calories">
-                    <div>🍽️ <span id="display-recipe-portions"></span></div>
+                    <div class="portion-scale-control">
+    <button type="button" id="decrease-portions-button" class="portion-scale-button">−</button>
+    <span>🍽️ <span id="display-recipe-portions"></span></span>
+    <button type="button" id="increase-portions-button" class="portion-scale-button">+</button>
+</div>
                     <div>🍫 <span id="display-recipe-calories"></span></div>
 
                     <button
@@ -50,8 +56,42 @@
                         aria-label="Rezept bearbeiten">
                         ✎
                     </button>
+
+<button
+    type="button"
+    id="add-to-plan-toggle-button"
+    class="header-icon-button"
+    title="Zum Wochenplan hinzufügen"
+    aria-label="Zum Wochenplan hinzufügen">
+    ＋
+</button>
                 </div>
             </header>
+
+<section id="add-to-plan-panel" class="add-to-plan-panel is-hidden">
+    <select id="add-to-plan-day">
+        <option value="">Tag auswählen</option>
+        <option value="Montag">Montag</option>
+        <option value="Dienstag">Dienstag</option>
+        <option value="Mittwoch">Mittwoch</option>
+        <option value="Donnerstag">Donnerstag</option>
+        <option value="Freitag">Freitag</option>
+        <option value="Samstag">Samstag</option>
+        <option value="Sonntag">Sonntag</option>
+    </select>
+
+    <select id="add-to-plan-meal">
+        <option value="">Mahlzeit auswählen</option>
+        <option value="breakfast">Frühstück</option>
+        <option value="lunch">Mittagessen</option>
+        <option value="dinner">Abendessen</option>
+        <option value="snack">Snack</option>
+    </select>
+
+    <button type="button" id="add-to-plan-confirm-button">
+        In Wochenplan übernehmen
+    </button>
+</section>
 
             <section class="content-section ingredients-content-section">
                 <div class="ingredients-section-header">

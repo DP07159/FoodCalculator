@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Food Calculator</title>
     <link rel="stylesheet" href="style.css">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#f5f7fb">
 </head>
 <body>
     <div class="container">
@@ -43,7 +45,16 @@
             <p id="current-plan-name" class="left-align">Aktueller Wochenplan: keiner</p>
 
             <div class="meal-plan-current-actions">
-    <button
+<button
+    type="button"
+    class="toolbar-icon-button toolbar-shopping-button"
+    onclick="shareWeeklyShoppingList()"
+    title="Einkaufsliste teilen"
+    aria-label="Einkaufsliste teilen">
+    🛒
+</button>
+    
+<button
         type="button"
         class="toolbar-icon-button toolbar-update-button"
         onclick="updateMealPlan()"

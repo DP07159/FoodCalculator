@@ -1081,6 +1081,122 @@ function changeSelectedDay(direction) {
     updateSelectedDayView();
 }
 
+function getIngredientsFromText(ingredientsText) {
+    if (!ingredientsText) return [];
+
+    return ingredientsText
+        .split("\n")
+        .map(item => item.trim())
+        .filter(item => item.length > 0);
+}
+
+function buildWeeklyShoppingList() {
+    const selectedRecipeIds = new Set();
+
+    document.querySelectorAll("#meal-table select").forEach(select => {
+        if (select.value) {
+            selectedRecipeIds.add(String(select.value));
+        }
+    });
+
+    const selectedRecipes = recipes.filter(recipe =>
+        selectedRecipeIds.has(String(recipe.id))
+    );
+
+    const ingredientCounts = new Map();
+
+    selectedRecipes.forEach(recipe => {
+        const ingredients = getIngredientsFromText(recipe.ingredients);
+
+        ingredients.forEach(ingredient => {
+            const normalizedIngredient = ingredient.toLowerCase();
+
+            if (!ingredientCounts.has(normalizedIngredient)) {
+                ingredientCounts.set(normalizedIngredient, {
+                    label: ingredient,
+                    count: 1
+                });
+            } else {
+                ingredientCounts.get(normalizedIngredient).count += 1;
+            }
+        });
+    });
+
+    const shoppingItems = Array.from(ingredientCounts.values())
+        .map(item => item.count > 1 ? `${item.label} (${item.count}x)` : item.label)
+        .sort((a, b) => a.localeCompare(b, "de"));
+
+    return shoppingItems;
+}
+
+async function shareWeeklyShoppingList() {
+    const shoppingItems = buildWeeklyShoppingList();
+
+    if (shoppingItems.length === 0) {
+        alert("Für den aktuellen Wochenplan wurden keine Zutaten gefunden.");
+        return;
+    }
+
+    const currentPlanText = activeMealPlanName
+        ? `Einkaufsliste: ${activeMealPlanName}`
+        : "Einkaufsliste aus dem Wochenplan";
+
+    const shoppingListText = `${currentPlanText}\n\n${shoppingItems.map(item => `• ${item}`).join("\n")}`;
+
+    if (navigator.share) {
+        try {
+            await navigator.share({
+                title: "Einkaufsliste",
+                text: shoppingListText
+            });
+        } catch (error) {
+            console.log("Teilen wurde abgebrochen oder ist fehlgeschlagen:", error);
+        }
+    } else {
+        try {
+            await navigator.clipboard.writeText(shoppingListText);
+            alert("Die Einkaufsliste wurde in die Zwischenablage kopiert.");
+        } catch (error) {
+            console.error("Fehler beim Kopieren der Einkaufsliste:", error);
+            alert("Die Einkaufsliste konnte nicht geteilt oder kopiert werden.");
+        }
+    }
+}
+
+function applyPendingRecipePlanSelection() {
+    const pendingSelectionRaw = localStorage.getItem("pendingRecipePlanSelection");
+    if (!pendingSelectionRaw) return;
+
+    let pendingSelection;
+
+    try {
+        pendingSelection = JSON.parse(pendingSelectionRaw);
+    } catch (error) {
+        localStorage.removeItem("pendingRecipePlanSelection");
+        return;
+    }
+
+    const { recipeId, day, mealType } = pendingSelection;
+
+    const select = document.querySelector(
+        `#meal-table select[data-day="${day}"][data-meal-type="${mealType}"]`
+    );
+
+    if (!select) return;
+
+    select.value = recipeId;
+    localStorage.removeItem("pendingRecipePlanSelection");
+
+    calculateCalories();
+    refreshPlanCellStates();
+
+    if (typeof setSelectedDay === "function") {
+        setSelectedDay(day);
+    }
+
+    alert("Rezept wurde in den Wochenplan übernommen. Bitte den Wochenplan bei Bedarf speichern oder aktualisieren.");
+}
+
 /* -------------------------------------- */
 /* INITIALISIERUNG */
 /* -------------------------------------- */
@@ -1090,6 +1206,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     loadMealPlans();
     loadRecipes();
+
+setTimeout(applyPendingRecipePlanSelection, 700);
 
     const planNameInput = document.getElementById("plan-name");
     if (planNameInput) {
@@ -1125,3 +1243,11 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
+
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+        navigator.serviceWorker.register("/service-worker.js")
+            .then(() => console.log("Service Worker registriert"))
+            .catch(error => console.error("Service Worker Fehler:", error));
+    });
+}

@@ -19,12 +19,26 @@ function initAutoResize() {
     });
 }
 
+function findNewestMatchingRecipe(recipes, name, calories, portions) {
+    const matchingRecipes = recipes.filter(recipe =>
+        recipe.name === name &&
+        Number(recipe.calories) === Number(calories) &&
+        Number(recipe.portions || 0) === Number(portions || 0)
+    );
+
+    if (matchingRecipes.length === 0) return null;
+
+    return matchingRecipes.reduce((newest, recipe) => {
+        return Number(recipe.id) > Number(newest.id) ? recipe : newest;
+    }, matchingRecipes[0]);
+}
+
 async function createRecipe() {
     const name = document.getElementById("recipe-name").value.trim();
     const caloriesRaw = document.getElementById("recipe-calories").value.trim();
     const portionsRaw = document.getElementById("recipe-portions").value.trim();
-    const ingredients = document.getElementById("recipe-ingredients").value;
-    const instructions = document.getElementById("recipe-instructions").value;
+    const ingredients = document.getElementById("recipe-ingredients").value.trim();
+    const instructions = document.getElementById("recipe-instructions").value.trim();
 
     const calories = parseInt(caloriesRaw, 10);
     const portions = parseInt(portionsRaw, 10);
@@ -57,20 +71,27 @@ async function createRecipe() {
             return;
         }
 
-        const createdRecipe = await createResponse.json();
+        let newRecipeId = null;
 
-        let newRecipeId = createdRecipe.id;
+        try {
+            const createdRecipe = await createResponse.json();
+
+            newRecipeId =
+                createdRecipe.id ||
+                createdRecipe.recipeId ||
+                createdRecipe.insertId ||
+                createdRecipe.lastID ||
+                createdRecipe.lastId ||
+                null;
+        } catch (error) {
+            console.log("POST-Antwort enthielt keine JSON-ID. Rezeptliste wird geprüft.");
+        }
 
         if (!newRecipeId) {
             const recipesResponse = await fetch(`${API_URL}/recipes`);
             const allRecipes = await recipesResponse.json();
 
-            const matchingRecipes = allRecipes.filter(recipe =>
-                recipe.name === name &&
-                Number(recipe.calories) === calories
-            );
-
-            const newestMatchingRecipe = matchingRecipes[matchingRecipes.length - 1];
+            const newestMatchingRecipe = findNewestMatchingRecipe(allRecipes, name, calories, portions);
 
             if (newestMatchingRecipe) {
                 newRecipeId = newestMatchingRecipe.id;
@@ -78,7 +99,7 @@ async function createRecipe() {
         }
 
         if (!newRecipeId) {
-            alert("Rezept wurde angelegt, aber die Details konnten nicht automatisch ergänzt werden.");
+            alert("Rezept wurde angelegt, aber die neue Rezept-ID konnte nicht ermittelt werden.");
             window.location.href = "/index.html#recipe-book";
             return;
         }

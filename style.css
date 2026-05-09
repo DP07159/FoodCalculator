@@ -1811,3 +1811,217 @@ button:active {
         align-items: stretch;
     }
 }
+
+/* -------------------------------------- */
+/* APP-FEINSCHLIFF: Navigation, Rezeptseite, Toast */
+/* -------------------------------------- */
+
+.burger-menu {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    width: 100%;
+    max-width: var(--content-max-width);
+    margin: 0 auto var(--space-lg);
+    padding: 10px 0 8px;
+    background: rgba(245, 247, 251, 0.96);
+    backdrop-filter: blur(8px);
+    text-align: left;
+}
+
+.burger-button {
+    min-width: 36px;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    color: var(--color-text);
+    background: transparent;
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1;
+    box-shadow: none;
+}
+
+.burger-button:hover {
+    background: var(--color-primary-soft);
+    color: var(--color-primary-text);
+}
+
+.burger-dropdown {
+    position: absolute;
+    top: 48px;
+    left: 0;
+    width: 220px;
+    padding: 8px;
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-soft);
+    box-shadow: var(--shadow-card);
+    transform-origin: top left;
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    transition: opacity 0.16s ease, transform 0.16s ease;
+}
+
+.burger-dropdown.is-hidden {
+    display: block;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-6px) scale(0.98);
+}
+
+.burger-dropdown a {
+    display: block;
+    padding: 11px 12px;
+    border-radius: 10px;
+    color: var(--color-text);
+    text-decoration: none;
+    font-size: var(--font-size-md);
+    font-weight: 700;
+}
+
+.burger-dropdown a:hover {
+    background: var(--color-primary-soft);
+    color: var(--color-primary-text);
+}
+
+.recipe-hero {
+    align-items: center;
+    gap: 24px;
+}
+
+.recipe-kicker {
+    margin: 0 0 4px;
+    color: var(--color-text-muted);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.recipe-header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.recipe-stat {
+    min-width: 92px;
+    padding: 10px 12px;
+    border-radius: var(--radius-md);
+    background: var(--color-surface-soft);
+    border: 1px solid var(--color-border-soft);
+    font-weight: 800;
+    color: var(--color-text);
+    text-align: center;
+}
+
+.header-icon-button {
+    min-width: 42px;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border-radius: var(--radius-md);
+    color: var(--color-primary-text);
+    background: var(--color-primary-soft);
+    border: 1px solid var(--color-primary-border);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 19px;
+    font-weight: 800;
+}
+
+.header-icon-button:hover {
+    background: #e3efff;
+    transform: translateY(-1px);
+}
+
+.instructions-content-section #display-recipe-instructions p {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.instructions-content-section #display-recipe-instructions p span {
+    min-width: 28px;
+    height: 28px;
+    border-radius: var(--radius-pill);
+    background: var(--color-primary-soft);
+    color: var(--color-primary-text);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
+.app-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    z-index: 2000;
+    max-width: min(420px, calc(100% - 32px));
+    padding: 12px 16px;
+    border-radius: var(--radius-pill);
+    background: #25324a;
+    color: #ffffff;
+    font-size: var(--font-size-md);
+    font-weight: 700;
+    box-shadow: var(--shadow-card);
+    transform: translate(-50%, 0);
+    opacity: 1;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.app-toast.is-hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, 10px);
+}
+
+.app-toast.is-visible {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+/* alte Portionsskalierung zuverlässig ausblenden, falls irgendwo noch Reste vorhanden sind */
+.portion-scale-control,
+.portion-scale-button {
+    display: none !important;
+}
+
+@media (max-width: 900px) {
+    .recipe-header-actions {
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 768px) {
+    .burger-menu {
+        margin: 0 auto var(--space-md);
+        padding: 10px 0 8px;
+    }
+
+    .burger-dropdown {
+        width: 100%;
+    }
+
+    .recipe-header-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(80px, 1fr));
+        width: 100%;
+    }
+
+    .recipe-stat,
+    .header-icon-button {
+        width: 100%;
+        min-width: 0;
+    }
+}

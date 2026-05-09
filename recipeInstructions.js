@@ -1,10 +1,24 @@
 const API_URL = "https://foodcalculator-server.onrender.com";
 
+let currentRecipe = null;
+let basePortions = 1;
+let currentPortions = 1;
+
 function escapeHtml(text) {
     const div = document.createElement("div");
     div.textContent = text;
     return div.innerHTML;
 }
+
+function formatScaledIngredient(ingredient, factor) {
+    if (!ingredient || factor === 1) return ingredient;
+
+    return ingredient.replace(/^(\d+(?:[.,]\d+)?)(\s*)(.*)$/u, function (_, numberPart, spacePart, rest) {
+        const normalizedNumber = parseFloat(numberPart.replace(",", "."));
+
+        if (Number.isNaN(normalizedNumber)) {
+            return ingredient;
+        }
 
         const scaledNumber = normalizedNumber * factor;
         const displayNumber = Number.isInteger(scaledNumber)
@@ -18,7 +32,10 @@ function escapeHtml(text) {
 function renderRecipeInstructions() {
     if (!currentRecipe) return;
 
+    const factor = basePortions > 0 ? currentPortions / basePortions : 1;
+
     document.getElementById("display-recipe-name").textContent = currentRecipe.name || "";
+    document.getElementById("display-recipe-portions").textContent = currentPortions || "";
     document.getElementById("display-recipe-calories").textContent = currentRecipe.calories || "";
 
     const ingredientsList = document.getElementById("display-recipe-ingredients");
@@ -29,6 +46,7 @@ function renderRecipeInstructions() {
                 return `<li class="empty-line">&nbsp;</li>`;
             }
 
+            const scaledIngredient = formatScaledIngredient(ingredient.trim(), factor);
             return `<li>${escapeHtml(scaledIngredient)}</li>`;
         })
         .join("");
@@ -60,7 +78,9 @@ async function loadRecipeInstructions() {
         }
 
         currentRecipe = recipe;
-        
+        basePortions = parseInt(recipe.portions, 10) || 1;
+        currentPortions = basePortions;
+
         renderRecipeInstructions();
     } catch (error) {
         console.error("Fehler beim Abrufen der Rezeptdetails:", error);
@@ -137,6 +157,18 @@ function setupEditRecipeButton() {
     });
 }
 
+function setupPortionScalingButtons() {
+    const decreaseButton = document.getElementById("decrease-portions-button");
+    const increaseButton = document.getElementById("increase-portions-button");
+
+    if (decreaseButton) {
+        decreaseButton.addEventListener("click", function () {
+            if (currentPortions <= 1) return;
+            currentPortions -= 1;
+            renderRecipeInstructions();
+        });
+    }
+
     if (increaseButton) {
         increaseButton.addEventListener("click", function () {
             currentPortions += 1;
@@ -183,5 +215,6 @@ window.onload = function () {
     loadRecipeInstructions();
     setupShareIngredientsButton();
     setupEditRecipeButton();
-    setupAddToPlanControls();
+    setupPortionScalingButtons();
+setupAddToPlanControls();
 };

@@ -11,10 +11,12 @@
 <body>
     <div class="container">
 
-<div class="burger-menu">
+<div class="burger-menu app-topbar">
     <button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen">
         ☰
     </button>
+
+    <div class="app-topbar-title">Food Calculator</div>
 
     <div id="burger-dropdown" class="burger-dropdown is-hidden">
         <a href="/index.html">Startseite</a>
@@ -24,9 +26,9 @@
     </div>
 </div>
         
-<header class="page-header">
-            <h1>Food Calculator</h1>
-        </header>
+<header class="page-header page-header-hidden">
+    <h1>Food Calculator</h1>
+</header>
 
         <main class="page-content">
 
@@ -179,13 +181,14 @@
         placeholder="Rezepte durchsuchen ...">
 
     <select id="recipe-sort" class="recipe-sort-select">
-        <option value="name-asc">Name A–Z</option>
-        <option value="name-desc">Name Z–A</option>
-        <option value="breakfast">Nur Frühstück</option>
-        <option value="lunch">Nur Mittagessen</option>
-        <option value="dinner">Nur Abendessen</option>
-        <option value="snack">Nur Snack</option>
-    </select>
+    <option value="name-asc">Name A–Z</option>
+    <option value="name-desc">Name Z–A</option>
+    <option value="favorites">Favoriten</option>
+    <option value="breakfast">Nur Frühstück</option>
+    <option value="lunch">Nur Mittagessen</option>
+    <option value="dinner">Nur Abendessen</option>
+    <option value="snack">Nur Snack</option>
+</select>
 </div>
 
 <ul id="recipe-list">

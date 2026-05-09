@@ -28,6 +28,53 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+function getFavoriteRecipeIds() {
+    try {
+        return JSON.parse(localStorage.getItem("favoriteRecipeIds")) || [];
+    } catch (error) {
+        return [];
+    }
+}
+
+function saveFavoriteRecipeIds(favoriteIds) {
+    localStorage.setItem("favoriteRecipeIds", JSON.stringify(favoriteIds));
+}
+
+function isFavoriteRecipe(recipeId) {
+    return getFavoriteRecipeIds().includes(String(recipeId));
+}
+
+function updateFavoriteButton() {
+    const favoriteButton = document.getElementById("favorite-recipe-button");
+
+    if (!favoriteButton || !currentRecipe) return;
+
+    const isFavorite = isFavoriteRecipe(currentRecipe.id);
+
+    favoriteButton.textContent = isFavorite ? "★" : "☆";
+    favoriteButton.classList.toggle("is-favorite", isFavorite);
+    favoriteButton.title = isFavorite ? "Favorit entfernen" : "Als Favorit markieren";
+    favoriteButton.setAttribute("aria-label", favoriteButton.title);
+}
+
+function toggleCurrentRecipeFavorite() {
+    if (!currentRecipe) return;
+
+    const normalizedId = String(currentRecipe.id);
+    let favoriteIds = getFavoriteRecipeIds();
+
+    if (favoriteIds.includes(normalizedId)) {
+        favoriteIds = favoriteIds.filter(id => id !== normalizedId);
+        showToast("Favorit entfernt.");
+    } else {
+        favoriteIds.push(normalizedId);
+        showToast("Als Favorit markiert.");
+    }
+
+    saveFavoriteRecipeIds(favoriteIds);
+    updateFavoriteButton();
+}
+
 function renderRecipeInstructions() {
     if (!currentRecipe) return;
 
@@ -55,6 +102,8 @@ function renderRecipeInstructions() {
         .filter(step => step.trim().length > 0)
         .map((step, index) => `<p><span>${index + 1}.</span> ${escapeHtml(step)}</p>`)
         .join("");
+
+    updateFavoriteButton();
 }
 
 async function loadRecipeInstructions() {
@@ -152,9 +201,18 @@ function setupEditRecipeButton() {
     });
 }
 
+function setupFavoriteRecipeButton() {
+    const favoriteButton = document.getElementById("favorite-recipe-button");
+
+    if (!favoriteButton) return;
+
+    favoriteButton.addEventListener("click", toggleCurrentRecipeFavorite);
+}
+
 window.onload = function () {
     initBurgerMenu();
     loadRecipeInstructions();
+    setupFavoriteRecipeButton();
     setupShareIngredientsButton();
     setupEditRecipeButton();
 };

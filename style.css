@@ -2025,3 +2025,52 @@ button:active {
         min-width: 0;
     }
 }
+
+/* -------------------------------------- */
+/* FAVORITEN + TOPBAR-FEINSCHLIFF */
+/* -------------------------------------- */
+
+.page-header-hidden {
+    display: none;
+}
+
+.app-topbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.app-topbar-title {
+    color: var(--color-text);
+    font-size: 22px;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.recipe-favorite-button,
+.favorite-header-button {
+    color: #9a6a00;
+}
+
+.recipe-favorite-button.is-favorite,
+.favorite-header-button.is-favorite {
+    color: #d49a00;
+    background: #fff7df;
+    border-color: #f1d78a;
+}
+
+.recipe-icons .recipe-favorite-button {
+    font-size: 20px;
+}
+
+.recipe-icons .recipe-favorite-button:hover,
+.favorite-header-button:hover {
+    background: #fff7df;
+    border-color: #f1d78a;
+}
+
+@media (max-width: 768px) {
+    .app-topbar-title {
+        font-size: 20px;
+    }
+}

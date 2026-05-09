@@ -31,6 +31,36 @@ function getMealsForDay(day) {
     return meals;
 }
 
+function getFavoriteRecipeIds() {
+    try {
+        return JSON.parse(localStorage.getItem("favoriteRecipeIds")) || [];
+    } catch (error) {
+        return [];
+    }
+}
+
+function saveFavoriteRecipeIds(favoriteIds) {
+    localStorage.setItem("favoriteRecipeIds", JSON.stringify(favoriteIds));
+}
+
+function isFavoriteRecipe(recipeId) {
+    return getFavoriteRecipeIds().includes(String(recipeId));
+}
+
+function toggleFavoriteRecipe(recipeId) {
+    const normalizedId = String(recipeId);
+    let favoriteIds = getFavoriteRecipeIds();
+
+    if (favoriteIds.includes(normalizedId)) {
+        favoriteIds = favoriteIds.filter(id => id !== normalizedId);
+    } else {
+        favoriteIds.push(normalizedId);
+    }
+
+    saveFavoriteRecipeIds(favoriteIds);
+    populateRecipeList();
+}
+
 function getFilteredAndSortedRecipes() {
     const searchInput = document.getElementById("recipe-search");
     const sortSelect = document.getElementById("recipe-sort");
@@ -58,11 +88,13 @@ function getFilteredAndSortedRecipes() {
         });
     }
 
-    if (["breakfast", "lunch", "dinner", "snack"].includes(sortValue)) {
-        filteredRecipes = filteredRecipes.filter(recipe =>
-            Array.isArray(recipe.mealTypes) && recipe.mealTypes.includes(sortValue)
-        );
-    } else if (sortValue === "name-asc") {
+    if (sortValue === "favorites") {
+    filteredRecipes = filteredRecipes.filter(recipe => isFavoriteRecipe(recipe.id));
+} else if (["breakfast", "lunch", "dinner", "snack"].includes(sortValue)) {
+    filteredRecipes = filteredRecipes.filter(recipe =>
+        Array.isArray(recipe.mealTypes) && recipe.mealTypes.includes(sortValue)
+    );
+} else if (sortValue === "name-asc") {
         filteredRecipes.sort((a, b) => a.name.localeCompare(b.name, "de"));
     } else if (sortValue === "name-desc") {
         filteredRecipes.sort((a, b) => b.name.localeCompare(a.name, "de"));
@@ -683,9 +715,18 @@ function populateRecipeList() {
         recipeMain.appendChild(recipeMeta);
 
         const iconContainer = document.createElement("div");
-        iconContainer.classList.add("recipe-icons");
+iconContainer.classList.add("recipe-icons");
 
-        const editButton = document.createElement("button");
+const favoriteButton = document.createElement("button");
+favoriteButton.innerHTML = isFavoriteRecipe(recipe.id) ? "★" : "☆";
+favoriteButton.classList.add("recipe-favorite-button");
+favoriteButton.classList.toggle("is-favorite", isFavoriteRecipe(recipe.id));
+favoriteButton.type = "button";
+favoriteButton.title = isFavoriteRecipe(recipe.id) ? "Favorit entfernen" : "Als Favorit markieren";
+favoriteButton.setAttribute("aria-label", favoriteButton.title);
+favoriteButton.onclick = () => toggleFavoriteRecipe(recipe.id);
+
+const editButton = document.createElement("button");
         editButton.innerHTML = "✏️";
         editButton.classList.add("edit-button");
         editButton.type = "button";
@@ -701,8 +742,9 @@ function populateRecipeList() {
         deleteButton.title = "Rezept löschen";
         deleteButton.onclick = () => deleteRecipe(recipe.id);
 
-        iconContainer.appendChild(editButton);
-        iconContainer.appendChild(deleteButton);
+        iconContainer.appendChild(favoriteButton);
+iconContainer.appendChild(editButton);
+iconContainer.appendChild(deleteButton);
 
         li.appendChild(recipeMain);
         li.appendChild(iconContainer);

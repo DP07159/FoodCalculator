@@ -1755,29 +1755,6 @@ button:active {
     background: #e3efff;
 }
 
-.portion-scale-control {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.portion-scale-button {
-    min-width: 28px;
-    width: 28px;
-    height: 28px;
-    padding: 0;
-    border-radius: var(--radius-pill);
-    color: var(--color-primary-text);
-    background: var(--color-primary-soft);
-    border: 1px solid var(--color-primary-border);
-    font-weight: 800;
-    line-height: 1;
-}
-
-.portion-scale-button:hover {
-    background: #e3efff;
-}
-
 .add-to-plan-panel {
     grid-column: 1 / -1;
     width: 100%;

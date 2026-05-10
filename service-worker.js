@@ -1,4 +1,4 @@
-const CACHE_NAME = "food-calculator-v10";
+const CACHE_NAME = "food-calculator-v12";
 
 const FILES_TO_CACHE = [
     "/",

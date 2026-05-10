@@ -1,6 +1,15 @@
 const API_URL = "https://foodcalculator-server.onrender.com";
 let currentRecipe = null;
 
+
+function appIcon(name) {
+    const icons = {
+        heart: '<span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg></span>'
+    };
+    return icons[name] || '';
+}
+
+
 function showToast(message) {
     const toast = document.getElementById("app-toast");
     if (!toast) {
@@ -32,7 +41,7 @@ function updateFavoriteButton() {
     if (!button || !currentRecipe) return;
 
     const isFavorite = isFavoriteRecipe(currentRecipe);
-    button.textContent = isFavorite ? "★" : "☆";
+    button.innerHTML = appIcon("heart");
     button.classList.toggle("is-favorite", isFavorite);
     button.title = isFavorite ? "Favorit entfernen" : "Als Favorit markieren";
     button.setAttribute("aria-label", button.title);

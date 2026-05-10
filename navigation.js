@@ -4,22 +4,16 @@ function initBurgerMenu() {
 
     if (!burgerButton || !burgerDropdown) return;
 
-    burgerButton.addEventListener("click", function (event) {
+    burgerButton.addEventListener("click", (event) => {
         event.stopPropagation();
         burgerDropdown.classList.toggle("is-hidden");
     });
 
-    burgerDropdown.querySelectorAll("a").forEach(link => {
-        link.addEventListener("click", function () {
-            burgerDropdown.classList.add("is-hidden");
-        });
+    burgerDropdown.querySelectorAll("a").forEach((link) => {
+        link.addEventListener("click", () => burgerDropdown.classList.add("is-hidden"));
     });
 
-    document.addEventListener("click", function () {
-        burgerDropdown.classList.add("is-hidden");
-    });
+    document.addEventListener("click", () => burgerDropdown.classList.add("is-hidden"));
 
-    burgerDropdown.addEventListener("click", function (event) {
-        event.stopPropagation();
-    });
+    burgerDropdown.addEventListener("click", (event) => event.stopPropagation());
 }

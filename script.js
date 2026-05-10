@@ -8,6 +8,30 @@ const MEAL_ROWS = [
     { key: "snack", label: "Snack" }
 ];
 
+let recipes = [];
+let mealPlans = [];
+let selectedDay = getTodayInGerman();
+let activeMealPlanId = null;
+let activeMealPlanName = "";
+
+function showToast(message) {
+    const toast = document.getElementById("app-toast");
+    if (!toast) {
+        alert(message);
+        return;
+    }
+
+    toast.textContent = message;
+    toast.classList.remove("is-hidden");
+    toast.classList.add("is-visible");
+
+    window.clearTimeout(showToast.timeoutId);
+    showToast.timeoutId = window.setTimeout(() => {
+        toast.classList.remove("is-visible");
+        toast.classList.add("is-hidden");
+    }, 2600);
+}
+
 function getTodayInGerman() {
     const days = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
     return days[new Date().getDay()];
@@ -18,1278 +42,543 @@ function getRecipeById(recipeId) {
 }
 
 function isFavoriteRecipe(recipe) {
-    return Number(recipe.is_favorite) === 1;
+    return Number(recipe?.is_favorite) === 1;
 }
 
 async function toggleFavoriteRecipe(recipeId) {
-    const recipe = recipes.find(item => String(item.id) === String(recipeId));
-
+    const recipe = getRecipeById(recipeId);
     if (!recipe) return;
 
-    const newFavoriteValue = Number(recipe.is_favorite) === 1 ? 0 : 1;
+    const newFavoriteValue = isFavoriteRecipe(recipe) ? 0 : 1;
 
     try {
         const response = await fetch(`${API_URL}/recipes/${recipeId}/favorite`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                is_favorite: newFavoriteValue
-            })
+            body: JSON.stringify({ is_favorite: newFavoriteValue })
         });
 
-        if (!response.ok) {
-            alert("Favoritenstatus konnte nicht gespeichert werden.");
-            return;
-        }
+        if (!response.ok) throw new Error("Favoritenstatus konnte nicht gespeichert werden.");
 
         recipe.is_favorite = newFavoriteValue;
         populateRecipeList();
+        showToast(newFavoriteValue === 1 ? "Als Favorit markiert." : "Favorit entfernt.");
     } catch (error) {
-        console.error("Fehler beim Speichern des Favoritenstatus:", error);
-        alert("Favoritenstatus konnte nicht gespeichert werden.");
+        console.error(error);
+        showToast("Favoritenstatus konnte nicht gespeichert werden.");
     }
 }
 
-function getMealsForDay(day) {
-    const meals = {};
+async function apiFetch(url, options = {}) {
+    const response = await fetch(url, options);
+    let payload = null;
+    try { payload = await response.json(); } catch { payload = null; }
+    if (!response.ok) {
+        throw new Error(payload?.error || "Serverfehler");
+    }
+    return payload;
+}
 
-    MEAL_ROWS.forEach(meal => {
-        const select = document.querySelector(
-            `#meal-table select[data-day="${day}"][data-meal-type="${meal.key}"]`
-        );
+async function loadRecipes() {
+    try {
+        recipes = await apiFetch(`${API_URL}/recipes`);
+        populateMealTable();
+        populateRecipeList();
+        renderDayDetail(selectedDay);
+    } catch (error) {
+        console.error("Fehler beim Laden der Rezepte:", error);
+        showToast("Rezepte konnten nicht geladen werden.");
+    }
+}
 
-        meals[meal.key] = select ? select.value : "";
+async function loadMealPlans() {
+    try {
+        mealPlans = await apiFetch(`${API_URL}/meal_plans`);
+        renderMealPlanSelect();
+    } catch (error) {
+        console.error("Fehler beim Laden der Wochenpläne:", error);
+        showToast("Wochenpläne konnten nicht geladen werden.");
+    }
+}
+
+function renderMealPlanSelect() {
+    const select = document.getElementById("plan-list");
+    if (!select) return;
+
+    select.innerHTML = `<option value="">Wochenplan laden ...</option>`;
+    mealPlans.forEach(plan => {
+        const option = document.createElement("option");
+        option.value = plan.id;
+        option.textContent = plan.name;
+        select.appendChild(option);
     });
 
-    return meals;
+    select.value = activeMealPlanId || "";
+    select.onchange = () => {
+        if (select.value) loadMealPlan(select.value);
+    };
 }
-
-function getFilteredAndSortedRecipes() {
-    const searchInput = document.getElementById("recipe-search");
-    const sortSelect = document.getElementById("recipe-sort");
-
-    const searchTerm = (searchInput?.value || "").trim().toLowerCase();
-    const sortValue = sortSelect?.value || "name-asc";
-
-    let filteredRecipes = [...recipes];
-
-    if (searchTerm) {
-        filteredRecipes = filteredRecipes.filter(recipe => {
-            const name = (recipe.name || "").toLowerCase();
-            const ingredients = (recipe.ingredients || "").toLowerCase();
-            const instructions = (recipe.instructions || "").toLowerCase();
-            const mealTypes = Array.isArray(recipe.mealTypes)
-                ? recipe.mealTypes.join(" ").toLowerCase()
-                : "";
-
-            return (
-                name.includes(searchTerm) ||
-                ingredients.includes(searchTerm) ||
-                instructions.includes(searchTerm) ||
-                mealTypes.includes(searchTerm)
-            );
-        });
-    }
-
-    if (sortValue === "favorites") {
-    filteredRecipes = filteredRecipes.filter(recipe => isFavoriteRecipe(recipe));
-} else if (["breakfast", "lunch", "dinner", "snack"].includes(sortValue)) {
-    filteredRecipes = filteredRecipes.filter(recipe =>
-        Array.isArray(recipe.mealTypes) && recipe.mealTypes.includes(sortValue)
-    );
-} else if (sortValue === "name-asc") {
-    filteredRecipes.sort((a, b) => a.name.localeCompare(b.name, "de"));
-} else if (sortValue === "name-desc") {
-    filteredRecipes.sort((a, b) => b.name.localeCompare(a.name, "de"));
-}
-
-function renderDayDetail(day) {
-    const panel = document.getElementById("day-detail-panel");
-    if (!panel) return;
-
-    const mealsForDay = getMealsForDay(day);
-
-    let totalCalories = 0;
-
-    const mealCardsHtml = MEAL_ROWS.map(meal => {
-        const recipeId = mealsForDay[meal.key];
-        const recipe = recipeId ? getRecipeById(recipeId) : null;
-
-        if (recipe) {
-            totalCalories += Number(recipe.calories) || 0;
-        }
-
-        return `
-            <div class="day-detail-meal-card">
-                <div class="day-detail-meal-label">${meal.label}</div>
-                <div class="day-detail-meal-value">
-                    ${recipe 
-    ? `<a href="/recipeInstructions.html?id=${recipe.id}" class="day-detail-link">${recipe.name}</a>` 
-    : "Noch nichts gewählt"
-}
-                </div>
-                <div class="day-detail-meal-calories">
-                    ${recipe ? `${recipe.calories} kcal` : "–"}
-                </div>
-            </div>
-        `;
-    }).join("");
-
-    const remainingCalories = DAILY_CALORIE_LIMIT - totalCalories;
-    const remainingClass = remainingCalories < 0
-        ? "day-detail-stat-value is-negative"
-        : "day-detail-stat-value is-positive";
-
-    panel.innerHTML = `
-        <div class="day-detail-card">
-           <div class="day-detail-header">
-    <div class="day-detail-title-line">
-        <button
-            type="button"
-            class="day-nav-button"
-            onclick="changeSelectedDay(-1)"
-            title="Vorheriger Tag"
-            aria-label="Vorheriger Tag">
-            ‹
-        </button>
-
-        <div class="day-detail-title-inline">
-            <span class="day-detail-title-prefix">Dein Tagesplan für</span>
-            <span class="day-detail-title-day">${day}</span>
-        </div>
-
-        <button
-            type="button"
-            class="day-nav-button"
-            onclick="changeSelectedDay(1)"
-            title="Nächster Tag"
-            aria-label="Nächster Tag">
-            ›
-        </button>
-    </div>
-
-    <div class="day-detail-stats">
-                    <div class="day-detail-stat">
-                        <span class="day-detail-stat-label">Gesamt</span>
-                        <span class="day-detail-stat-value">${totalCalories} kcal</span>
-                    </div>
-                    <div class="day-detail-stat">
-                        <span class="day-detail-stat-label">Rest</span>
-                        <span class="${remainingClass}">${remainingCalories} kcal</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="day-detail-meals">
-                ${mealCardsHtml}
-            </div>
-        </div>
-    `;
-}
-
-window.setSelectedDay = function(day) {
-    selectedDay = day;
-
-    document.querySelectorAll(".plan-day-header").forEach(header => {
-        header.classList.toggle("is-active", header.dataset.day === day);
-    });
-
-    renderDayDetail(day);
-};
-
-window.changeSelectedDay = function(direction) {
-    if (!Array.isArray(WEEK_DAYS) || !selectedDay) return;
-
-    const currentIndex = WEEK_DAYS.indexOf(selectedDay);
-    if (currentIndex === -1) return;
-
-    let newIndex = currentIndex + direction;
-
-    if (newIndex < 0) {
-        newIndex = WEEK_DAYS.length - 1;
-    }
-
-    if (newIndex >= WEEK_DAYS.length) {
-        newIndex = 0;
-    }
-
-    const newDay = WEEK_DAYS[newIndex];
-
-    if (typeof setSelectedDay === "function") {
-        setSelectedDay(newDay);
-    } else {
-        selectedDay = newDay;
-        renderDayDetail(newDay);
-    }
-};
-
-let recipes = [];
-let selectedDay = getTodayInGerman();
-let activeMealPlanId = null;
-let activeMealPlanName = "";
-let draggedMealSource = null;
-let tappedMealSource = null;
-
-/* -------------------------------------- */
-/* REZEPTE LADEN */
-/* -------------------------------------- */
-
-function loadRecipes() {
-    console.log("🔎 loadRecipes() gestartet");
-
-    fetch(`${API_URL}/recipes`)
-        .then(response => response.json())
-        .then((data) => {
-            console.log("✅ Rezepte erfolgreich geladen:", data);
-            recipes = data;
-
-            populateMealTable();
-            populateRecipeList();
-
-            const errorMessage = document.getElementById("error-message");
-            if (errorMessage) errorMessage.style.display = "none";
-        })
-        .catch(error => {
-            console.error("❌ Fehler beim Laden der Rezepte:", error);
-
-            const errorMessage = document.getElementById("error-message");
-            if (errorMessage) errorMessage.style.display = "block";
-        });
-}
-
-/* -------------------------------------- */
-/* WOCHENPLAN AUFBAUEN */
-/* -------------------------------------- */
 
 function populateMealTable() {
     const mealTable = document.getElementById("meal-table");
     if (!mealTable) return;
 
     mealTable.innerHTML = "";
-
-    const cornerCell = document.createElement("div");
-    cornerCell.className = "plan-corner-cell";
-    mealTable.appendChild(cornerCell);
+    mealTable.appendChild(createPlanCell("", "plan-corner-cell"));
 
     WEEK_DAYS.forEach(day => {
-        const dayHeader = document.createElement("div");
-        dayHeader.className = "plan-day-header";
-        dayHeader.textContent = day;
-        dayHeader.dataset.day = day;
-
-        if (day === selectedDay) {
-            dayHeader.classList.add("is-active");
-        }
-
-        if (day === getTodayInGerman()) {
-            dayHeader.classList.add("is-today");
-        }
-
-        dayHeader.addEventListener("click", () => {
-            setSelectedDay(day);
-        });
-
-        mealTable.appendChild(dayHeader);
+        const header = createPlanCell(day, "plan-day-header");
+        header.dataset.day = day;
+        header.classList.toggle("is-active", day === selectedDay);
+        header.classList.toggle("is-today", day === getTodayInGerman());
+        header.addEventListener("click", () => setSelectedDay(day));
+        mealTable.appendChild(header);
     });
 
     MEAL_ROWS.forEach(meal => {
-        const rowLabel = document.createElement("div");
-        rowLabel.className = "plan-row-label";
-        rowLabel.textContent = meal.label;
-        mealTable.appendChild(rowLabel);
+        mealTable.appendChild(createPlanCell(meal.label, "plan-row-label"));
 
         WEEK_DAYS.forEach(day => {
             const cell = document.createElement("div");
-cell.className = "plan-cell plan-input-cell";
+            cell.className = "plan-cell plan-input-cell";
 
-const handle = document.createElement("button");
-handle.type = "button";
-handle.className = "plan-drag-handle";
-handle.title = "Mahlzeit verschieben";
-handle.setAttribute("aria-label", "Mahlzeit verschieben");
-
-const select = document.createElement("select");
-select.className = "meal-select";
+            const select = document.createElement("select");
+            select.className = "meal-select";
             select.dataset.day = day;
             select.dataset.mealType = meal.key;
             select.innerHTML = `<option value="">-- Wählen --</option>`;
 
-            recipes.forEach(recipe => {
-                if (Array.isArray(recipe.mealTypes) && recipe.mealTypes.includes(meal.key)) {
+            recipes
+                .filter(recipe => Array.isArray(recipe.mealTypes) && recipe.mealTypes.includes(meal.key))
+                .forEach(recipe => {
                     const option = document.createElement("option");
                     option.value = recipe.id;
                     option.textContent = `${recipe.name} (${recipe.calories} kcal)`;
                     select.appendChild(option);
-                }
+                });
+
+            select.addEventListener("change", () => {
+                calculateCalories();
+                renderDayDetail(selectedDay);
             });
 
-            select.addEventListener("change", calculateCalories);
-
-            cell.appendChild(handle);
-cell.appendChild(select);
-mealTable.appendChild(cell);
+            cell.appendChild(select);
+            mealTable.appendChild(cell);
         });
     });
 
-    const totalLabel = document.createElement("div");
-    totalLabel.className = "plan-row-label plan-row-label-accent";
-    totalLabel.textContent = "Gesamtkalorien";
-    mealTable.appendChild(totalLabel);
+    mealTable.appendChild(createPlanCell("Gesamt", "plan-row-label plan-row-label-accent"));
+    WEEK_DAYS.forEach(day => mealTable.appendChild(createPlanValueCell(day, "total-calories")));
 
-    WEEK_DAYS.forEach(day => {
-        const totalCell = document.createElement("div");
-        totalCell.className = "plan-cell plan-value-cell total-calories";
-        totalCell.dataset.day = day;
-        totalCell.textContent = "0 kcal";
-        mealTable.appendChild(totalCell);
-    });
+    mealTable.appendChild(createPlanCell("Rest", "plan-row-label plan-row-label-accent"));
+    WEEK_DAYS.forEach(day => mealTable.appendChild(createPlanValueCell(day, "remaining-calories")));
 
-    const remainingLabel = document.createElement("div");
-    remainingLabel.className = "plan-row-label plan-row-label-accent";
-    remainingLabel.textContent = "Restkalorien";
-    mealTable.appendChild(remainingLabel);
-
-    WEEK_DAYS.forEach(day => {
-        const remainingCell = document.createElement("div");
-        remainingCell.className = "plan-cell plan-value-cell remaining-calories";
-        remainingCell.dataset.day = day;
-        remainingCell.textContent = `${DAILY_CALORIE_LIMIT} kcal`;
-        mealTable.appendChild(remainingCell);
-    });
-
-    if (!WEEK_DAYS.includes(selectedDay)) {
-        selectedDay = "Montag";
-    }
-
-    renderDayDetail(selectedDay);
-    attachDragAndDropToPlanCells();
+    calculateCalories();
 }
 
-/* -------------------------------------- */
-/* KALORIEN BERECHNEN */
-/* -------------------------------------- */
+function createPlanCell(text, className) {
+    const div = document.createElement("div");
+    div.className = className;
+    div.textContent = text;
+    return div;
+}
+
+function createPlanValueCell(day, type) {
+    const div = document.createElement("div");
+    div.className = `plan-cell plan-value-cell ${type}`;
+    div.dataset.day = day;
+    div.dataset.type = type;
+    div.textContent = "0 kcal";
+    return div;
+}
 
 function calculateCalories() {
     WEEK_DAYS.forEach(day => {
-        let totalCalories = 0;
-
+        let total = 0;
         document.querySelectorAll(`#meal-table select[data-day="${day}"]`).forEach(select => {
-            const selectedRecipe = recipes.find(recipe => recipe.id == select.value);
-            if (selectedRecipe) {
-                totalCalories += Number(selectedRecipe.calories) || 0;
-            }
+            const recipe = getRecipeById(select.value);
+            if (recipe) total += Number(recipe.calories) || 0;
         });
 
-        const totalCell = document.querySelector(`.total-calories[data-day="${day}"]`);
-        const remainingCell = document.querySelector(`.remaining-calories[data-day="${day}"]`);
+        const totalCell = document.querySelector(`#meal-table .total-calories[data-day="${day}"]`);
+        const remainingCell = document.querySelector(`#meal-table .remaining-calories[data-day="${day}"]`);
+        const remaining = DAILY_CALORIE_LIMIT - total;
 
-        if (totalCell) {
-            totalCell.textContent = `${totalCalories} kcal`;
-        }
-
+        if (totalCell) totalCell.textContent = `${total} kcal`;
         if (remainingCell) {
-            const remainingCalories = DAILY_CALORIE_LIMIT - totalCalories;
-            remainingCell.textContent = `${remainingCalories} kcal`;
-            remainingCell.style.color = remainingCalories < 0 ? "#c62828" : "#2e7d32";
+            remainingCell.textContent = `${remaining} kcal`;
+            remainingCell.classList.toggle("is-negative", remaining < 0);
         }
-    renderDayDetail(selectedDay);
-    refreshPlanCellStates();
     });
 }
 
-function getRecipeById(recipeId) {
-    return recipes.find(recipe => String(recipe.id) === String(recipeId));
-}
-
-function canRecipeBePlacedInMealType(recipeId, targetMealType) {
-    if (!recipeId) return true;
-
-    const recipe = getRecipeById(recipeId);
-    if (!recipe || !Array.isArray(recipe.mealTypes)) return false;
-
-    return recipe.mealTypes.includes(targetMealType);
-}
-
-function refreshPlanCellStates() {
-    document.querySelectorAll(".plan-input-cell").forEach(cell => {
-        const select = cell.querySelector("select");
-        const handle = cell.querySelector(".plan-drag-handle");
-        if (!select || !handle) return;
-
-        const hasValue = !!select.value;
-
-        cell.classList.toggle("is-filled", hasValue);
-        cell.classList.toggle(
-            "is-selected-source",
-            !!tappedMealSource &&
-            tappedMealSource.day === select.dataset.day &&
-            tappedMealSource.mealType === select.dataset.mealType
-        );
-
-        cell.dataset.day = select.dataset.day || "";
-        cell.dataset.mealType = select.dataset.mealType || "";
-
-        handle.draggable = hasValue;
-        handle.classList.toggle("is-active", hasValue);
+function getMealsForDay(day) {
+    const meals = {};
+    MEAL_ROWS.forEach(meal => {
+        const select = document.querySelector(`#meal-table select[data-day="${day}"][data-meal-type="${meal.key}"]`);
+        meals[meal.key] = select ? select.value : "";
     });
+    return meals;
 }
 
-function attachDragAndDropToPlanCells() {
-    document.querySelectorAll(".plan-input-cell").forEach(cell => {
-        const handle = cell.querySelector(".plan-drag-handle");
-        if (!handle) return;
-
-        handle.addEventListener("dragstart", handlePlanCellDragStart);
-        handle.addEventListener("dragend", handlePlanCellDragEnd);
-        handle.addEventListener("click", () => handlePlanCellTap(cell));
-
-        cell.addEventListener("dragover", handlePlanCellDragOver);
-        cell.addEventListener("dragenter", handlePlanCellDragEnter);
-        cell.addEventListener("dragleave", handlePlanCellDragLeave);
-        cell.addEventListener("drop", handlePlanCellDrop);
+window.setSelectedDay = function(day) {
+    selectedDay = day;
+    document.querySelectorAll(".plan-day-header").forEach(header => {
+        header.classList.toggle("is-active", header.dataset.day === day);
     });
+    renderDayDetail(day);
+};
 
-    refreshPlanCellStates();
+window.changeSelectedDay = function(direction) {
+    const currentIndex = WEEK_DAYS.indexOf(selectedDay);
+    const newIndex = (currentIndex + direction + WEEK_DAYS.length) % WEEK_DAYS.length;
+    setSelectedDay(WEEK_DAYS[newIndex]);
+};
+
+function renderDayDetail(day) {
+    const panel = document.getElementById("day-detail-panel");
+    if (!panel) return;
+
+    const mealsForDay = getMealsForDay(day);
+    let totalCalories = 0;
+
+    const mealCardsHtml = MEAL_ROWS.map(meal => {
+        const recipe = getRecipeById(mealsForDay[meal.key]);
+        if (recipe) totalCalories += Number(recipe.calories) || 0;
+
+        return `
+            <div class="day-detail-meal-card">
+                <div class="day-detail-meal-label">${meal.label}</div>
+                <div class="day-detail-meal-value">
+                    ${recipe ? `<a href="/recipeInstructions.html?id=${recipe.id}" class="day-detail-link">${recipe.name}</a>` : "Noch nichts gewählt"}
+                </div>
+                <div class="day-detail-meal-calories">${recipe ? `${recipe.calories} kcal` : "–"}</div>
+            </div>
+        `;
+    }).join("");
+
+    const remaining = DAILY_CALORIE_LIMIT - totalCalories;
+
+    panel.innerHTML = `
+        <div class="day-detail-card">
+            <div class="day-detail-header">
+                <div class="day-detail-title-line">
+                    <button type="button" class="day-nav-button" onclick="changeSelectedDay(-1)" aria-label="Vorheriger Tag">‹</button>
+                    <div class="day-detail-title-inline">
+                        <span class="day-detail-title-prefix">Dein Tagesplan für</span>
+                        <span class="day-detail-title-day">${day}</span>
+                    </div>
+                    <button type="button" class="day-nav-button" onclick="changeSelectedDay(1)" aria-label="Nächster Tag">›</button>
+                </div>
+                <div class="day-detail-stats">
+                    <div class="day-detail-stat"><span>Gesamt</span><strong>${totalCalories} kcal</strong></div>
+                    <div class="day-detail-stat"><span>Rest</span><strong class="${remaining < 0 ? "is-negative" : "is-positive"}">${remaining} kcal</strong></div>
+                </div>
+            </div>
+            <div class="day-detail-meals">${mealCardsHtml}</div>
+        </div>
+    `;
 }
 
-function moveMealEntry(sourceDay, sourceMealType, targetDay, targetMealType) {
-    const sourceSelect = document.querySelector(
-        `#meal-table select[data-day="${sourceDay}"][data-meal-type="${sourceMealType}"]`
-    );
+function getFilteredAndSortedRecipes() {
+    const searchTerm = (document.getElementById("recipe-search")?.value || "").trim().toLowerCase();
+    const sortValue = document.getElementById("recipe-sort")?.value || "name-asc";
 
-    const targetSelect = document.querySelector(
-        `#meal-table select[data-day="${targetDay}"][data-meal-type="${targetMealType}"]`
-    );
+    let filtered = [...recipes];
 
-    if (!sourceSelect || !targetSelect) return { moved: false, reason: "missing-select" };
-
-    if (sourceDay === targetDay && sourceMealType === targetMealType) {
-        return { moved: false, reason: "same-slot" };
+    if (searchTerm) {
+        filtered = filtered.filter(recipe => {
+            const searchable = [
+                recipe.name,
+                recipe.ingredients,
+                recipe.instructions,
+                ...(Array.isArray(recipe.mealTypes) ? recipe.mealTypes : [])
+            ].join(" ").toLowerCase();
+            return searchable.includes(searchTerm);
+        });
     }
 
-    const sourceValue = sourceSelect.value;
-    const targetValue = targetSelect.value;
-
-    if (!sourceValue) {
-        return { moved: false, reason: "empty-source" };
+    if (sortValue === "favorites") {
+        filtered = filtered.filter(isFavoriteRecipe);
+    } else if (["breakfast", "lunch", "dinner", "snack"].includes(sortValue)) {
+        filtered = filtered.filter(recipe => Array.isArray(recipe.mealTypes) && recipe.mealTypes.includes(sortValue));
+    } else if (sortValue === "name-desc") {
+        filtered.sort((a, b) => b.name.localeCompare(a.name, "de"));
+    } else {
+        filtered.sort((a, b) => a.name.localeCompare(b.name, "de"));
     }
 
-    const sourceCanGoToTarget = canRecipeBePlacedInMealType(sourceValue, targetMealType);
-    if (!sourceCanGoToTarget) {
-        return { moved: false, reason: "source-not-compatible" };
-    }
-
-    const targetCanGoToSource = canRecipeBePlacedInMealType(targetValue, sourceMealType);
-    if (!targetCanGoToSource) {
-        return { moved: false, reason: "target-not-compatible" };
-    }
-
-    sourceSelect.value = targetValue || "";
-    targetSelect.value = sourceValue || "";
-
-    calculateCalories();
-    refreshPlanCellStates();
-
-    return { moved: true };
+    return filtered;
 }
-
-function handlePlanCellTap(cell) {
-    const select = cell.querySelector("select");
-    if (!select) return;
-
-    const day = select.dataset.day;
-    const mealType = select.dataset.mealType;
-    const hasValue = !!select.value;
-
-    if (!tappedMealSource) {
-        if (!hasValue) return;
-
-        tappedMealSource = { day, mealType };
-        refreshPlanCellStates();
-        return;
-    }
-
-    const source = tappedMealSource;
-
-    if (source.day === day && source.mealType === mealType) {
-        tappedMealSource = null;
-        refreshPlanCellStates();
-        return;
-    }
-
-    const result = moveMealEntry(source.day, source.mealType, day, mealType);
-
-    if (!result.moved && result.reason === "source-not-compatible") {
-        alert("Dieses Rezept passt nicht in das gewählte Mahlzeitenfeld.");
-    }
-
-    if (!result.moved && result.reason === "target-not-compatible") {
-        alert("Die beiden Rezepte können nicht getauscht werden, weil eines davon nicht in das andere Mahlzeitenfeld passt.");
-    }
-
-    tappedMealSource = null;
-    refreshPlanCellStates();
-}
-
-function handlePlanCellDragStart(event) {
-    const handle = event.currentTarget;
-    const cell = handle.closest(".plan-input-cell");
-    const select = cell?.querySelector("select");
-
-    if (!cell || !select || !select.value) {
-        event.preventDefault();
-        return;
-    }
-
-    draggedMealSource = {
-        day: select.dataset.day,
-        mealType: select.dataset.mealType,
-        value: select.value
-    };
-
-    cell.classList.add("is-dragging");
-
-    if (event.dataTransfer) {
-        event.dataTransfer.effectAllowed = "move";
-        event.dataTransfer.setData("text/plain", JSON.stringify(draggedMealSource));
-    }
-}
-
-function handlePlanCellDragOver(event) {
-    if (!draggedMealSource) return;
-
-    const targetCell = event.currentTarget;
-    const targetDay = targetCell.dataset.day;
-    const targetMealType = targetCell.dataset.mealType;
-
-    const sourceSelect = document.querySelector(
-        `#meal-table select[data-day="${draggedMealSource.day}"][data-meal-type="${draggedMealSource.mealType}"]`
-    );
-
-    const targetSelect = document.querySelector(
-        `#meal-table select[data-day="${targetDay}"][data-meal-type="${targetMealType}"]`
-    );
-
-    if (!sourceSelect || !targetSelect) return;
-
-    const sourceValue = sourceSelect.value;
-    const targetValue = targetSelect.value;
-
-    const sourceCanGoToTarget = canRecipeBePlacedInMealType(sourceValue, targetMealType);
-    const targetCanGoToSource = canRecipeBePlacedInMealType(targetValue, draggedMealSource.mealType);
-
-    if (!sourceCanGoToTarget || !targetCanGoToSource) {
-        return;
-    }
-
-    event.preventDefault();
-
-    if (event.dataTransfer) {
-        event.dataTransfer.dropEffect = "move";
-    }
-}
-
-function handlePlanCellDragEnter(event) {
-    if (!draggedMealSource) return;
-
-    const targetCell = event.currentTarget;
-    const targetDay = targetCell.dataset.day;
-    const targetMealType = targetCell.dataset.mealType;
-
-    const sourceSelect = document.querySelector(
-        `#meal-table select[data-day="${draggedMealSource.day}"][data-meal-type="${draggedMealSource.mealType}"]`
-    );
-
-    const targetSelect = document.querySelector(
-        `#meal-table select[data-day="${targetDay}"][data-meal-type="${targetMealType}"]`
-    );
-
-    if (!sourceSelect || !targetSelect) return;
-
-    const sourceValue = sourceSelect.value;
-    const targetValue = targetSelect.value;
-
-    const sourceCanGoToTarget = canRecipeBePlacedInMealType(sourceValue, targetMealType);
-    const targetCanGoToSource = canRecipeBePlacedInMealType(targetValue, draggedMealSource.mealType);
-
-    if (!sourceCanGoToTarget || !targetCanGoToSource) {
-        return;
-    }
-
-    targetCell.classList.add("is-drop-target");
-}
-
-function handlePlanCellDragLeave(event) {
-    event.currentTarget.classList.remove("is-drop-target");
-}
-
-function handlePlanCellDrop(event) {
-    event.preventDefault();
-
-    const targetCell = event.currentTarget;
-    targetCell.classList.remove("is-drop-target");
-
-    if (!draggedMealSource) return;
-
-    const targetDay = targetCell.dataset.day;
-    const targetMealType = targetCell.dataset.mealType;
-
-    moveMealEntry(
-        draggedMealSource.day,
-        draggedMealSource.mealType,
-        targetDay,
-        targetMealType
-    );
-}
-
-function handlePlanCellDragEnd(event) {
-    document.querySelectorAll(".plan-input-cell").forEach(cell => {
-        cell.classList.remove("is-dragging", "is-drop-target");
-    });
-
-    draggedMealSource = null;
-}
-
-/* -------------------------------------- */
-/* REZEPTBUCH */
-/* -------------------------------------- */
 
 function populateRecipeList() {
     const recipeList = document.getElementById("recipe-list");
     if (!recipeList) return;
 
     recipeList.innerHTML = "";
-
     const visibleRecipes = getFilteredAndSortedRecipes();
 
     if (visibleRecipes.length === 0) {
-        recipeList.innerHTML = `
-            <li class="recipe-empty-state">
-                Keine passenden Rezepte gefunden.
-            </li>
-        `;
+        recipeList.innerHTML = `<li class="recipe-empty-state">Keine passenden Rezepte gefunden.</li>`;
         return;
     }
 
     visibleRecipes.forEach(recipe => {
         const li = document.createElement("li");
-        li.classList.add("recipe-item");
-        li.setAttribute("data-id", recipe.id);
+        li.className = "recipe-item";
 
-        const recipeMain = document.createElement("div");
-        recipeMain.classList.add("recipe-main");
+        const main = document.createElement("div");
+        main.className = "recipe-main";
 
-        const recipeName = document.createElement("a");
-        recipeName.href = `/recipeInstructions.html?id=${recipe.id}`;
-        recipeName.textContent = recipe.name;
-        recipeName.classList.add("recipe-link");
+        const link = document.createElement("a");
+        link.href = `/recipeInstructions.html?id=${recipe.id}`;
+        link.className = "recipe-link";
+        link.textContent = recipe.name;
 
-        const recipeMeta = document.createElement("div");
-        recipeMeta.classList.add("recipe-meta");
+        const meta = document.createElement("div");
+        meta.className = "recipe-meta";
 
-        const mealTypesWrapper = document.createElement("div");
-        mealTypesWrapper.classList.add("meal-tags");
+        const tags = document.createElement("div");
+        tags.className = "meal-tags";
+        (recipe.mealTypes || []).forEach(type => {
+            const tag = document.createElement("span");
+            tag.className = "meal-tag";
+            tag.textContent = getMealLabel(type);
+            tags.appendChild(tag);
+        });
 
-        if (Array.isArray(recipe.mealTypes)) {
-            recipe.mealTypes.forEach(type => {
-                const tag = document.createElement("span");
-                tag.classList.add("meal-tag");
+        const calories = document.createElement("span");
+        calories.className = "recipe-calories-badge";
+        calories.textContent = `${recipe.calories} kcal`;
 
-                if (type === "breakfast") tag.textContent = "Frühstück";
-                if (type === "lunch") tag.textContent = "Mittagessen";
-                if (type === "dinner") tag.textContent = "Abendessen";
-                if (type === "snack") tag.textContent = "Snack";
+        meta.appendChild(tags);
+        meta.appendChild(calories);
+        main.appendChild(link);
+        main.appendChild(meta);
 
-                mealTypesWrapper.appendChild(tag);
-            });
-        }
-
-        const recipeCalories = document.createElement("span");
-        recipeCalories.classList.add("recipe-calories-badge");
-        recipeCalories.textContent = `${recipe.calories} kcal`;
-
-        recipeMeta.appendChild(mealTypesWrapper);
-        recipeMeta.appendChild(recipeCalories);
-
-        recipeMain.appendChild(recipeName);
-        recipeMain.appendChild(recipeMeta);
-
-        const iconContainer = document.createElement("div");
-        iconContainer.classList.add("recipe-icons");
+        const icons = document.createElement("div");
+        icons.className = "recipe-icons";
 
         const favoriteButton = document.createElement("button");
-        favoriteButton.innerHTML = isFavoriteRecipe(recipe) ? "★" : "☆";
-        favoriteButton.classList.add("recipe-favorite-button");
-        favoriteButton.classList.toggle("is-favorite", isFavoriteRecipe(recipe));
         favoriteButton.type = "button";
+        favoriteButton.className = "recipe-favorite-button";
+        favoriteButton.classList.toggle("is-favorite", isFavoriteRecipe(recipe));
+        favoriteButton.innerHTML = isFavoriteRecipe(recipe) ? "★" : "☆";
         favoriteButton.title = isFavoriteRecipe(recipe) ? "Favorit entfernen" : "Als Favorit markieren";
-        favoriteButton.setAttribute("aria-label", favoriteButton.title);
         favoriteButton.onclick = () => toggleFavoriteRecipe(recipe.id);
 
         const editButton = document.createElement("button");
-        editButton.innerHTML = "✏️";
-        editButton.classList.add("edit-button");
         editButton.type = "button";
+        editButton.innerHTML = "✎";
         editButton.title = "Rezept bearbeiten";
-        editButton.onclick = () => {
-            window.location.href = `/recipeDetails.html?id=${recipe.id}`;
-        };
+        editButton.onclick = () => window.location.href = `/recipeDetails.html?id=${recipe.id}`;
 
         const deleteButton = document.createElement("button");
-        deleteButton.innerHTML = "🗑️";
-        deleteButton.classList.add("recipe-delete-btn");
         deleteButton.type = "button";
+        deleteButton.innerHTML = "🗑";
         deleteButton.title = "Rezept löschen";
         deleteButton.onclick = () => deleteRecipe(recipe.id);
 
-        iconContainer.appendChild(favoriteButton);
-        iconContainer.appendChild(editButton);
-        iconContainer.appendChild(deleteButton);
+        icons.appendChild(favoriteButton);
+        icons.appendChild(editButton);
+        icons.appendChild(deleteButton);
 
-        li.appendChild(recipeMain);
-        li.appendChild(iconContainer);
-
+        li.appendChild(main);
+        li.appendChild(icons);
         recipeList.appendChild(li);
     });
 }
 
-/* -------------------------------------- */
-/* REZEPT HINZUFÜGEN */
-/* -------------------------------------- */
-
-function toggleRecipeToolbar() {
-    const panel = document.getElementById("recipe-add-panel");
-    const toggleButton = document.querySelector(".recipe-toolbar-toggle-button");
-
-    if (!panel || !toggleButton) return;
-
-    const isHidden = panel.classList.contains("is-hidden");
-
-    panel.classList.toggle("is-hidden");
-
-    if (isHidden) {
-        toggleButton.textContent = "✕";
-        toggleButton.title = "Eingabe schließen";
-        toggleButton.setAttribute("aria-label", "Eingabe schließen");
-    } else {
-        toggleButton.textContent = "＋";
-        toggleButton.title = "Rezept hinzufügen";
-        toggleButton.setAttribute("aria-label", "Rezept hinzufügen");
-    }
+function getMealLabel(type) {
+    return MEAL_ROWS.find(meal => meal.key === type)?.label || type;
 }
 
-function togglePlanSaveToolbar() {
-    const panel = document.getElementById("plan-save-panel");
-    const toggleButton = document.querySelector(".toolbar-toggle-save-button");
+window.toggleRecipeToolbar = function() {
+    document.getElementById("recipe-add-panel")?.classList.toggle("is-hidden");
+};
 
-    if (!panel || !toggleButton) return;
+window.addRecipe = async function() {
+    const name = document.getElementById("recipe-name")?.value.trim();
+    const calories = document.getElementById("recipe-calories")?.value.trim();
+    const portions = document.getElementById("recipe-portions")?.value.trim();
+    const mealTypes = Array.from(document.querySelectorAll(".recipe-toolbar-checkboxes input:checked")).map(input => input.value);
 
-    const isHidden = panel.classList.contains("is-hidden");
-
-    panel.classList.toggle("is-hidden");
-
-    if (isHidden) {
-        toggleButton.textContent = "✕";
-        toggleButton.title = "Eingabe schließen";
-        toggleButton.setAttribute("aria-label", "Eingabe schließen");
-    } else {
-        toggleButton.textContent = "＋";
-        toggleButton.title = "Neuen Plan anlegen";
-        toggleButton.setAttribute("aria-label", "Neuen Plan anlegen");
-    }
-}
-
-function allowOnlyWholeNumbers(event) {
-    event.target.value = event.target.value.replace(/\D/g, "");
-}
-
-function addRecipe() {
-    const name = document.getElementById("recipe-name")?.value?.trim();
-    const caloriesRaw = document.getElementById("recipe-calories")?.value?.trim();
-    const portionsRaw = document.getElementById("recipe-portions")?.value?.trim();
-
-    const calories = parseInt(caloriesRaw, 10);
-    const portions = parseInt(portionsRaw, 10);
-
-    const mealTypes = Array.from(document.querySelectorAll(".recipe-checkboxes input:checked"))
-        .map(checkbox => checkbox.value);
-
-    const caloriesIsValid = /^\d+$/.test(caloriesRaw || "");
-    const portionsIsValid = /^\d+$/.test(portionsRaw || "") && portions > 0;
-
-    if (!name || !caloriesIsValid || !portionsIsValid || mealTypes.length === 0) {
-        alert("Bitte alle Felder korrekt ausfüllen, nur ganze Zahlen verwenden und mindestens eine Mahlzeit auswählen.");
+    if (!name || !calories || !portions || mealTypes.length === 0) {
+        showToast("Bitte Name, Kalorien, Portionen und mindestens eine Mahlzeit angeben.");
         return;
     }
-
-    fetch(`${API_URL}/recipes`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, calories, portions, mealTypes })
-    })
-    .then(response => response.json())
-    .then(() => {
-        console.log("✅ Rezept gespeichert");
-        loadRecipes();
-
-        const nameInput = document.getElementById("recipe-name");
-        const caloriesInput = document.getElementById("recipe-calories");
-        const portionsInput = document.getElementById("recipe-portions");
-        const panel = document.getElementById("recipe-add-panel");
-        const toggleButton = document.querySelector(".recipe-toolbar-toggle-button");
-
-        if (nameInput) nameInput.value = "";
-        if (caloriesInput) caloriesInput.value = "";
-        if (portionsInput) portionsInput.value = "";
-
-        document.querySelectorAll(".recipe-checkboxes input").forEach(cb => {
-            cb.checked = false;
-        });
-
-        if (panel) {
-            panel.classList.add("is-hidden");
-        }
-
-        if (toggleButton) {
-            toggleButton.textContent = "＋";
-            toggleButton.title = "Rezept hinzufügen";
-            toggleButton.setAttribute("aria-label", "Rezept hinzufügen");
-        }
-    })
-    .catch(error => console.error("❌ Fehler beim Speichern:", error));
-}
-
-/* -------------------------------------- */
-/* REZEPT LÖSCHEN */
-/* -------------------------------------- */
-
-function deleteRecipe(recipeId) {
-    if (!confirm("Möchtest du dieses Rezept wirklich löschen?")) return;
-
-    fetch(`${API_URL}/recipes/${recipeId}`, { method: "DELETE" })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`Fehler beim Löschen: ${response.status}`);
-            }
-
-            console.log(`✅ Rezept mit ID ${recipeId} gelöscht`);
-            recipes = recipes.filter(recipe => recipe.id !== recipeId);
-
-            populateRecipeList();
-            populateMealTable();
-            calculateCalories();
-            tappedMealSource = null;
-            draggedMealSource = null;
-            refreshPlanCellStates();
-        })
-        .catch(error => console.error("❌ Fehler beim Löschen:", error));
-}
-
-/* -------------------------------------- */
-/* WOCHENPLAN SPEICHERN */
-/* -------------------------------------- */
-
-function saveMealPlan() {
-    const name = document.getElementById("plan-name")?.value?.trim();
-    if (!name) {
-        alert("Bitte einen Namen für den Plan eingeben!");
-        return;
-    }
-
-    const planData = WEEK_DAYS.map(day => {
-        const meals = {};
-
-        MEAL_ROWS.forEach(meal => {
-            const select = document.querySelector(
-                `#meal-table select[data-day="${day}"][data-meal-type="${meal.key}"]`
-            );
-            meals[meal.key] = select ? (select.value || null) : null;
-        });
-
-        return { day, meals };
-    });
-
-    fetch(`${API_URL}/meal_plans`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, data: planData })
-    })
-    .then(response => response.json())
-    .then((savedPlan) => {
-        console.log("✅ Wochenplan gespeichert");
-        loadMealPlans();
-
-        activeMealPlanId = savedPlan.id;
-        activeMealPlanName = savedPlan.name;
-
-        const currentPlanName = document.getElementById("current-plan-name");
-        if (currentPlanName) {
-            currentPlanName.textContent = `Aktueller Wochenplan: ${savedPlan.name}`;
-        }
-
-        const planNameInput = document.getElementById("plan-name");
-        if (planNameInput) {
-            planNameInput.value = "";
-        }
-
-        const panel = document.getElementById("plan-save-panel");
-        const toggleButton = document.querySelector(".toolbar-toggle-save-button");
-
-        if (panel) {
-            panel.classList.add("is-hidden");
-        }
-
-        if (toggleButton) {
-            toggleButton.textContent = "＋";
-            toggleButton.title = "Neuen Plan anlegen";
-            toggleButton.setAttribute("aria-label", "Neuen Plan anlegen");
-        }
-    })
-    .catch(error => console.error("❌ Fehler beim Speichern des Plans:", error));
-}
-
-/* -------------------------------------- */
-/* WOCHENPLAN LÖSCHEN */
-/* -------------------------------------- */
-
-function deleteMealPlan() {
-    if (!activeMealPlanId) {
-        alert("Bitte zuerst einen Wochenplan laden.");
-        return;
-    }
-
-    if (!confirm("Möchtest du diesen Wochenplan wirklich löschen?")) return;
-
-    fetch(`${API_URL}/meal_plans/${activeMealPlanId}`, { method: "DELETE" })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`Fehler beim Löschen: ${response.status}`);
-            }
-
-            console.log(`✅ Wochenplan mit ID ${activeMealPlanId} gelöscht`);
-
-            activeMealPlanId = null;
-            activeMealPlanName = "";
-
-            loadMealPlans();
-
-            const currentPlanName = document.getElementById("current-plan-name");
-            if (currentPlanName) {
-                currentPlanName.textContent = "Aktueller Wochenplan: keiner";
-            }
-
-            document.querySelectorAll(`#meal-table select`).forEach(select => {
-                select.value = "";
-            });
-
-            calculateCalories();
-        })
-        .catch(error => console.error("❌ Fehler beim Löschen des Plans:", error));
-}
-
-/* -------------------------------------- */
-/* WOCHENPLAN AKTUALISIEREN */
-/* -------------------------------------- */
-
-function updateMealPlan() {
-    if (!activeMealPlanId) {
-        alert("Bitte zuerst einen Wochenplan laden.");
-        return;
-    }
-
-    if (!confirm("Möchtest du diesen Wochenplan wirklich überschreiben?")) return;
-
-    const planData = WEEK_DAYS.map(day => {
-        const meals = {};
-
-        MEAL_ROWS.forEach(meal => {
-            const select = document.querySelector(
-                `#meal-table select[data-day="${day}"][data-meal-type="${meal.key}"]`
-            );
-            meals[meal.key] = select ? (select.value || null) : null;
-        });
-
-        return { day, meals };
-    });
-
-    fetch(`${API_URL}/meal_plans/${activeMealPlanId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: activeMealPlanName, data: planData })
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`Fehler beim Aktualisieren: ${response.status}`);
-        }
-
-        console.log(`✅ Wochenplan mit ID ${activeMealPlanId} überschrieben`);
-        loadMealPlans();
-
-        const currentPlanName = document.getElementById("current-plan-name");
-        if (currentPlanName) {
-            currentPlanName.textContent = `Aktueller Wochenplan: ${activeMealPlanName}`;
-        }
-    })
-    .catch(error => console.error("❌ Fehler beim Aktualisieren des Plans:", error));
-}
-
-/* -------------------------------------- */
-/* ALLE WOCHENPLÄNE LADEN */
-/* -------------------------------------- */
-
-function loadMealPlans() {
-    fetch(`${API_URL}/meal_plans`)
-        .then(response => response.json())
-        .then((plans) => {
-            console.log("✅ Wochenpläne geladen:", plans);
-
-            const planList = document.getElementById("plan-list");
-            if (!planList) return;
-
-            planList.innerHTML = '<option value="">Plan laden</option>';
-
-            plans.forEach(plan => {
-                const option = document.createElement("option");
-                option.value = plan.id;
-                option.textContent = plan.name;
-                planList.appendChild(option);
-            });
-        })
-        .catch(error => console.error("❌ Fehler beim Laden der Pläne:", error));
-}
-
-/* -------------------------------------- */
-/* WOCHENPLAN LADEN */
-/* -------------------------------------- */
-
-function loadMealPlan() {
-    const planId = document.getElementById("plan-list")?.value;
-    if (!planId) {
-        alert("Bitte einen Plan auswählen!");
-        return;
-    }
-
-    fetch(`${API_URL}/meal_plans/${planId}`)
-        .then(response => response.json())
-        .then((plan) => {
-            console.log("✅ Plan geladen:", plan);
-
-            if (!plan || !Array.isArray(plan.data)) return;
-
-            plan.data.forEach(dayEntry => {
-                const day = dayEntry.day;
-
-                Object.entries(dayEntry.meals || {}).forEach(([mealType, recipeId]) => {
-                    const select = document.querySelector(
-                        `#meal-table select[data-day="${day}"][data-meal-type="${mealType}"]`
-                    );
-
-                    if (select) {
-                        select.value = recipeId || "";
-                    }
-                });
-            });
-
-            activeMealPlanId = plan.id;
-            activeMealPlanName = plan.name;
-
-            calculateCalories();
-
-refreshPlanCellStates();
-const currentPlanName = document.getElementById("current-plan-name");
-            if (currentPlanName) {
-                currentPlanName.textContent = `Aktueller Wochenplan: ${plan.name}`;
-            }
-        })
-        .catch(error => console.error("❌ Fehler beim Laden des Plans:", error));
-}
-
-function changeSelectedDay(direction) {
-    const index = WEEK_DAYS.indexOf(selectedDay);
-    if (index === -1) return;
-
-    let newIndex = index + direction;
-
-    if (newIndex < 0) {
-        newIndex = WEEK_DAYS.length - 1;
-    }
-
-    if (newIndex >= WEEK_DAYS.length) {
-        newIndex = 0;
-    }
-
-    selectedDay = WEEK_DAYS[newIndex];
-
-    updateSelectedDayView();
-}
-
-function getIngredientsFromText(ingredientsText) {
-    if (!ingredientsText) return [];
-
-    return ingredientsText
-        .split("\n")
-        .map(item => item.trim())
-        .filter(item => item.length > 0);
-}
-
-function buildWeeklyShoppingList() {
-    const selectedRecipeIds = new Set();
-
-    document.querySelectorAll("#meal-table select").forEach(select => {
-        if (select.value) {
-            selectedRecipeIds.add(String(select.value));
-        }
-    });
-
-    const selectedRecipes = recipes.filter(recipe =>
-        selectedRecipeIds.has(String(recipe.id))
-    );
-
-    const ingredientCounts = new Map();
-
-    selectedRecipes.forEach(recipe => {
-        const ingredients = getIngredientsFromText(recipe.ingredients);
-
-        ingredients.forEach(ingredient => {
-            const normalizedIngredient = ingredient.toLowerCase();
-
-            if (!ingredientCounts.has(normalizedIngredient)) {
-                ingredientCounts.set(normalizedIngredient, {
-                    label: ingredient,
-                    count: 1
-                });
-            } else {
-                ingredientCounts.get(normalizedIngredient).count += 1;
-            }
-        });
-    });
-
-    const shoppingItems = Array.from(ingredientCounts.values())
-        .map(item => item.count > 1 ? `${item.label} (${item.count}x)` : item.label)
-        .sort((a, b) => a.localeCompare(b, "de"));
-
-    return shoppingItems;
-}
-
-async function shareWeeklyShoppingList() {
-    const shoppingItems = buildWeeklyShoppingList();
-
-    if (shoppingItems.length === 0) {
-        alert("Für den aktuellen Wochenplan wurden keine Zutaten gefunden.");
-        return;
-    }
-
-    const currentPlanText = activeMealPlanName
-        ? `Einkaufsliste: ${activeMealPlanName}`
-        : "Einkaufsliste aus dem Wochenplan";
-
-    const shoppingListText = `${currentPlanText}\n\n${shoppingItems.map(item => `• ${item}`).join("\n")}`;
-
-    if (navigator.share) {
-        try {
-            await navigator.share({
-                title: "Einkaufsliste",
-                text: shoppingListText
-            });
-        } catch (error) {
-            console.log("Teilen wurde abgebrochen oder ist fehlgeschlagen:", error);
-        }
-    } else {
-        try {
-            await navigator.clipboard.writeText(shoppingListText);
-            alert("Die Einkaufsliste wurde in die Zwischenablage kopiert.");
-        } catch (error) {
-            console.error("Fehler beim Kopieren der Einkaufsliste:", error);
-            alert("Die Einkaufsliste konnte nicht geteilt oder kopiert werden.");
-        }
-    }
-}
-
-function applyPendingRecipePlanSelection() {
-    const pendingSelectionRaw = localStorage.getItem("pendingRecipePlanSelection");
-    if (!pendingSelectionRaw) return;
-
-    let pendingSelection;
 
     try {
-        pendingSelection = JSON.parse(pendingSelectionRaw);
+        const recipe = await apiFetch(`${API_URL}/recipes`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, calories, portions, mealTypes, ingredients: "", instructions: "" })
+        });
+        window.location.href = `/recipeDetails.html?id=${recipe.id}`;
     } catch (error) {
-        localStorage.removeItem("pendingRecipePlanSelection");
+        console.error(error);
+        showToast("Rezept konnte nicht gespeichert werden.");
+    }
+};
+
+window.deleteRecipe = async function(recipeId) {
+    if (!confirm("Dieses Rezept wirklich löschen?")) return;
+    try {
+        await apiFetch(`${API_URL}/recipes/${recipeId}`, { method: "DELETE" });
+        recipes = recipes.filter(recipe => String(recipe.id) !== String(recipeId));
+        populateMealTable();
+        populateRecipeList();
+        renderDayDetail(selectedDay);
+        showToast("Rezept gelöscht.");
+    } catch (error) {
+        console.error(error);
+        showToast("Rezept konnte nicht gelöscht werden.");
+    }
+};
+
+function collectMealPlanData() {
+    const data = [];
+    document.querySelectorAll("#meal-table select").forEach(select => {
+        data.push({ day: select.dataset.day, mealType: select.dataset.mealType, recipeId: select.value });
+    });
+    return data;
+}
+
+function applyMealPlanData(data = []) {
+    data.forEach(entry => {
+        const select = document.querySelector(`#meal-table select[data-day="${entry.day}"][data-meal-type="${entry.mealType}"]`);
+        if (select) select.value = entry.recipeId || "";
+    });
+    calculateCalories();
+    renderDayDetail(selectedDay);
+}
+
+window.togglePlanSaveToolbar = function() {
+    document.getElementById("plan-save-panel")?.classList.toggle("is-hidden");
+};
+
+window.saveMealPlan = async function() {
+    const name = document.getElementById("plan-name")?.value.trim();
+    if (!name) {
+        showToast("Bitte einen Namen für den Wochenplan angeben.");
         return;
     }
 
-    const { recipeId, day, mealType } = pendingSelection;
+    try {
+        const plan = await apiFetch(`${API_URL}/meal_plans`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, data: collectMealPlanData() })
+        });
+        activeMealPlanId = plan.id;
+        activeMealPlanName = plan.name;
+        document.getElementById("current-plan-name").textContent = `Aktueller Wochenplan: ${plan.name}`;
+        document.getElementById("plan-name").value = "";
+        document.getElementById("plan-save-panel")?.classList.add("is-hidden");
+        await loadMealPlans();
+        showToast("Wochenplan gespeichert.");
+    } catch (error) {
+        console.error(error);
+        showToast("Wochenplan konnte nicht gespeichert werden.");
+    }
+};
 
-    const select = document.querySelector(
-        `#meal-table select[data-day="${day}"][data-meal-type="${mealType}"]`
-    );
+window.loadMealPlan = async function(planId) {
+    try {
+        const plan = await apiFetch(`${API_URL}/meal_plans/${planId}`);
+        activeMealPlanId = plan.id;
+        activeMealPlanName = plan.name;
+        document.getElementById("current-plan-name").textContent = `Aktueller Wochenplan: ${plan.name}`;
+        applyMealPlanData(plan.data);
+        renderMealPlanSelect();
+        showToast("Wochenplan geladen.");
+    } catch (error) {
+        console.error(error);
+        showToast("Wochenplan konnte nicht geladen werden.");
+    }
+};
 
-    if (!select) return;
-
-    select.value = recipeId;
-    localStorage.removeItem("pendingRecipePlanSelection");
-
-    calculateCalories();
-    refreshPlanCellStates();
-
-    if (typeof setSelectedDay === "function") {
-        setSelectedDay(day);
+window.updateMealPlan = async function() {
+    if (!activeMealPlanId) {
+        showToast("Bitte zuerst einen Wochenplan laden oder neu speichern.");
+        return;
     }
 
-    alert("Rezept wurde in den Wochenplan übernommen. Bitte den Wochenplan bei Bedarf speichern oder aktualisieren.");
+    try {
+        await apiFetch(`${API_URL}/meal_plans/${activeMealPlanId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: activeMealPlanName, data: collectMealPlanData() })
+        });
+        showToast("Wochenplan aktualisiert.");
+    } catch (error) {
+        console.error(error);
+        showToast("Wochenplan konnte nicht aktualisiert werden.");
+    }
+};
+
+window.deleteMealPlan = async function() {
+    if (!activeMealPlanId) {
+        showToast("Es ist kein Wochenplan geladen.");
+        return;
+    }
+    if (!confirm("Diesen Wochenplan wirklich löschen?")) return;
+
+    try {
+        await apiFetch(`${API_URL}/meal_plans/${activeMealPlanId}`, { method: "DELETE" });
+        activeMealPlanId = null;
+        activeMealPlanName = "";
+        document.getElementById("current-plan-name").textContent = "Aktueller Wochenplan: keiner";
+        await loadMealPlans();
+        showToast("Wochenplan gelöscht.");
+    } catch (error) {
+        console.error(error);
+        showToast("Wochenplan konnte nicht gelöscht werden.");
+    }
+};
+
+function getIngredientsFromText(text) {
+    return (text || "").split("\n").map(item => item.trim()).filter(Boolean);
 }
 
-/* -------------------------------------- */
-/* INITIALISIERUNG */
-/* -------------------------------------- */
+window.shareWeeklyShoppingList = async function() {
+    const selectedIds = new Set();
+    document.querySelectorAll("#meal-table select").forEach(select => {
+        if (select.value) selectedIds.add(String(select.value));
+    });
 
-document.addEventListener("DOMContentLoaded", () => {
+    const items = [];
+    selectedIds.forEach(id => {
+        const recipe = getRecipeById(id);
+        if (recipe) items.push(...getIngredientsFromText(recipe.ingredients));
+    });
+
+    if (items.length === 0) {
+        showToast("Für den Wochenplan wurden keine Zutaten gefunden.");
+        return;
+    }
+
+    const text = `Einkaufsliste\n\n${items.map(item => `• ${item}`).join("\n")}`;
+
+    if (navigator.share) {
+        try { await navigator.share({ title: "Einkaufsliste", text }); }
+        catch (error) { console.log("Teilen abgebrochen", error); }
+    } else {
+        await navigator.clipboard.writeText(text);
+        showToast("Einkaufsliste wurde kopiert.");
+    }
+};
+
+document.addEventListener("DOMContentLoaded", async () => {
     initBurgerMenu();
+    await Promise.all([loadMealPlans(), loadRecipes()]);
 
-    loadMealPlans();
-    loadRecipes();
-
-setTimeout(applyPendingRecipePlanSelection, 700);
-
-    const planNameInput = document.getElementById("plan-name");
-    if (planNameInput) {
-        planNameInput.value = "";
-    }
-
-    const currentPlanName = document.getElementById("current-plan-name");
-    if (currentPlanName && !currentPlanName.textContent.trim()) {
-        currentPlanName.textContent = "Kein Plan geladen";
-    }
-
-    const recipeCaloriesInput = document.getElementById("recipe-calories");
-    if (recipeCaloriesInput) {
-        recipeCaloriesInput.addEventListener("input", allowOnlyWholeNumbers);
-    }
-
-    const recipeSearchInput = document.getElementById("recipe-search");
-    if (recipeSearchInput) {
-        recipeSearchInput.addEventListener("input", populateRecipeList);
-    }
-
-    const recipeSortSelect = document.getElementById("recipe-sort");
-    if (recipeSortSelect) {
-        recipeSortSelect.addEventListener("change", populateRecipeList);
-    }
-
-    const planListSelect = document.getElementById("plan-list");
-    if (planListSelect) {
-        planListSelect.addEventListener("change", () => {
-            if (planListSelect.value) {
-                loadMealPlan();
-            }
-        });
-    }
+    document.getElementById("recipe-search")?.addEventListener("input", populateRecipeList);
+    document.getElementById("recipe-sort")?.addEventListener("change", populateRecipeList);
 });
 
 if ("serviceWorker" in navigator) {
-    window.addEventListener("load", function () {
-        navigator.serviceWorker.register("/service-worker.js")
-            .then(() => console.log("Service Worker registriert"))
-            .catch(error => console.error("Service Worker Fehler:", error));
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/service-worker.js").catch(console.error);
     });
 }

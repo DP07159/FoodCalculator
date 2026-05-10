@@ -10,79 +10,44 @@
 </head>
 <body>
     <div class="container">
-
-        <div class="burger-menu">
-            <button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen">
-                ☰
-            </button>
-
+        <nav class="burger-menu">
+            <button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen">☰</button>
             <div id="burger-dropdown" class="burger-dropdown is-hidden">
                 <a href="/index.html">Startseite</a>
                 <a href="/recipeCreate.html">Neues Rezept</a>
                 <a href="/index.html#recipe-book">Rezeptbuch</a>
                 <a href="/index.html#meal-plan">Wochenplan</a>
             </div>
-        </div>
+        </nav>
 
         <main class="page-content recipe-instructions-page">
-
             <header class="header-container recipe-hero">
-    <div class="recipe-info">
-        <p class="recipe-kicker">Rezept</p>
-        <h2 id="display-recipe-name"></h2>
-    </div>
-
-    <div class="recipe-header-actions">
-        <div class="recipe-stat">🍽️ <span id="display-recipe-portions"></span></div>
-        <div class="recipe-stat">🍫 <span id="display-recipe-calories"></span></div>
-
-        <button
-            type="button"
-            id="favorite-recipe-button"
-            class="header-icon-button favorite-header-button"
-            title="Als Favorit markieren"
-            aria-label="Als Favorit markieren">
-            ☆
-        </button>
-
-        <button
-            type="button"
-            id="share-ingredients-button"
-            class="header-icon-button"
-            title="Zutatenliste teilen"
-            aria-label="Zutatenliste teilen">
-            ↗
-        </button>
-
-        <button
-            type="button"
-            id="edit-recipe-button"
-            class="header-icon-button"
-            title="Rezept bearbeiten"
-            aria-label="Rezept bearbeiten">
-            ✎
-        </button>
-    </div>
-</header>
+                <div class="recipe-info">
+                    <p class="recipe-kicker">Rezept</p>
+                    <h1 id="display-recipe-name"></h1>
+                </div>
+                <div class="recipe-header-actions">
+                    <div class="recipe-stat">🍽️ <span id="display-recipe-portions"></span></div>
+                    <div class="recipe-stat">🍫 <span id="display-recipe-calories"></span></div>
+                    <button type="button" id="favorite-recipe-button" class="header-icon-button favorite-header-button" title="Als Favorit markieren" aria-label="Als Favorit markieren">☆</button>
+                    <button type="button" id="share-ingredients-button" class="header-icon-button" title="Zutatenliste teilen" aria-label="Zutatenliste teilen">↗</button>
+                    <button type="button" id="edit-recipe-button" class="header-icon-button" title="Rezept bearbeiten" aria-label="Rezept bearbeiten">✎</button>
+                </div>
+            </header>
 
             <section class="content-section ingredients-content-section">
-                <div class="ingredients-section-header">
-                    <h3>Zutaten</h3>
-                </div>
-
+                <h2>Zutaten</h2>
                 <ul id="display-recipe-ingredients"></ul>
             </section>
 
             <section class="content-section instructions-content-section">
-                <h3>Anleitung</h3>
+                <h2>Anleitung</h2>
                 <div id="display-recipe-instructions"></div>
             </section>
-
         </main>
     </div>
 
     <div id="app-toast" class="app-toast is-hidden"></div>
-
     <script src="navigation.js"></script>
     <script src="recipeInstructions.js"></script>
 </body>

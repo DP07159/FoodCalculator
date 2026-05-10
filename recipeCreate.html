@@ -5,24 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Neues Rezept</title>
     <link rel="stylesheet" href="style.css">
-<link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#f5f7fb">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#f5f7fb">
 </head>
 <body>
     <div class="container">
-
-        <div class="burger-menu">
-            <button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen">
-                ☰
-            </button>
-
+        <nav class="burger-menu">
+            <button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen">☰</button>
             <div id="burger-dropdown" class="burger-dropdown is-hidden">
                 <a href="/index.html">Startseite</a>
                 <a href="/recipeCreate.html">Neues Rezept</a>
                 <a href="/index.html#recipe-book">Rezeptbuch</a>
                 <a href="/index.html#meal-plan">Wochenplan</a>
             </div>
-        </div>
+        </nav>
 
         <header class="page-header">
             <h1>Neues Rezept</h1>
@@ -30,7 +26,6 @@
 
         <main class="page-content">
             <form id="recipe-form" class="section-card">
-
                 <div class="form-section">
                     <label for="recipe-name">Name</label>
                     <input type="text" id="recipe-name" name="recipe-name">
@@ -39,18 +34,16 @@
                 <div class="recipe-inline-fields">
                     <div class="form-section">
                         <label for="recipe-calories">Kalorien</label>
-                        <input type="number" id="recipe-calories" name="recipe-calories">
+                        <input type="number" id="recipe-calories" name="recipe-calories" min="1" step="1">
                     </div>
-
                     <div class="form-section">
                         <label for="recipe-portions">Portionen</label>
-                        <input type="number" id="recipe-portions" name="recipe-portions">
+                        <input type="number" id="recipe-portions" name="recipe-portions" min="1" step="1">
                     </div>
                 </div>
 
                 <div class="form-section">
                     <label>Mahlzeiten</label>
-
                     <div class="recipe-checkboxes recipe-create-checkboxes">
                         <label><input type="checkbox" value="breakfast"> Frühstück</label>
                         <label><input type="checkbox" value="lunch"> Mittagessen</label>
@@ -64,7 +57,6 @@
                         <label for="recipe-ingredients">Zutaten</label>
                         <textarea id="recipe-ingredients" name="recipe-ingredients" rows="1"></textarea>
                     </div>
-
                     <div class="form-section">
                         <label for="recipe-instructions">Anleitung</label>
                         <textarea id="recipe-instructions" name="recipe-instructions" rows="1"></textarea>
@@ -74,11 +66,11 @@
                 <div class="form-actions">
                     <button type="button" onclick="createRecipe()">Rezept speichern</button>
                 </div>
-
             </form>
         </main>
     </div>
 
+    <div id="app-toast" class="app-toast is-hidden"></div>
     <script src="navigation.js"></script>
     <script src="recipeCreate.js"></script>
 </body>

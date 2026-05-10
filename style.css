@@ -2074,3 +2074,29 @@ button:active {
         font-size: 20px;
     }
 }
+
+/* -------------------------------------- */
+/* FAVORITEN */
+/* -------------------------------------- */
+
+.recipe-favorite-button,
+.favorite-header-button {
+    color: #9a6a00;
+}
+
+.recipe-favorite-button.is-favorite,
+.favorite-header-button.is-favorite {
+    color: #d49a00;
+    background: #fff7df;
+    border-color: #f1d78a;
+}
+
+.recipe-icons .recipe-favorite-button {
+    font-size: 20px;
+}
+
+.recipe-icons .recipe-favorite-button:hover,
+.favorite-header-button:hover {
+    background: #fff7df;
+    border-color: #f1d78a;
+}

@@ -17,6 +17,39 @@ function getRecipeById(recipeId) {
     return recipes.find(recipe => String(recipe.id) === String(recipeId));
 }
 
+function isFavoriteRecipe(recipe) {
+    return Number(recipe.is_favorite) === 1;
+}
+
+async function toggleFavoriteRecipe(recipeId) {
+    const recipe = recipes.find(item => String(item.id) === String(recipeId));
+
+    if (!recipe) return;
+
+    const newFavoriteValue = Number(recipe.is_favorite) === 1 ? 0 : 1;
+
+    try {
+        const response = await fetch(`${API_URL}/recipes/${recipeId}/favorite`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                is_favorite: newFavoriteValue
+            })
+        });
+
+        if (!response.ok) {
+            alert("Favoritenstatus konnte nicht gespeichert werden.");
+            return;
+        }
+
+        recipe.is_favorite = newFavoriteValue;
+        populateRecipeList();
+    } catch (error) {
+        console.error("Fehler beim Speichern des Favoritenstatus:", error);
+        alert("Favoritenstatus konnte nicht gespeichert werden.");
+    }
+}
+
 function getMealsForDay(day) {
     const meals = {};
 
@@ -90,6 +123,8 @@ function getFilteredAndSortedRecipes() {
 
     if (sortValue === "favorites") {
     filteredRecipes = filteredRecipes.filter(recipe => isFavoriteRecipe(recipe.id));
+} else if (sortValue === "favorites") {
+    filteredRecipes = filteredRecipes.filter(recipe => isFavoriteRecipe(recipe));
 } else if (["breakfast", "lunch", "dinner", "snack"].includes(sortValue)) {
     filteredRecipes = filteredRecipes.filter(recipe =>
         Array.isArray(recipe.mealTypes) && recipe.mealTypes.includes(sortValue)
@@ -718,6 +753,15 @@ function populateRecipeList() {
 iconContainer.classList.add("recipe-icons");
 
 const favoriteButton = document.createElement("button");
+favoriteButton.innerHTML = isFavoriteRecipe(recipe) ? "★" : "☆";
+favoriteButton.classList.add("recipe-favorite-button");
+favoriteButton.classList.toggle("is-favorite", isFavoriteRecipe(recipe));
+favoriteButton.type = "button";
+favoriteButton.title = isFavoriteRecipe(recipe) ? "Favorit entfernen" : "Als Favorit markieren";
+favoriteButton.setAttribute("aria-label", favoriteButton.title);
+favoriteButton.onclick = () => toggleFavoriteRecipe(recipe.id);
+
+const editButton = document.createElement("button");
 favoriteButton.innerHTML = isFavoriteRecipe(recipe.id) ? "★" : "☆";
 favoriteButton.classList.add("recipe-favorite-button");
 favoriteButton.classList.toggle("is-favorite", isFavoriteRecipe(recipe.id));
@@ -743,6 +787,7 @@ const editButton = document.createElement("button");
         deleteButton.onclick = () => deleteRecipe(recipe.id);
 
         iconContainer.appendChild(favoriteButton);
+iconContainer.appendChild(favoriteButton);
 iconContainer.appendChild(editButton);
 iconContainer.appendChild(deleteButton);
 

@@ -28,6 +28,50 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+function isFavoriteRecipe(recipe) {
+    return Number(recipe.is_favorite) === 1;
+}
+
+function updateFavoriteButton() {
+    const favoriteButton = document.getElementById("favorite-recipe-button");
+
+    if (!favoriteButton || !currentRecipe) return;
+
+    const isFavorite = isFavoriteRecipe(currentRecipe);
+
+    favoriteButton.textContent = isFavorite ? "★" : "☆";
+    favoriteButton.classList.toggle("is-favorite", isFavorite);
+    favoriteButton.title = isFavorite ? "Favorit entfernen" : "Als Favorit markieren";
+    favoriteButton.setAttribute("aria-label", favoriteButton.title);
+}
+
+async function toggleCurrentRecipeFavorite() {
+    if (!currentRecipe) return;
+
+    const newFavoriteValue = Number(currentRecipe.is_favorite) === 1 ? 0 : 1;
+
+    try {
+        const response = await fetch(`${API_URL}/recipes/${currentRecipe.id}/favorite`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                is_favorite: newFavoriteValue
+            })
+        });
+
+        if (!response.ok) {
+            alert("Favoritenstatus konnte nicht gespeichert werden.");
+            return;
+        }
+
+        currentRecipe.is_favorite = newFavoriteValue;
+        updateFavoriteButton();
+    } catch (error) {
+        console.error("Fehler beim Speichern des Favoritenstatus:", error);
+        alert("Favoritenstatus konnte nicht gespeichert werden.");
+    }
+}
+
 function getFavoriteRecipeIds() {
     try {
         return JSON.parse(localStorage.getItem("favoriteRecipeIds")) || [];
@@ -176,6 +220,14 @@ async function shareIngredientsList() {
             showToast("Zutatenliste konnte nicht kopiert werden.");
         }
     }
+}
+
+function setupFavoriteRecipeButton() {
+    const favoriteButton = document.getElementById("favorite-recipe-button");
+
+    if (!favoriteButton) return;
+
+    favoriteButton.addEventListener("click", toggleCurrentRecipeFavorite);
 }
 
 function setupShareIngredientsButton() {

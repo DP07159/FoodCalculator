@@ -9,26 +9,36 @@
     <meta name="theme-color" content="#f5f7fb">
 </head>
 <body>
+    <header class="app-header">
+        <button id="burger-button"
+                class="burger-button"
+                type="button"
+                aria-label="Menü öffnen">
+            ☰
+        </button>
+
+        <div class="app-header-title">
+            Food Calculator
+        </div>
+
+        <div id="burger-dropdown" class="burger-dropdown is-hidden">
+            <a href="/index.html">Startseite</a>
+            <a href="/recipeCreate.html">Neues Rezept</a>
+            <a href="/index.html#recipe-book">Rezeptbuch</a>
+            <a href="/index.html#meal-plan">Wochenplan</a>
+        </div>
+    </header>
+
     <div class="container">
-        <header class="app-header">
-    <button id="burger-button"
-            class="burger-button"
-            type="button"
-            aria-label="Menü öffnen">
-        ☰
-    </button>
-
-    <div class="app-header-title">
-        Food Calculator
-    </div>
-
-    <div id="burger-dropdown" class="burger-dropdown is-hidden">
-        <a href="/index.html">Startseite</a>
-        <a href="/recipeCreate.html">Neues Rezept</a>
-        <a href="/index.html#recipe-book">Rezeptbuch</a>
-        <a href="/index.html#meal-plan">Wochenplan</a>
-    </div>
-</header>
+        <nav class="burger-menu">
+            <button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen">☰</button>
+            <div id="burger-dropdown" class="burger-dropdown is-hidden">
+                <a href="/index.html">Startseite</a>
+                <a href="/recipeCreate.html">Neues Rezept</a>
+                <a href="/index.html#recipe-book">Rezeptbuch</a>
+                <a href="/index.html#meal-plan">Wochenplan</a>
+            </div>
+        </nav>
 
         <header class="page-header">
             <h1>Neues Rezept</h1>

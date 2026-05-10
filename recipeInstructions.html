@@ -9,26 +9,36 @@
     <meta name="theme-color" content="#f5f7fb">
 </head>
 <body>
+    <header class="app-header">
+        <button id="burger-button"
+                class="burger-button"
+                type="button"
+                aria-label="Menü öffnen">
+            ☰
+        </button>
+
+        <div class="app-header-title">
+            Food Calculator
+        </div>
+
+        <div id="burger-dropdown" class="burger-dropdown is-hidden">
+            <a href="/index.html">Startseite</a>
+            <a href="/recipeCreate.html">Neues Rezept</a>
+            <a href="/index.html#recipe-book">Rezeptbuch</a>
+            <a href="/index.html#meal-plan">Wochenplan</a>
+        </div>
+    </header>
+
     <div class="container">
-        <header class="app-header">
-    <button id="burger-button"
-            class="burger-button"
-            type="button"
-            aria-label="Menü öffnen">
-        ☰
-    </button>
-
-    <div class="app-header-title">
-        Food Calculator
-    </div>
-
-    <div id="burger-dropdown" class="burger-dropdown is-hidden">
-        <a href="/index.html">Startseite</a>
-        <a href="/recipeCreate.html">Neues Rezept</a>
-        <a href="/index.html#recipe-book">Rezeptbuch</a>
-        <a href="/index.html#meal-plan">Wochenplan</a>
-    </div>
-</header>
+        <nav class="burger-menu">
+            <button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen">☰</button>
+            <div id="burger-dropdown" class="burger-dropdown is-hidden">
+                <a href="/index.html">Startseite</a>
+                <a href="/recipeCreate.html">Neues Rezept</a>
+                <a href="/index.html#recipe-book">Rezeptbuch</a>
+                <a href="/index.html#meal-plan">Wochenplan</a>
+            </div>
+        </nav>
 
         <main class="page-content recipe-instructions-page">
             <header class="header-container recipe-hero">
@@ -39,9 +49,9 @@
                 <div class="recipe-header-actions">
                     <div class="recipe-stat">🍽️ <span id="display-recipe-portions"></span></div>
                     <div class="recipe-stat">🍫 <span id="display-recipe-calories"></span></div>
-                    <button type="button" id="favorite-recipe-button" class="header-icon-button favorite-header-button" title="Als Favorit markieren" aria-label="Als Favorit markieren">❤</button>
-                    <button type="button" id="share-ingredients-button" class="header-icon-button" title="Zutatenliste teilen" aria-label="Zutatenliste teilen">⤴</button>
-                    <button type="button" id="edit-recipe-button" class="header-icon-button" title="Rezept bearbeiten" aria-label="Rezept bearbeiten">✏</button>
+                    <button type="button" id="favorite-recipe-button" class="header-icon-button favorite-header-button" title="Als Favorit markieren" aria-label="Als Favorit markieren">☆</button>
+                    <button type="button" id="share-ingredients-button" class="header-icon-button" title="Zutatenliste teilen" aria-label="Zutatenliste teilen">↗</button>
+                    <button type="button" id="edit-recipe-button" class="header-icon-button" title="Rezept bearbeiten" aria-label="Rezept bearbeiten">✎</button>
                 </div>
             </header>
 

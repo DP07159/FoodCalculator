@@ -10,29 +10,21 @@
 </head>
 <body>
     <header class="app-header">
-        <div class="app-header-inner">
-            <button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen">
-                <span class="icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-                </span>
-            </button>
+        <button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen">
+            <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
 
-            <div class="app-header-title">Food Calculator</div>
+        <div class="app-header-title">Food Calculator</div>
 
-            <div id="burger-dropdown" class="burger-dropdown is-hidden">
-                <a href="/index.html">Startseite</a>
-                <a href="/recipeCreate.html">Neues Rezept</a>
-                <a href="/index.html#recipe-book">Rezeptbuch</a>
-                <a href="/index.html#meal-plan">Wochenplan</a>
-            </div>
+        <div id="burger-dropdown" class="burger-dropdown is-hidden">
+            <a href="/index.html">Startseite</a>
+            <a href="/recipeCreate.html">Neues Rezept</a>
+            <a href="/index.html#recipe-book">Rezeptbuch</a>
+            <a href="/index.html#meal-plan">Wochenplan</a>
         </div>
     </header>
 
     <div class="container">
-<header class="page-header">
-            <h1>Rezept bearbeiten</h1>
-        </header>
-
         <main class="page-content">
             <form id="recipe-form" class="section-card">
                 <div class="form-section">
@@ -77,7 +69,6 @@
                 </div>
             </form>
         </main>
-    
     </div>
 
     <div id="app-toast" class="app-toast is-hidden"></div>

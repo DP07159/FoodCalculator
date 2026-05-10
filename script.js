@@ -8,16 +8,6 @@ const MEAL_ROWS = [
     { key: "snack", label: "Snack" }
 ];
 
-
-function appIcon(name) {
-    const icons = {
-        heart: '<span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg></span>',
-        edit: '<span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20h4l11-11a2.8 2.8 0 0 0-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg></span>',
-        trash: '<span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v5"/><path d="M14 11v5"/></svg></span>'
-    };
-    return icons[name] || '';
-}
-
 let recipes = [];
 let mealPlans = [];
 let selectedDay = getTodayInGerman();
@@ -49,6 +39,18 @@ function getTodayInGerman() {
 
 function getRecipeById(recipeId) {
     return recipes.find(recipe => String(recipe.id) === String(recipeId));
+}
+
+
+function getIconSvg(name, isFilled = false) {
+    const icons = {
+        favorite: `<svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8z"/></svg>`,
+        edit: `<svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l11-11a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>`,
+        delete: `<svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 14h10l1-14"/><path d="M9 7V4h6v3"/></svg>`,
+        prev: `<svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>`,
+        next: `<svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>`
+    };
+    return icons[name] || "";
 }
 
 function isFavoriteRecipe(recipe) {
@@ -273,12 +275,12 @@ function renderDayDetail(day) {
         <div class="day-detail-card">
             <div class="day-detail-header">
                 <div class="day-detail-title-line">
-                    <button type="button" class="day-nav-button" onclick="changeSelectedDay(-1)" aria-label="Vorheriger Tag">‹</button>
+                    <button type="button" class="day-nav-button" onclick="changeSelectedDay(-1)" aria-label="Vorheriger Tag">${getIconSvg("prev")}</button>
                     <div class="day-detail-title-inline">
                         <span class="day-detail-title-prefix">Dein Tagesplan für</span>
                         <span class="day-detail-title-day">${day}</span>
                     </div>
-                    <button type="button" class="day-nav-button" onclick="changeSelectedDay(1)" aria-label="Nächster Tag">›</button>
+                    <button type="button" class="day-nav-button" onclick="changeSelectedDay(1)" aria-label="Nächster Tag">${getIconSvg("next")}</button>
                 </div>
                 <div class="day-detail-stats">
                     <div class="day-detail-stat"><span>Gesamt</span><strong>${totalCalories} kcal</strong></div>
@@ -373,20 +375,24 @@ function populateRecipeList() {
         favoriteButton.type = "button";
         favoriteButton.className = "recipe-favorite-button";
         favoriteButton.classList.toggle("is-favorite", isFavoriteRecipe(recipe));
-        favoriteButton.innerHTML = appIcon("heart");
+        favoriteButton.innerHTML = getIconSvg("favorite");
         favoriteButton.title = isFavoriteRecipe(recipe) ? "Favorit entfernen" : "Als Favorit markieren";
+        favoriteButton.setAttribute("aria-label", favoriteButton.title);
         favoriteButton.onclick = () => toggleFavoriteRecipe(recipe.id);
 
         const editButton = document.createElement("button");
         editButton.type = "button";
-        editButton.innerHTML = appIcon("edit");
+        editButton.innerHTML = getIconSvg("edit");
         editButton.title = "Rezept bearbeiten";
+        editButton.setAttribute("aria-label", "Rezept bearbeiten");
         editButton.onclick = () => window.location.href = `/recipeDetails.html?id=${recipe.id}`;
 
         const deleteButton = document.createElement("button");
         deleteButton.type = "button";
-        deleteButton.innerHTML = appIcon("trash");
+        deleteButton.innerHTML = getIconSvg("delete");
+        deleteButton.className = "delete-button";
         deleteButton.title = "Rezept löschen";
+        deleteButton.setAttribute("aria-label", "Rezept löschen");
         deleteButton.onclick = () => deleteRecipe(recipe.id);
 
         icons.appendChild(favoriteButton);

@@ -108,83 +108,6 @@ input:focus, select:focus, textarea:focus {
 .page-content > section,
 .page-content > div { margin-bottom: var(--space-xl); }
 
-/* Navigation */
-.burger-menu {
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    width: 100%;
-    max-width: var(--content-max-width);
-    margin: 0 auto var(--space-lg);
-    padding: 10px 0 8px;
-    background: rgba(245, 247, 251, 0.96);
-    backdrop-filter: blur(8px);
-    text-align: left;
-}
-
-.app-topbar {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.app-topbar-title {
-    color: var(--color-text);
-    font-size: 22px;
-    font-weight: 900;
-    line-height: 1;
-}
-
-.burger-button {
-    width: 36px;
-    height: 36px;
-    min-width: 36px;
-    padding: 0;
-    border: none;
-    border-radius: 8px;
-    color: var(--color-text);
-    background: transparent;
-    font-size: 24px;
-    font-weight: 800;
-    line-height: 1;
-}
-
-.burger-button:hover { background: var(--color-primary-soft); color: var(--color-primary-text); }
-
-.burger-dropdown {
-    position: absolute;
-    top: 48px;
-    left: 0;
-    width: 220px;
-    padding: 8px;
-    border-radius: var(--radius-md);
-    background: var(--color-surface);
-    border: 1px solid var(--color-border-soft);
-    box-shadow: var(--shadow-card);
-    transform-origin: top left;
-    opacity: 1;
-    transform: translateY(0) scale(1);
-    transition: opacity 0.16s ease, transform 0.16s ease;
-}
-
-.burger-dropdown.is-hidden {
-    opacity: 0;
-    pointer-events: none;
-    transform: translateY(-6px) scale(0.98);
-}
-
-.burger-dropdown a {
-    display: block;
-    padding: 11px 12px;
-    border-radius: 10px;
-    color: var(--color-text);
-    text-decoration: none;
-    font-size: var(--font-size-md);
-    font-weight: 700;
-}
-
-.burger-dropdown a:hover { background: var(--color-primary-soft); color: var(--color-primary-text); }
-
 /* Forms */
 #recipe-form {
     max-width: var(--content-max-width);
@@ -473,4 +396,222 @@ input:focus, select:focus, textarea:focus {
     .recipe-toolbar-calories,
     .recipe-toolbar-portions,
     .recipe-sort-select { width: 100%; flex: 0 0 auto; }
+}
+
+/* =========================================================
+   GLOBAL HEADER SYSTEM
+========================================================= */
+
+.app-header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+
+    width: 100%;
+
+    min-height: 72px;
+
+    margin-bottom: 24px;
+
+    padding: 0 20px;
+
+    background: rgba(255, 255, 255, 0.72);
+
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+
+    border-bottom: 1px solid rgba(255,255,255,0.35);
+
+    box-shadow:
+        0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+
+/* =========================================================
+   ZENTRIERTER TITEL
+========================================================= */
+
+.app-header-title {
+    position: absolute;
+
+    left: 50%;
+    transform: translateX(-50%);
+
+    font-size: 1.35rem;
+    font-weight: 800;
+
+    color: #0f172a;
+
+    text-align: center;
+
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   BURGER BUTTON
+========================================================= */
+
+.burger-button {
+    width: 48px;
+    height: 48px;
+
+    border-radius: 14px;
+
+    border: 1px solid rgba(15, 23, 42, 0.08);
+
+    background: rgba(255,255,255,0.78);
+
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 1.3rem;
+
+    transition:
+        transform 0.2s ease,
+        background 0.2s ease,
+        box-shadow 0.2s ease;
+
+    box-shadow:
+        0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.burger-button:hover {
+    transform: translateY(-1px);
+
+    background: rgba(255,255,255,0.95);
+
+    box-shadow:
+        0 10px 24px rgba(15, 23, 42, 0.12);
+}
+
+
+/* =========================================================
+   DROPDOWN
+========================================================= */
+
+.burger-dropdown {
+    position: absolute;
+
+    top: 82px;
+    left: 20px;
+
+    min-width: 240px;
+
+    padding: 10px;
+
+    border-radius: 20px;
+
+    background: rgba(255,255,255,0.92);
+
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+
+    border: 1px solid rgba(255,255,255,0.4);
+
+    box-shadow:
+        0 20px 40px rgba(15, 23, 42, 0.12);
+}
+
+.burger-dropdown a {
+    display: block;
+
+    padding: 14px 16px;
+
+    border-radius: 14px;
+
+    color: #0f172a;
+
+    text-decoration: none;
+
+    font-weight: 600;
+
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease;
+}
+
+.burger-dropdown a:hover {
+    background: rgba(59, 130, 246, 0.08);
+
+    transform: translateX(2px);
+}
+
+
+/* =========================================================
+   MODERNE HEADER ICONS
+========================================================= */
+
+.header-icon-button {
+    width: 52px;
+    height: 52px;
+
+    border-radius: 16px;
+
+    border: 1px solid rgba(15, 23, 42, 0.08);
+
+    background: rgba(255,255,255,0.85);
+
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 1.2rem;
+
+    transition:
+        transform 0.2s ease,
+        background 0.2s ease,
+        box-shadow 0.2s ease;
+
+    box-shadow:
+        0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.header-icon-button:hover {
+    transform: translateY(-2px);
+
+    background: rgba(255,255,255,0.96);
+
+    box-shadow:
+        0 10px 24px rgba(15, 23, 42, 0.12);
+}
+
+
+/* =========================================================
+   MOBILE OPTIMIERUNG
+========================================================= */
+
+@media (max-width: 768px) {
+
+    .app-header {
+        min-height: 68px;
+        padding: 0 16px;
+    }
+
+    .app-header-title {
+        font-size: 1.1rem;
+    }
+
+    .burger-dropdown {
+        left: 16px;
+        right: 16px;
+        width: auto;
+        min-width: unset;
+    }
+
+    .header-icon-button {
+        width: 48px;
+        height: 48px;
+    }
 }

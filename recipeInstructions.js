@@ -60,63 +60,18 @@ async function toggleCurrentRecipeFavorite() {
         });
 
         if (!response.ok) {
-            alert("Favoritenstatus konnte nicht gespeichert werden.");
+            showToast("Favoritenstatus konnte nicht gespeichert werden.");
             return;
         }
 
         currentRecipe.is_favorite = newFavoriteValue;
         updateFavoriteButton();
+
+        showToast(newFavoriteValue === 1 ? "Als Favorit markiert." : "Favorit entfernt.");
     } catch (error) {
         console.error("Fehler beim Speichern des Favoritenstatus:", error);
-        alert("Favoritenstatus konnte nicht gespeichert werden.");
+        showToast("Favoritenstatus konnte nicht gespeichert werden.");
     }
-}
-
-function getFavoriteRecipeIds() {
-    try {
-        return JSON.parse(localStorage.getItem("favoriteRecipeIds")) || [];
-    } catch (error) {
-        return [];
-    }
-}
-
-function saveFavoriteRecipeIds(favoriteIds) {
-    localStorage.setItem("favoriteRecipeIds", JSON.stringify(favoriteIds));
-}
-
-function isFavoriteRecipe(recipeId) {
-    return getFavoriteRecipeIds().includes(String(recipeId));
-}
-
-function updateFavoriteButton() {
-    const favoriteButton = document.getElementById("favorite-recipe-button");
-
-    if (!favoriteButton || !currentRecipe) return;
-
-    const isFavorite = isFavoriteRecipe(currentRecipe.id);
-
-    favoriteButton.textContent = isFavorite ? "★" : "☆";
-    favoriteButton.classList.toggle("is-favorite", isFavorite);
-    favoriteButton.title = isFavorite ? "Favorit entfernen" : "Als Favorit markieren";
-    favoriteButton.setAttribute("aria-label", favoriteButton.title);
-}
-
-function toggleCurrentRecipeFavorite() {
-    if (!currentRecipe) return;
-
-    const normalizedId = String(currentRecipe.id);
-    let favoriteIds = getFavoriteRecipeIds();
-
-    if (favoriteIds.includes(normalizedId)) {
-        favoriteIds = favoriteIds.filter(id => id !== normalizedId);
-        showToast("Favorit entfernt.");
-    } else {
-        favoriteIds.push(normalizedId);
-        showToast("Als Favorit markiert.");
-    }
-
-    saveFavoriteRecipeIds(favoriteIds);
-    updateFavoriteButton();
 }
 
 function renderRecipeInstructions() {
@@ -251,14 +206,6 @@ function setupEditRecipeButton() {
     editButton.addEventListener("click", function () {
         window.location.href = `/recipeDetails.html?id=${recipeId}`;
     });
-}
-
-function setupFavoriteRecipeButton() {
-    const favoriteButton = document.getElementById("favorite-recipe-button");
-
-    if (!favoriteButton) return;
-
-    favoriteButton.addEventListener("click", toggleCurrentRecipeFavorite);
 }
 
 window.onload = function () {

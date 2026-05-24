@@ -856,3 +856,90 @@ h2 {
         justify-content: flex-end;
     }
 }
+
+
+/* =========================================================
+   INVENTORY UX REFINEMENT: COLLAPSIBLE CREATE + EDIT MODAL
+========================================================= */
+.inventory-form-card.is-hidden {
+    display: none;
+}
+
+.inventory-section-headline,
+.inventory-list-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+    margin-bottom: 18px;
+}
+
+.inventory-section-headline h2,
+.inventory-list-topbar h2 {
+    margin: 0;
+}
+
+.inventory-controls {
+    margin-bottom: 18px;
+}
+
+.inventory-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 3000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.inventory-modal.is-hidden {
+    display: none;
+}
+
+.inventory-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(22, 32, 48, 0.38);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.inventory-modal-dialog {
+    position: relative;
+    z-index: 1;
+    width: min(920px, 100%);
+    max-height: min(760px, calc(100vh - 40px));
+    overflow-y: auto;
+    padding: var(--space-lg);
+    border: 1px solid rgba(215, 226, 240, 0.9);
+    border-radius: var(--radius-xl);
+    background: var(--color-surface);
+    box-shadow: 0 24px 60px rgba(17, 24, 39, 0.22);
+    animation: inventoryModalReveal .2s var(--ease-standard);
+}
+
+body.modal-open {
+    overflow: hidden;
+}
+
+@keyframes inventoryModalReveal {
+    from { opacity: 0; transform: translateY(10px) scale(.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 768px) {
+    .inventory-modal {
+        align-items: flex-end;
+        padding: 12px;
+    }
+
+    .inventory-modal-dialog {
+        max-height: calc(100vh - 24px);
+        border-radius: 22px;
+    }
+
+    .inventory-section-headline {
+        align-items: flex-start;
+    }
+}

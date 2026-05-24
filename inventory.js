@@ -20,6 +20,15 @@ function showToast(message) {
     }, 2600);
 }
 
+function escapeHtml(value) {
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
 async function apiFetch(url, options = {}) {
     const response = await fetch(url, options);
     let payload = null;
@@ -47,20 +56,37 @@ async function loadInventory() {
     }
 }
 
-function getInventoryPayload() {
+function toggleInventoryAddPanel(forceOpen) {
+    const panel = document.getElementById("inventory-add-panel");
+    if (!panel) return;
+
+    const shouldOpen = typeof forceOpen === "boolean"
+        ? forceOpen
+        : panel.classList.contains("is-hidden");
+
+    panel.classList.toggle("is-hidden", !shouldOpen);
+
+    if (shouldOpen) {
+        resetInventoryForm();
+        window.requestAnimationFrame(() => {
+            document.getElementById("inventory-name")?.focus();
+        });
+    }
+}
+
+function getInventoryPayload(prefix = "inventory") {
     return {
-        name: document.getElementById("inventory-name").value,
-        quantity: document.getElementById("inventory-quantity").value,
-        unit: document.getElementById("inventory-unit").value,
-        weight: document.getElementById("inventory-weight").value,
-        expiry_date: document.getElementById("inventory-expiry").value,
-        storage_location: document.getElementById("inventory-location").value,
-        notes: document.getElementById("inventory-notes").value
+        name: document.getElementById(`${prefix}-name`).value,
+        quantity: document.getElementById(`${prefix}-quantity`).value,
+        unit: document.getElementById(`${prefix}-unit`).value,
+        weight: document.getElementById(`${prefix}-weight`).value,
+        expiry_date: document.getElementById(`${prefix}-expiry`).value,
+        storage_location: document.getElementById(`${prefix}-location`).value,
+        notes: document.getElementById(`${prefix}-notes`).value
     };
 }
 
 async function saveInventoryItem() {
-    const id = document.getElementById("inventory-id").value;
     const payload = getInventoryPayload();
 
     if (!payload.name.trim()) {
@@ -69,23 +95,15 @@ async function saveInventoryItem() {
     }
 
     try {
-        if (id) {
-            await apiFetch(`${API_URL}/inventory/${id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            });
-            showToast("Eintrag aktualisiert.");
-        } else {
-            await apiFetch(`${API_URL}/inventory`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            });
-            showToast("Eintrag gespeichert.");
-        }
+        await apiFetch(`${API_URL}/inventory`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
 
+        showToast("Eintrag gespeichert.");
         resetInventoryForm();
+        toggleInventoryAddPanel(false);
         await loadInventory();
     } catch (error) {
         console.error(error);
@@ -97,16 +115,68 @@ function editInventoryItem(id) {
     const item = inventoryItems.find(entry => String(entry.id) === String(id));
     if (!item) return;
 
-    document.getElementById("inventory-id").value = item.id;
-    document.getElementById("inventory-name").value = item.name || "";
-    document.getElementById("inventory-quantity").value = item.quantity ?? "";
-    document.getElementById("inventory-unit").value = item.unit || "";
-    document.getElementById("inventory-weight").value = item.weight ?? "";
-    document.getElementById("inventory-expiry").value = item.expiry_date || "";
-    document.getElementById("inventory-location").value = item.storage_location || "";
-    document.getElementById("inventory-notes").value = item.notes || "";
+    document.getElementById("edit-inventory-id").value = item.id;
+    document.getElementById("edit-inventory-name").value = item.name || "";
+    document.getElementById("edit-inventory-quantity").value = item.quantity ?? "";
+    document.getElementById("edit-inventory-unit").value = item.unit || "";
+    document.getElementById("edit-inventory-weight").value = item.weight ?? "";
+    document.getElementById("edit-inventory-expiry").value = item.expiry_date || "";
+    document.getElementById("edit-inventory-location").value = item.storage_location || "";
+    document.getElementById("edit-inventory-notes").value = item.notes || "";
 
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    openInventoryEditModal();
+}
+
+function openInventoryEditModal() {
+    const modal = document.getElementById("inventory-edit-modal");
+    if (!modal) return;
+
+    modal.classList.remove("is-hidden");
+    document.body.classList.add("modal-open");
+
+    window.requestAnimationFrame(() => {
+        document.getElementById("edit-inventory-name")?.focus();
+    });
+}
+
+function closeInventoryEditModal() {
+    const modal = document.getElementById("inventory-edit-modal");
+    if (!modal) return;
+
+    modal.classList.add("is-hidden");
+    document.body.classList.remove("modal-open");
+    document.getElementById("inventory-edit-form")?.reset();
+    document.getElementById("edit-inventory-id").value = "";
+}
+
+async function saveEditedInventoryItem() {
+    const id = document.getElementById("edit-inventory-id").value;
+    const payload = getInventoryPayload("edit-inventory");
+
+    if (!id) {
+        showToast("Kein Inventar-Eintrag ausgewählt.");
+        return;
+    }
+
+    if (!payload.name.trim()) {
+        showToast("Bitte eine Bezeichnung eingeben.");
+        return;
+    }
+
+    try {
+        await apiFetch(`${API_URL}/inventory/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+
+        showToast("Eintrag aktualisiert.");
+        closeInventoryEditModal();
+        await loadInventory();
+    } catch (error) {
+        console.error(error);
+        showToast("Eintrag konnte nicht aktualisiert werden.");
+    }
 }
 
 async function deleteInventoryItem(id) {
@@ -126,8 +196,7 @@ async function deleteInventoryItem(id) {
 }
 
 function resetInventoryForm() {
-    document.getElementById("inventory-id").value = "";
-    document.getElementById("inventory-form").reset();
+    document.getElementById("inventory-form")?.reset();
 }
 
 function getExpiryStatus(expiryDate) {
@@ -208,22 +277,26 @@ function renderInventoryList() {
         card.innerHTML = `
             <div class="inventory-item-main">
                 <div>
-                    <h3>${item.name}</h3>
-                    <p>${formatAmount(item)}</p>
+                    <h3>${escapeHtml(item.name)}</h3>
+                    <p>${escapeHtml(formatAmount(item))}</p>
                 </div>
 
                 <div class="inventory-meta">
-                    <span class="inventory-location">${item.storage_location || "Kein Ort"}</span>
-                    <span class="inventory-expiry ${status.className}">${status.label}</span>
-                    <span class="inventory-date">${formatDate(item.expiry_date)}</span>
+                    <span class="inventory-location">${escapeHtml(item.storage_location || "Kein Ort")}</span>
+                    <span class="inventory-expiry ${status.className}">${escapeHtml(status.label)}</span>
+                    <span class="inventory-date">${escapeHtml(formatDate(item.expiry_date))}</span>
                 </div>
 
-                ${item.notes ? `<p class="inventory-notes">${item.notes}</p>` : ""}
+                ${item.notes ? `<p class="inventory-notes">${escapeHtml(item.notes)}</p>` : ""}
             </div>
 
             <div class="recipe-icons">
-                <button type="button" onclick="editInventoryItem(${item.id})" title="Bearbeiten" aria-label="Bearbeiten"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l11-11a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button>
-                <button type="button" class="toolbar-delete-button" onclick="deleteInventoryItem(${item.id})" title="Löschen" aria-label="Löschen"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 14h10l1-14"/><path d="M9 7V4h6v3"/></svg></button>
+                <button type="button" onclick="editInventoryItem(${item.id})" title="Bearbeiten" aria-label="Bearbeiten">
+                    <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l11-11a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>
+                </button>
+                <button type="button" class="toolbar-delete-button" onclick="deleteInventoryItem(${item.id})" title="Löschen" aria-label="Löschen">
+                    <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 14h10l1-14"/><path d="M9 7V4h6v3"/></svg>
+                </button>
             </div>
         `;
 
@@ -238,4 +311,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (searchInput) {
         searchInput.addEventListener("input", renderInventoryList);
     }
+
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+            closeInventoryEditModal();
+        }
+    });
 });

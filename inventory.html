@@ -27,7 +27,7 @@
             <section id="inventory-add-panel" class="section-card inventory-form-card is-hidden">
                 <div class="inventory-section-headline">
                     <div>
-                        <p class="recipe-kicker">Bestand erhöhen</p>
+                        <p class="recipe-kicker">Neuer Bestand</p>
                         <h2>Lebensmittel erfassen</h2>
                     </div>
                     <button type="button" class="header-icon-button" onclick="toggleInventoryAddPanel(false)" title="Erfassung schließen" aria-label="Erfassung schließen">
@@ -62,8 +62,8 @@
                     <div class="inventory-choice-row" role="group" aria-label="Bestandsart auswählen">
                         <label class="inventory-choice-card">
                             <input type="radio" name="inventory-stock-type" value="package" checked onchange="updateInventoryStockType()">
-                            <span>Packungseinheiten</span>
-                            <small>z.B. 2 Dosen à 230 g</small>
+                            <span>Einheiten</span>
+                            <small>z.B. 2 × 230 g</small>
                         </label>
                         <label class="inventory-choice-card">
                             <input type="radio" name="inventory-stock-type" value="loose" onchange="updateInventoryStockType()">
@@ -74,12 +74,8 @@
 
                     <div id="inventory-package-fields" class="inventory-form-grid">
                         <div class="form-section">
-                            <label for="inventory-package-count">Anzahl Packungseinheiten</label>
+                            <label for="inventory-package-count">Anzahl</label>
                             <input type="number" id="inventory-package-count" min="1" step="1" placeholder="z.B. 2">
-                        </div>
-                        <div class="form-section">
-                            <label for="inventory-unit-label">Packungseinheit</label>
-                            <input type="text" id="inventory-unit-label" placeholder="z.B. Dose, Glas, Packung">
                         </div>
                         <div class="form-section">
                             <label for="inventory-unit-weight">Inhalt je Einheit</label>
@@ -132,7 +128,7 @@
                     <input type="text" id="inventory-search" class="recipe-search-input" placeholder="Inventar durchsuchen ...">
                 </div>
 
-                <div id="inventory-list" class="inventory-list"></div>
+                <div id="inventory-list" class="inventory-list inventory-list-detailed"></div>
             </section>
         </main>
     </div>
@@ -165,96 +161,6 @@
                 <div class="form-actions inventory-actions">
                     <button type="button" class="secondary-button" onclick="closeInventoryEditModal()">Abbrechen</button>
                     <button type="button" onclick="saveEditedInventoryItem()">Speichern</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div id="inventory-adjust-modal" class="inventory-modal is-hidden" role="dialog" aria-modal="true" aria-labelledby="inventory-adjust-title">
-        <div class="inventory-modal-backdrop" onclick="closeInventoryAdjustModal()"></div>
-        <div class="inventory-modal-dialog">
-            <div class="inventory-section-headline">
-                <div>
-                    <h2 id="inventory-adjust-title">Bestand anpassen</h2>
-                    <p id="adjust-inventory-name" class="inventory-modal-subtitle"></p>
-                </div>
-                <button type="button" class="header-icon-button" onclick="closeInventoryAdjustModal()" title="Fenster schließen" aria-label="Fenster schließen">
-                    <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
-                </button>
-            </div>
-
-            <form id="inventory-adjust-form">
-                <input type="hidden" id="adjust-inventory-id">
-                <p id="adjust-inventory-current" class="inventory-current-stock"></p>
-
-                <div class="inventory-adjust-direction" role="group" aria-label="Aktion auswählen">
-                    <button type="button" id="adjust-action-add" class="inventory-action-toggle is-active" onclick="setAdjustmentAction('add')">
-                        <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-                        Erhöhen
-                    </button>
-                    <button type="button" id="adjust-action-remove" class="inventory-action-toggle" onclick="setAdjustmentAction('remove')">
-                        <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg>
-                        Reduzieren
-                    </button>
-                </div>
-
-                <input type="hidden" id="adjust-inventory-action" value="add">
-
-                <div class="form-section">
-                    <label for="adjust-inventory-mode">Anpassung</label>
-                    <select id="adjust-inventory-mode" onchange="updateAdjustmentMode()">
-                        <option value="package">Packungseinheiten</option>
-                        <option value="loose">Freie Menge</option>
-                        <option value="auto">Entnahmemenge automatisch verrechnen</option>
-                    </select>
-                </div>
-
-                <div id="adjust-package-fields" class="inventory-form-grid">
-                    <div class="form-section" id="adjust-package-profile-section">
-                        <label for="adjust-package-profile">Vorhandene Packungseinheit</label>
-                        <select id="adjust-package-profile"></select>
-                    </div>
-                    <div class="form-section" id="adjust-package-label-section">
-                        <label for="adjust-unit-label">Packungseinheit</label>
-                        <input type="text" id="adjust-unit-label" placeholder="z.B. Dose">
-                    </div>
-                    <div class="form-section">
-                        <label for="adjust-inventory-amount">Anzahl</label>
-                        <input type="number" id="adjust-inventory-amount" min="0" step="1" placeholder="z.B. 1" oninput="updateAdjustmentPreview()">
-                    </div>
-                    <div class="form-section" id="adjust-unit-weight-section">
-                        <label for="adjust-unit-weight">Inhalt je Einheit</label>
-                        <div class="inventory-inline-inputs">
-                            <input type="number" id="adjust-unit-weight" min="0" step="0.1" placeholder="z.B. 230" oninput="updateAdjustmentPreview()">
-                            <select id="adjust-measure-unit-package" onchange="updateAdjustmentPreview()">
-                                <option value="g">g</option>
-                                <option value="ml">ml</option>
-                                <option value="Stk.">Stk.</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="adjust-loose-fields" class="inventory-form-grid is-hidden">
-                    <div class="form-section">
-                        <label for="adjust-loose-amount">Menge</label>
-                        <div class="inventory-inline-inputs">
-                            <input type="number" id="adjust-loose-amount" min="0" step="0.1" placeholder="z.B. 100" oninput="updateAdjustmentPreview()">
-                            <select id="adjust-measure-unit-loose" onchange="updateAdjustmentPreview()">
-                                <option value="g">g</option>
-                                <option value="ml">ml</option>
-                                <option value="Stk.">Stk.</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <p id="adjust-inventory-hint" class="inventory-adjust-hint"></p>
-                <p id="adjust-inventory-preview" class="inventory-adjust-preview"></p>
-
-                <div class="form-actions inventory-actions">
-                    <button type="button" class="secondary-button" onclick="closeInventoryAdjustModal()">Abbrechen</button>
-                    <button type="button" onclick="submitInventoryAdjustment()">Übernehmen</button>
                 </div>
             </form>
         </div>

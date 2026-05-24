@@ -3,6 +3,13 @@ const API_URL = "https://foodcalculator-server.onrender.com";
 let inventoryItems = [];
 let inventorySuggestions = [];
 
+const ICONS = {
+    plus: `<svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>`,
+    minus: `<svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg>`,
+    edit: `<svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l11-11a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>`,
+    trash: `<svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 14h10l1-14"/><path d="M9 7V4h6v3"/></svg>`
+};
+
 function showToast(message) {
     const toast = document.getElementById("app-toast");
     if (!toast) {
@@ -78,14 +85,14 @@ function toggleInventoryAddPanel(forceOpen) {
     }
 }
 
+function getCheckedValue(name) {
+    return document.querySelector(`input[name="${name}"]:checked`)?.value || "";
+}
+
 function updateInventoryStockType() {
     const type = getCheckedValue("inventory-stock-type") || "package";
     document.getElementById("inventory-package-fields")?.classList.toggle("is-hidden", type !== "package");
     document.getElementById("inventory-loose-fields")?.classList.toggle("is-hidden", type !== "loose");
-}
-
-function getCheckedValue(name) {
-    return document.querySelector(`input[name="${name}"]:checked`)?.value || "";
 }
 
 function getInventoryPayload() {
@@ -93,12 +100,13 @@ function getInventoryPayload() {
     const measureUnit = stockType === "package"
         ? document.getElementById("inventory-measure-unit-package").value
         : document.getElementById("inventory-measure-unit-loose").value;
+
     return {
         name: document.getElementById("inventory-name").value,
         unit: measureUnit,
         stockType,
         packageCount: document.getElementById("inventory-package-count").value,
-        unitLabel: document.getElementById("inventory-unit-label").value,
+        unitLabel: "",
         unitWeight: document.getElementById("inventory-unit-weight").value,
         looseAmount: document.getElementById("inventory-loose-amount").value,
         measureUnit,
@@ -111,14 +119,16 @@ function getInventoryPayload() {
 async function saveInventoryItem() {
     const payload = getInventoryPayload();
     if (!payload.name.trim()) return showToast("Bitte eine Bezeichnung eingeben.");
+
     if (payload.stockType === "package") {
-        if (!Number(payload.packageCount) || Number(payload.packageCount) <= 0) return showToast("Bitte die Anzahl der Packungseinheiten eingeben.");
-        if (!payload.unitLabel.trim()) return showToast("Bitte die Packungseinheit eingeben, z.B. Dose.");
+        if (!Number(payload.packageCount) || Number(payload.packageCount) <= 0) return showToast("Bitte die Anzahl eingeben.");
         if (!Number(payload.unitWeight) || Number(payload.unitWeight) <= 0) return showToast("Bitte den Inhalt je Einheit eingeben.");
     }
+
     if (payload.stockType === "loose" && (!Number(payload.looseAmount) || Number(payload.looseAmount) <= 0)) {
         return showToast("Bitte die freie Menge eingeben.");
     }
+
     try {
         await apiFetch(`${API_URL}/inventory`, {
             method: "POST",
@@ -173,8 +183,10 @@ async function saveEditedInventoryItem() {
         unit: document.getElementById("edit-inventory-unit").value,
         notes: document.getElementById("edit-inventory-notes").value
     };
+
     if (!id) return showToast("Kein Inventar-Eintrag ausgewählt.");
     if (!payload.name.trim()) return showToast("Bitte eine Bezeichnung eingeben.");
+
     try {
         await apiFetch(`${API_URL}/inventory/${id}`, {
             method: "PUT",
@@ -190,153 +202,52 @@ async function saveEditedInventoryItem() {
     }
 }
 
-function adjustInventoryItem(id) {
-    const item = inventoryItems.find(entry => String(entry.id) === String(id));
-    if (!item) return;
-    document.getElementById("adjust-inventory-id").value = item.id;
-    document.getElementById("adjust-inventory-name").textContent = item.name || "";
-    document.getElementById("adjust-inventory-current").textContent = `Aktueller Bestand: ${formatAmount(item)}`;
-    setAdjustmentAction("add", false);
-    populatePackageProfileSelect(item);
-    document.getElementById("adjust-inventory-mode").value = "package";
-    document.getElementById("adjust-inventory-amount").value = "";
-    document.getElementById("adjust-loose-amount").value = "";
-    document.getElementById("adjust-unit-label").value = "";
-    document.getElementById("adjust-unit-weight").value = "";
-    updateAdjustmentMode();
-    openInventoryAdjustModal();
-}
-
-function setAdjustmentAction(action, update = true) {
-    document.getElementById("adjust-inventory-action").value = action;
-    document.getElementById("adjust-action-add")?.classList.toggle("is-active", action === "add");
-    document.getElementById("adjust-action-remove")?.classList.toggle("is-active", action === "remove");
-    if (update) updateAdjustmentMode();
-}
-
-function openInventoryAdjustModal() {
-    const modal = document.getElementById("inventory-adjust-modal");
-    if (!modal) return;
-    modal.classList.remove("is-hidden");
-    document.body.classList.add("modal-open");
-}
-
-function closeInventoryAdjustModal() {
-    const modal = document.getElementById("inventory-adjust-modal");
-    if (!modal) return;
-    modal.classList.add("is-hidden");
-    document.body.classList.remove("modal-open");
-    document.getElementById("inventory-adjust-form")?.reset();
-}
-
-function getSelectedAdjustmentItem() {
-    const id = document.getElementById("adjust-inventory-id")?.value;
-    return inventoryItems.find(entry => String(entry.id) === String(id));
-}
-
 function getPackageProfiles(item) {
     const profiles = new Map();
     (item?.batches || []).forEach(batch => {
         if (batch.batch_type !== "package" || Number(batch.remaining_quantity || 0) <= 0) return;
-        const key = `${batch.unit_label}||${batch.unit_weight}||${batch.measure_unit}`;
-        const current = profiles.get(key) || { key, unit_label: batch.unit_label, unit_weight: batch.unit_weight, measure_unit: batch.measure_unit, count: 0 };
+        const unitWeight = Number(batch.unit_weight || batch.remaining_weight || 0);
+        const measureUnit = batch.measure_unit || item.unit || "g";
+        if (!unitWeight) return;
+        const key = `${unitWeight}||${measureUnit}`;
+        const current = profiles.get(key) || { key, unit_weight: unitWeight, measure_unit: measureUnit, count: 0 };
         current.count += Number(batch.remaining_quantity || 0);
         profiles.set(key, current);
     });
-    return Array.from(profiles.values());
+    return Array.from(profiles.values()).sort((a, b) => a.unit_weight - b.unit_weight || a.measure_unit.localeCompare(b.measure_unit));
 }
 
-function populatePackageProfileSelect(item) {
-    const select = document.getElementById("adjust-package-profile");
-    if (!select) return;
-    const profiles = getPackageProfiles(item);
-    select.innerHTML = profiles.length
-        ? profiles.map(profile => `<option value="${escapeHtml(profile.key)}">${formatNumber(profile.count)} × ${escapeHtml(profile.unit_label)} à ${formatNumber(profile.unit_weight)} ${escapeHtml(profile.measure_unit)}</option>`).join("")
-        : `<option value="">Keine Packungseinheiten vorhanden</option>`;
+function getLooseProfiles(item) {
+    const profiles = new Map();
+    (item?.batches || []).forEach(batch => {
+        if (batch.batch_type !== "loose" || Number(batch.remaining_weight || 0) <= 0) return;
+        const measureUnit = batch.measure_unit || item.unit || "g";
+        const current = profiles.get(measureUnit) || { measure_unit: measureUnit, amount: 0 };
+        current.amount += Number(batch.remaining_weight || 0);
+        profiles.set(measureUnit, current);
+    });
+    return Array.from(profiles.values()).sort((a, b) => a.measure_unit.localeCompare(b.measure_unit));
 }
 
-function updateAdjustmentMode() {
-    const action = document.getElementById("adjust-inventory-action")?.value || "add";
-    const modeSelect = document.getElementById("adjust-inventory-mode");
-    const mode = modeSelect?.value || "package";
-    const packageFields = document.getElementById("adjust-package-fields");
-    const looseFields = document.getElementById("adjust-loose-fields");
-    const packageProfileSection = document.getElementById("adjust-package-profile-section");
-    const packageLabelSection = document.getElementById("adjust-package-label-section");
-    const unitWeightSection = document.getElementById("adjust-unit-weight-section");
-    const hint = document.getElementById("adjust-inventory-hint");
+async function adjustPackageProfile(itemId, profileKey, action, amount = 1) {
+    const [unitWeight, measureUnit] = String(profileKey).split("||");
+    const payload = {
+        action,
+        mode: "package",
+        amount,
+        packageProfile: profileKey,
+        unitLabel: "",
+        unitWeight,
+        measureUnit
+    };
 
-    const autoOption = Array.from(modeSelect.options).find(option => option.value === "auto");
-    if (autoOption) autoOption.hidden = action === "add";
-    if (action === "add" && mode === "auto") modeSelect.value = "loose";
-
-    const effectiveMode = modeSelect.value;
-    packageFields?.classList.toggle("is-hidden", effectiveMode !== "package");
-    looseFields?.classList.toggle("is-hidden", !(effectiveMode === "loose" || effectiveMode === "auto"));
-
-    packageProfileSection?.classList.toggle("is-hidden", !(effectiveMode === "package" && action === "remove"));
-    packageLabelSection?.classList.toggle("is-hidden", !(effectiveMode === "package" && action === "add"));
-    unitWeightSection?.classList.toggle("is-hidden", !(effectiveMode === "package" && action === "add"));
-
-    if (hint) {
-        if (effectiveMode === "auto") hint.textContent = "Die Entnahmemenge wird zuerst aus freien Mengen und danach aus Packungseinheiten verrechnet.";
-        else if (effectiveMode === "package" && action === "remove") hint.textContent = "Wähle eine vorhandene Packungseinheit aus und reduziere ganze Einheiten.";
-        else if (effectiveMode === "package") hint.textContent = "Neue Packungseinheiten werden einzeln im Bestand geführt.";
-        else hint.textContent = "Freie Mengen werden aggregiert geführt.";
-    }
-    updateAdjustmentPreview();
-}
-
-function updateAdjustmentPreview() {
-    const action = document.getElementById("adjust-inventory-action")?.value || "add";
-    const mode = document.getElementById("adjust-inventory-mode")?.value || "package";
-    const preview = document.getElementById("adjust-inventory-preview");
-    if (!preview) return;
-    if (mode === "package") {
-        const amount = Number(document.getElementById("adjust-inventory-amount")?.value || 0);
-        if (!amount) return preview.textContent = "";
-        if (action === "add") {
-            const label = document.getElementById("adjust-unit-label")?.value || "Einheit";
-            const unitWeight = Number(document.getElementById("adjust-unit-weight")?.value || 0);
-            const unit = document.getElementById("adjust-measure-unit-package")?.value || "g";
-            preview.textContent = unitWeight ? `Es werden ${formatNumber(amount)} × ${label} à ${formatNumber(unitWeight)} ${unit} hinzugefügt.` : "";
-        } else {
-            const text = document.getElementById("adjust-package-profile")?.selectedOptions?.[0]?.textContent || "Packungseinheiten";
-            preview.textContent = `Es werden ${formatNumber(amount)} Packungseinheit(en) reduziert: ${text}.`;
-        }
-        return;
-    }
-    const amount = Number(document.getElementById("adjust-loose-amount")?.value || 0);
-    const unit = document.getElementById("adjust-measure-unit-loose")?.value || "g";
-    preview.textContent = amount ? `${action === "add" ? "Erhöhung" : "Reduzierung"} um ${formatNumber(amount)} ${unit}.` : "";
-}
-
-async function submitInventoryAdjustment() {
-    const id = document.getElementById("adjust-inventory-id").value;
-    const action = document.getElementById("adjust-inventory-action").value;
-    const mode = document.getElementById("adjust-inventory-mode").value;
-    let payload = { action, mode };
-    if (mode === "package") {
-        payload.amount = document.getElementById("adjust-inventory-amount").value;
-        if (action === "add") {
-            payload.unitLabel = document.getElementById("adjust-unit-label").value;
-            payload.unitWeight = document.getElementById("adjust-unit-weight").value;
-            payload.measureUnit = document.getElementById("adjust-measure-unit-package").value;
-        } else {
-            payload.packageProfile = document.getElementById("adjust-package-profile").value;
-        }
-    } else {
-        payload.amount = document.getElementById("adjust-loose-amount").value;
-        payload.measureUnit = document.getElementById("adjust-measure-unit-loose").value;
-    }
     try {
-        await apiFetch(`${API_URL}/inventory/${id}/adjust`, {
+        await apiFetch(`${API_URL}/inventory/${itemId}/adjust`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
         });
-        showToast("Bestand angepasst.");
-        closeInventoryAdjustModal();
+        showToast(action === "add" ? "Einheit hinzugefügt." : "Einheit reduziert.");
         await loadInventory();
     } catch (error) {
         console.error(error);
@@ -344,10 +255,81 @@ async function submitInventoryAdjustment() {
     }
 }
 
+async function adjustLooseAmount(itemId, measureUnit, action) {
+    const input = document.getElementById(`loose-adjust-${itemId}-${cssSafe(measureUnit)}`);
+    const amount = Number(input?.value || 0);
+    if (!amount || amount <= 0) return showToast("Bitte eine Menge eingeben.");
+
+    try {
+        await apiFetch(`${API_URL}/inventory/${itemId}/adjust`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action, mode: "loose", amount, measureUnit })
+        });
+        showToast(action === "add" ? "Menge erhöht." : "Menge reduziert.");
+        if (input) input.value = "";
+        await loadInventory();
+    } catch (error) {
+        console.error(error);
+        showToast(error.message || "Bestand konnte nicht angepasst werden.");
+    }
+}
+
+async function addNewPackageProfile(itemId) {
+    const countInput = document.getElementById(`new-package-count-${itemId}`);
+    const weightInput = document.getElementById(`new-package-weight-${itemId}`);
+    const unitInput = document.getElementById(`new-package-unit-${itemId}`);
+    const count = Number(countInput?.value || 0);
+    const unitWeight = Number(weightInput?.value || 0);
+    const measureUnit = unitInput?.value || "g";
+
+    if (!count || count <= 0) return showToast("Bitte eine Anzahl eingeben.");
+    if (!unitWeight || unitWeight <= 0) return showToast("Bitte den Inhalt je Einheit eingeben.");
+
+    try {
+        await apiFetch(`${API_URL}/inventory/${itemId}/adjust`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "add", mode: "package", amount: count, unitLabel: "", unitWeight, measureUnit })
+        });
+        showToast("Neue Einheit hinzugefügt.");
+        if (countInput) countInput.value = "";
+        if (weightInput) weightInput.value = "";
+        await loadInventory();
+    } catch (error) {
+        console.error(error);
+        showToast(error.message || "Einheit konnte nicht hinzugefügt werden.");
+    }
+}
+
+async function addNewLooseAmount(itemId) {
+    const amountInput = document.getElementById(`new-loose-amount-${itemId}`);
+    const unitInput = document.getElementById(`new-loose-unit-${itemId}`);
+    const amount = Number(amountInput?.value || 0);
+    const measureUnit = unitInput?.value || "g";
+
+    if (!amount || amount <= 0) return showToast("Bitte eine freie Menge eingeben.");
+
+    try {
+        await apiFetch(`${API_URL}/inventory/${itemId}/adjust`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "add", mode: "loose", amount, measureUnit })
+        });
+        showToast("Freie Menge hinzugefügt.");
+        if (amountInput) amountInput.value = "";
+        await loadInventory();
+    } catch (error) {
+        console.error(error);
+        showToast(error.message || "Freie Menge konnte nicht hinzugefügt werden.");
+    }
+}
+
 async function deleteInventoryItem(id) {
     const item = inventoryItems.find(entry => String(entry.id) === String(id));
     const itemName = item?.name || "diesen Eintrag";
     if (!confirm(`Möchtest du "${itemName}" wirklich löschen?`)) return;
+
     try {
         await apiFetch(`${API_URL}/inventory/${id}`, { method: "DELETE" });
         showToast("Eintrag gelöscht.");
@@ -378,14 +360,8 @@ function formatNumber(value) {
 }
 
 function formatAmount(item) {
-    const packageProfiles = getPackageProfiles(item);
-    const packageText = packageProfiles.map(profile => `${formatNumber(profile.count)} × ${profile.unit_label} à ${formatNumber(profile.unit_weight)} ${profile.measure_unit}`);
-    const looseByUnit = new Map();
-    (item.batches || []).forEach(batch => {
-        if (batch.batch_type !== "loose" || Number(batch.remaining_weight || 0) <= 0) return;
-        looseByUnit.set(batch.measure_unit, (looseByUnit.get(batch.measure_unit) || 0) + Number(batch.remaining_weight || 0));
-    });
-    const looseText = Array.from(looseByUnit.entries()).map(([unit, amount]) => `${formatNumber(amount)} ${unit} lose`);
+    const packageText = getPackageProfiles(item).map(profile => `${formatNumber(profile.count)} × ${formatNumber(profile.unit_weight)} ${profile.measure_unit}`);
+    const looseText = getLooseProfiles(item).map(profile => `${formatNumber(profile.amount)} ${profile.measure_unit} frei`);
     const parts = [...packageText, ...looseText];
     return parts.length ? parts.join(" · ") : "0 Bestand";
 }
@@ -395,54 +371,148 @@ function formatDate(dateString) {
     return new Date(dateString).toLocaleDateString("de-DE");
 }
 
+function cssSafe(value) {
+    return String(value || "x").replace(/[^a-zA-Z0-9_-]/g, "_");
+}
+
+function renderPackageRows(item) {
+    const profiles = getPackageProfiles(item);
+    if (!profiles.length) {
+        return `<p class="inventory-empty-inline">Keine Einheiten vorhanden.</p>`;
+    }
+
+    return profiles.map(profile => `
+        <div class="inventory-stock-row">
+            <div class="inventory-stock-row-main">
+                <strong>${formatNumber(profile.count)} × ${formatNumber(profile.unit_weight)} ${escapeHtml(profile.measure_unit)}</strong>
+                <span>Einheiten</span>
+            </div>
+            <div class="inventory-stock-row-actions">
+                <button type="button" class="inventory-mini-button" onclick="adjustPackageProfile(${item.id}, '${escapeHtml(profile.key)}', 'remove')" title="Einheit reduzieren" aria-label="Einheit reduzieren">${ICONS.minus}</button>
+                <button type="button" class="inventory-mini-button" onclick="adjustPackageProfile(${item.id}, '${escapeHtml(profile.key)}', 'add')" title="Einheit erhöhen" aria-label="Einheit erhöhen">${ICONS.plus}</button>
+            </div>
+        </div>
+    `).join("");
+}
+
+function renderLooseRows(item) {
+    const profiles = getLooseProfiles(item);
+    if (!profiles.length) {
+        return `<p class="inventory-empty-inline">Keine freie Menge vorhanden.</p>`;
+    }
+
+    return profiles.map(profile => {
+        const idUnit = cssSafe(profile.measure_unit);
+        return `
+            <div class="inventory-stock-row inventory-stock-row-loose">
+                <div class="inventory-stock-row-main">
+                    <strong>${formatNumber(profile.amount)} ${escapeHtml(profile.measure_unit)}</strong>
+                    <span>freie Menge</span>
+                </div>
+                <div class="inventory-stock-row-actions inventory-stock-row-actions-wide">
+                    <input id="loose-adjust-${item.id}-${idUnit}" type="number" min="0" step="0.1" placeholder="Menge">
+                    <button type="button" class="inventory-mini-button" onclick="adjustLooseAmount(${item.id}, '${escapeHtml(profile.measure_unit)}', 'remove')" title="Menge reduzieren" aria-label="Menge reduzieren">${ICONS.minus}</button>
+                    <button type="button" class="inventory-mini-button" onclick="adjustLooseAmount(${item.id}, '${escapeHtml(profile.measure_unit)}', 'add')" title="Menge erhöhen" aria-label="Menge erhöhen">${ICONS.plus}</button>
+                </div>
+            </div>
+        `;
+    }).join("");
+}
+
 function renderInventoryList() {
     const list = document.getElementById("inventory-list");
     const searchInput = document.getElementById("inventory-search");
     if (!list) return;
+
     const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : "";
     const filteredItems = inventoryItems.filter(item => {
         const searchable = [item.name, item.storage_location, item.notes, item.unit, formatAmount(item)].join(" ").toLowerCase();
         return searchable.includes(searchTerm);
     });
+
     if (filteredItems.length === 0) {
         list.innerHTML = `<p class="recipe-empty-state">Keine Lebensmittel im Inventar gefunden.</p>`;
         return;
     }
+
     list.innerHTML = filteredItems.map(item => {
         const status = getExpiryStatus(item.expiry_date);
         return `
-            <article class="inventory-item-card">
-                <div class="inventory-item-main">
-                    <div>
+            <article class="inventory-item-card inventory-item-card-detailed">
+                <div class="inventory-item-header">
+                    <div class="inventory-item-main">
                         <h3>${escapeHtml(item.name)}</h3>
                         <p>${escapeHtml(formatAmount(item))}</p>
+                        <div class="inventory-meta">
+                            <span class="inventory-location">${escapeHtml(item.storage_location || "Kein Ort")}</span>
+                            <span class="inventory-expiry ${status.className}">${status.label}</span>
+                            <span class="inventory-date">${formatDate(item.expiry_date)}</span>
+                        </div>
+                        ${item.notes ? `<p class="inventory-notes">${escapeHtml(item.notes)}</p>` : ""}
                     </div>
-                    <div class="inventory-meta">
-                        <span class="inventory-location">${escapeHtml(item.storage_location || "Kein Ort")}</span>
-                        <span class="inventory-expiry ${status.className}">${status.label}</span>
-                        <span class="inventory-date">${formatDate(item.expiry_date)}</span>
+                    <div class="recipe-icons inventory-icons">
+                        <button type="button" onclick="editInventoryItem(${item.id})" title="Bearbeiten" aria-label="Bearbeiten">${ICONS.edit}</button>
+                        <button type="button" class="toolbar-delete-button" onclick="deleteInventoryItem(${item.id})" title="Löschen" aria-label="Löschen">${ICONS.trash}</button>
                     </div>
-                    ${item.notes ? `<p class="inventory-notes">${escapeHtml(item.notes)}</p>` : ""}
                 </div>
-                <div class="recipe-icons inventory-icons">
-                    <button type="button" onclick="adjustInventoryItem(${item.id})" title="Bestand anpassen" aria-label="Bestand anpassen"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/><path d="M19 12h0"/></svg></button>
-                    <button type="button" onclick="editInventoryItem(${item.id})" title="Bearbeiten" aria-label="Bearbeiten"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l11-11a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button>
-                    <button type="button" class="toolbar-delete-button" onclick="deleteInventoryItem(${item.id})" title="Löschen" aria-label="Löschen"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 14h10l1-14"/><path d="M9 7V4h6v3"/></svg></button>
+
+                <div class="inventory-stock-grid">
+                    <section class="inventory-stock-panel">
+                        <div class="inventory-stock-panel-header">
+                            <h4>Einheiten</h4>
+                            <span>Inhalt je Einheit</span>
+                        </div>
+                        ${renderPackageRows(item)}
+                    </section>
+
+                    <section class="inventory-stock-panel">
+                        <div class="inventory-stock-panel-header">
+                            <h4>Freie Menge</h4>
+                            <span>direkt erhöhen/reduzieren</span>
+                        </div>
+                        ${renderLooseRows(item)}
+                    </section>
                 </div>
+
+                <section class="inventory-add-unit-panel">
+                    <h4>Neue Einheit oder freie Menge hinzufügen</h4>
+                    <div class="inventory-add-unit-grid">
+                        <div class="inventory-add-unit-box">
+                            <span>Einheit</span>
+                            <input id="new-package-count-${item.id}" type="number" min="1" step="1" placeholder="Anzahl">
+                            <input id="new-package-weight-${item.id}" type="number" min="0" step="0.1" placeholder="Inhalt je Einheit">
+                            <select id="new-package-unit-${item.id}" aria-label="Mengeneinheit">
+                                <option value="g">g</option>
+                                <option value="ml">ml</option>
+                                <option value="Stk.">Stk.</option>
+                            </select>
+                            <button type="button" class="inventory-mini-button" onclick="addNewPackageProfile(${item.id})" title="Einheit hinzufügen" aria-label="Einheit hinzufügen">${ICONS.plus}</button>
+                        </div>
+                        <div class="inventory-add-unit-box">
+                            <span>Freie Menge</span>
+                            <input id="new-loose-amount-${item.id}" type="number" min="0" step="0.1" placeholder="Menge">
+                            <select id="new-loose-unit-${item.id}" aria-label="Mengeneinheit">
+                                <option value="g">g</option>
+                                <option value="ml">ml</option>
+                                <option value="Stk.">Stk.</option>
+                            </select>
+                            <button type="button" class="inventory-mini-button" onclick="addNewLooseAmount(${item.id})" title="Freie Menge hinzufügen" aria-label="Freie Menge hinzufügen">${ICONS.plus}</button>
+                        </div>
+                    </div>
+                </section>
             </article>`;
     }).join("");
 }
 
 document.addEventListener("DOMContentLoaded", () => {
     loadInventory();
-    loadInventorySuggestions();
     updateInventoryStockType();
+
     const searchInput = document.getElementById("inventory-search");
     if (searchInput) searchInput.addEventListener("input", renderInventoryList);
+
     const nameInput = document.getElementById("inventory-name");
-    if (nameInput) nameInput.addEventListener("input", () => loadInventorySuggestions(nameInput.value));
-    ["adjust-package-profile", "adjust-measure-unit-package", "adjust-measure-unit-loose", "adjust-unit-label"].forEach(id => {
-        document.getElementById(id)?.addEventListener("input", updateAdjustmentPreview);
-        document.getElementById(id)?.addEventListener("change", updateAdjustmentPreview);
-    });
+    if (nameInput) {
+        nameInput.addEventListener("input", () => loadInventorySuggestions(nameInput.value.trim()));
+    }
 });

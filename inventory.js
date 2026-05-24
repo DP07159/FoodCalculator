@@ -76,15 +76,21 @@ function refreshSuggestionList() {
 }
 
 function toggleInventoryAddPanel(forceOpen) {
-    closeInventoryEditModal();
-    closeInventoryPositionModal();
-    closeAllInventoryPanels();
     const panel = document.getElementById("inventory-add-panel");
     if (!panel) return;
+
     const shouldOpen = typeof forceOpen === "boolean" ? forceOpen : panel.classList.contains("is-hidden");
-    panel.classList.toggle("is-hidden", !shouldOpen);
+
     if (shouldOpen) {
+        closeInventoryEditModal();
+        closeInventoryPositionModal();
+        closeAllInventoryPanels();
         resetInventoryForm();
+    }
+
+    panel.classList.toggle("is-hidden", !shouldOpen);
+
+    if (shouldOpen) {
         window.requestAnimationFrame(() => document.getElementById("inventory-name")?.focus());
     }
 }
@@ -160,7 +166,6 @@ function editInventoryItem(id) {
     document.getElementById("edit-inventory-id").value = item.id;
     document.getElementById("edit-inventory-name").value = item.name || "";
     document.getElementById("edit-inventory-unit").value = item.unit || "g";
-    document.getElementById("edit-inventory-notes").value = item.notes || "";
     openInventoryEditModal();
 }
 
@@ -184,10 +189,11 @@ function closeInventoryEditModal() {
 
 async function saveEditedInventoryItem() {
     const id = document.getElementById("edit-inventory-id").value;
+    const currentItem = inventoryItems.find(entry => String(entry.id) === String(id));
     const payload = {
         name: document.getElementById("edit-inventory-name").value,
         unit: document.getElementById("edit-inventory-unit").value,
-        notes: document.getElementById("edit-inventory-notes").value
+        notes: currentItem?.notes || ""
     };
 
     if (!id) return showToast("Kein Inventar-Eintrag ausgewählt.");
@@ -351,7 +357,7 @@ function configurePositionFieldVisibility(mode, action) {
 
 function openInventoryPositionModal(itemId, mode, action, profileKey = "__new__") {
     closeInventoryEditModal();
-    toggleInventoryAddPanel(false);
+    document.getElementById("inventory-add-panel")?.classList.add("is-hidden");
 
     const isPackage = mode === "package";
     const isNew = action === "add-new";
@@ -706,11 +712,13 @@ function renderPackageRows(item) {
 
     return profiles.map(profile => {
         const detail = [profile.storage_location || "Kein Ort", profile.expiry_date ? formatDate(profile.expiry_date) : "Kein Ablaufdatum"].join(" · ");
+        const status = getExpiryStatus(profile.expiry_date);
         return `
             <div class="inventory-stock-row ${Number(profile.count) <= 0 ? "is-zero" : ""}">
                 <div class="inventory-stock-row-main">
                     <strong>${formatNumber(profile.count)} × ${formatNumber(profile.unit_weight)} ${escapeHtml(profile.measure_unit)}</strong>
                     <span>${escapeHtml(detail)}</span>
+                    <span class="inventory-expiry inventory-position-expiry ${status.className}">${escapeHtml(status.label)}</span>
                 </div>
                 <div class="inventory-stock-row-actions">
                     <button type="button" class="inventory-mini-button" ${Number(profile.count) <= 0 ? "disabled" : ""} onclick="adjustPackageProfile(${item.id}, '${escapeHtml(profile.key)}', 'remove')" title="Einheit reduzieren" aria-label="Einheit reduzieren">${ICONS.minus}</button>
@@ -732,11 +740,13 @@ function renderLooseRows(item) {
     return profiles.map(profile => {
         const inputId = `loose-adjust-${item.id}-${cssSafe(profile.key)}`;
         const detail = [profile.storage_location || "Kein Ort", profile.expiry_date ? formatDate(profile.expiry_date) : "Kein Ablaufdatum"].join(" · ");
+        const status = getExpiryStatus(profile.expiry_date);
         return `
             <div class="inventory-stock-row inventory-stock-row-loose ${Number(profile.amount) <= 0 ? "is-zero" : ""}">
                 <div class="inventory-stock-row-main">
                     <strong>${formatNumber(profile.amount)} ${escapeHtml(profile.measure_unit)}</strong>
                     <span>${escapeHtml(detail)}</span>
+                    <span class="inventory-expiry inventory-position-expiry ${status.className}">${escapeHtml(status.label)}</span>
                 </div>
                 <div class="inventory-stock-row-actions inventory-stock-row-actions-wide">
                     <input id="${inputId}" type="number" min="0" step="0.1" placeholder="Menge">
@@ -828,7 +838,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (event.key === "Escape") {
             closeInventoryEditModal();
             closeInventoryPositionModal();
-            closeAllInventoryPanels();
             toggleInventoryAddPanel(false);
         }
     });

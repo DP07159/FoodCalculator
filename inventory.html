@@ -75,7 +75,7 @@
                         <div id="inventory-package-fields" class="inventory-create-grid inventory-create-grid-package">
                             <div class="form-section">
                                 <label for="inventory-package-count">Anzahl Einheiten</label>
-                                <input type="number" id="inventory-package-count" min="1" step="1" inputmode="numeric" pattern="[0-9]*" placeholder="z.B. 2">
+                                <input type="number" id="inventory-package-count" min="1" step="1" inputmode="numeric" pattern="[0-9]*" data-integer-only="true" placeholder="z.B. 2">
                             </div>
                             <div class="form-section">
                                 <label for="inventory-unit-weight">Inhalt je Einheit</label>
@@ -103,9 +103,12 @@
                             <div class="form-section">
                                 <label for="inventory-package-expiry">Ablaufdatum</label>
                                 <div class="inventory-date-input-row">
-                                <input type="date" id="inventory-package-expiry">
-                                <button type="button" class="secondary-button inventory-today-button" onclick="setDateToday('inventory-package-expiry')">Heute</button>
-                            </div>
+                                    <input type="date" id="inventory-package-expiry">
+                                    <div class="inventory-date-actions" aria-label="Datumsaktionen">
+                                        <button type="button" class="secondary-button inventory-date-button" onclick="setDateToday('inventory-package-expiry')">Heute</button>
+                                        <button type="button" class="secondary-button inventory-date-button" onclick="clearDateInput('inventory-package-expiry')">Leeren</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </section>
@@ -146,9 +149,12 @@
                             <div class="form-section">
                                 <label for="inventory-loose-expiry">Ablaufdatum</label>
                                 <div class="inventory-date-input-row">
-                                <input type="date" id="inventory-loose-expiry">
-                                <button type="button" class="secondary-button inventory-today-button" onclick="setDateToday('inventory-loose-expiry')">Heute</button>
-                            </div>
+                                    <input type="date" id="inventory-loose-expiry">
+                                    <div class="inventory-date-actions" aria-label="Datumsaktionen">
+                                        <button type="button" class="secondary-button inventory-date-button" onclick="setDateToday('inventory-loose-expiry')">Heute</button>
+                                        <button type="button" class="secondary-button inventory-date-button" onclick="clearDateInput('inventory-loose-expiry')">Leeren</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </section>
@@ -247,7 +253,10 @@
                         <label for="position-expiry">Ablaufdatum</label>
                         <div class="inventory-date-input-row">
                             <input type="date" id="position-expiry">
-                            <button type="button" class="secondary-button inventory-today-button" onclick="setDateToday('position-expiry')">Heute</button>
+                            <div class="inventory-date-actions" aria-label="Datumsaktionen">
+                                <button type="button" class="secondary-button inventory-date-button" onclick="setDateToday('position-expiry')">Heute</button>
+                                <button type="button" class="secondary-button inventory-date-button" onclick="clearDateInput('position-expiry')">Leeren</button>
+                            </div>
                         </div>
                     </div>
                 </div>

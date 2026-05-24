@@ -39,6 +39,60 @@ function setDateToday(inputId) {
     input.dispatchEvent(new Event("change", { bubbles: true }));
 }
 
+function clearDateInput(inputId) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    input.value = "";
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+}
+
+function showIntegerOnlyHint() {
+    const now = Date.now();
+    if (showIntegerOnlyHint.lastShown && now - showIntegerOnlyHint.lastShown < 1200) return;
+    showIntegerOnlyHint.lastShown = now;
+    showToast("Bitte nur ganze Zahlen eingeben.");
+}
+
+function sanitizeIntegerInput(input, showHint = true) {
+    if (!input) return;
+    const originalValue = input.value;
+    const sanitizedValue = originalValue.replace(/[^0-9]/g, "");
+    if (originalValue !== sanitizedValue) {
+        input.value = sanitizedValue;
+        if (showHint) showIntegerOnlyHint();
+    }
+}
+
+function setupIntegerOnlyInput(input) {
+    if (!input || input.dataset.integerListenerAttached === "true") return;
+    input.dataset.integerListenerAttached = "true";
+
+    input.addEventListener("keydown", (event) => {
+        const allowedControlKeys = ["Backspace", "Delete", "Tab", "Escape", "Enter", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"];
+        if (event.ctrlKey || event.metaKey || event.altKey || allowedControlKeys.includes(event.key)) return;
+        if (!/^[0-9]$/.test(event.key)) {
+            event.preventDefault();
+            showIntegerOnlyHint();
+        }
+    });
+
+    input.addEventListener("input", () => sanitizeIntegerInput(input));
+
+    input.addEventListener("paste", (event) => {
+        const pastedText = event.clipboardData?.getData("text") || "";
+        if (/[^0-9]/.test(pastedText)) {
+            event.preventDefault();
+            input.value = `${input.value}${pastedText}`.replace(/[^0-9]/g, "");
+            input.dispatchEvent(new Event("input", { bubbles: true }));
+            showIntegerOnlyHint();
+        }
+    });
+}
+
+function setupIntegerOnlyFields(scope = document) {
+    scope.querySelectorAll('[data-integer-only="true"]').forEach(setupIntegerOnlyInput);
+}
+
 function escapeHtml(value) {
     return String(value ?? "")
         .replaceAll("&", "&amp;")
@@ -161,6 +215,8 @@ async function saveInventoryItem() {
     if (!payload.name.trim()) return showToast("Bitte eine Bezeichnung eingeben.");
 
     if (payload.stockType === "package") {
+        sanitizeIntegerInput(document.getElementById("inventory-package-count"), false);
+        payload.packageCount = document.getElementById("inventory-package-count")?.value || payload.packageCount;
         if (!Number(payload.packageCount) || Number(payload.packageCount) <= 0) return showToast("Bitte die Anzahl eingeben.");
         if (!Number.isInteger(Number(payload.packageCount))) return showToast("Bitte bei Anzahl Einheiten eine ganze Zahl eingeben.");
         if (!Number(payload.unitWeight) || Number(payload.unitWeight) <= 0) return showToast("Bitte den Inhalt je Einheit eingeben.");
@@ -382,8 +438,15 @@ function configurePositionFieldVisibility(mode, action) {
     if (amountInput) {
         amountInput.step = mode === "package" ? "1" : "0.1";
         amountInput.inputMode = mode === "package" ? "numeric" : "decimal";
-        if (mode === "package") amountInput.setAttribute("pattern", "[0-9]*");
-        else amountInput.removeAttribute("pattern");
+        if (mode === "package") {
+            amountInput.setAttribute("pattern", "[0-9]*");
+            amountInput.dataset.integerOnly = "true";
+            sanitizeIntegerInput(amountInput, false);
+            setupIntegerOnlyInput(amountInput);
+        } else {
+            amountInput.removeAttribute("pattern");
+            delete amountInput.dataset.integerOnly;
+        }
     }
     if (unitWeightInput) unitWeightInput.disabled = mode === "package" && !isNew;
     if (measureUnitInput) measureUnitInput.disabled = !isNew;
@@ -459,7 +522,9 @@ async function submitInventoryPositionModal() {
     const profileKey = document.getElementById("position-profile-key")?.value;
     const mode = document.getElementById("position-mode")?.value;
     const action = document.getElementById("position-action")?.value;
-    const amount = Number(document.getElementById("position-amount")?.value || 0);
+    const positionAmountInput = document.getElementById("position-amount");
+    if (document.getElementById("position-mode")?.value === "package") sanitizeIntegerInput(positionAmountInput, false);
+    const amount = Number(positionAmountInput?.value || 0);
     const unitWeight = Number(document.getElementById("position-unit-weight")?.value || 0);
     const measureUnit = document.getElementById("position-measure-unit")?.value || "g";
     const storageLocation = document.getElementById("position-location")?.value || "";
@@ -861,6 +926,7 @@ function renderInventoryList() {
 document.addEventListener("DOMContentLoaded", () => {
     loadInventory();
     updateInventoryStockType();
+    setupIntegerOnlyFields();
 
     const searchInput = document.getElementById("inventory-search");
     if (searchInput) searchInput.addEventListener("input", renderInventoryList);

@@ -65,6 +65,5 @@ window.createRecipe = async function() {
 };
 
 window.onload = function () {
-    initBurgerMenu();
     initAutoResize();
 };

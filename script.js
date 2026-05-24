@@ -586,7 +586,6 @@ window.shareWeeklyShoppingList = async function() {
 };
 
 document.addEventListener("DOMContentLoaded", async () => {
-    initBurgerMenu();
     await Promise.all([loadMealPlans(), loadRecipes()]);
 
     document.getElementById("recipe-search")?.addEventListener("input", populateRecipeList);

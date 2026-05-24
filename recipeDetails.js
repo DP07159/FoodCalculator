@@ -101,6 +101,5 @@ window.updateRecipe = async function() {
 };
 
 window.onload = function () {
-    initBurgerMenu();
     loadRecipeDetails();
 };

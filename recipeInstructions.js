@@ -142,7 +142,6 @@ function setupButtons() {
 }
 
 window.onload = function () {
-    initBurgerMenu();
     setupButtons();
     loadRecipeInstructions();
 };

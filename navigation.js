@@ -23,6 +23,9 @@ function initBurgerMenu() {
 
     renderBurgerMenu();
 
+    if (burgerDropdown.dataset.initialized === "true") return;
+    burgerDropdown.dataset.initialized = "true";
+
     burgerButton.addEventListener("click", (event) => {
         event.stopPropagation();
         burgerDropdown.classList.toggle("is-hidden");
@@ -36,7 +39,19 @@ function initBurgerMenu() {
         }
     });
 
-    document.addEventListener("click", () => burgerDropdown.classList.add("is-hidden"));
+    document.addEventListener("click", () => {
+        burgerDropdown.classList.add("is-hidden");
+    });
+
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+            burgerDropdown.classList.add("is-hidden");
+        }
+    });
 }
 
-document.addEventListener("DOMContentLoaded", initBurgerMenu);
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initBurgerMenu);
+} else {
+    initBurgerMenu();
+}

@@ -1,17 +1,19 @@
-const CACHE_NAME = "food-calculator-v12";
+const CACHE_NAME = "food-calculator-v14";
 
 const FILES_TO_CACHE = [
     "/",
     "/index.html",
-    "/style.css",
-    "/script.js",
-    "/navigation.js",
-    "/recipeInstructions.html",
-    "/recipeInstructions.js",
-    "/recipeDetails.html",
-    "/recipeDetails.js",
+    "/inventory.html",
     "/recipeCreate.html",
+    "/recipeDetails.html",
+    "/recipeInstructions.html",
+    "/style.css",
+    "/navigation.js",
+    "/script.js",
+    "/inventory.js",
     "/recipeCreate.js",
+    "/recipeDetails.js",
+    "/recipeInstructions.js",
     "/manifest.json"
 ];
 
@@ -23,7 +25,9 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
     event.waitUntil(
         caches.keys().then(cacheNames => Promise.all(
-            cacheNames.filter(name => name !== CACHE_NAME).map(name => caches.delete(name))
+            cacheNames
+                .filter(name => name !== CACHE_NAME)
+                .map(name => caches.delete(name))
         ))
     );
     self.clients.claim();

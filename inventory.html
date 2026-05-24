@@ -28,7 +28,7 @@
                 <div class="inventory-section-headline">
                     <div>
                         <p class="recipe-kicker">Neuer Bestand</p>
-                        <h2>Lebensmittel erfassen</h2>
+                        <h2>Lebensmittel hinzufügen</h2>
                     </div>
                     <button type="button" class="header-icon-button" onclick="toggleInventoryAddPanel(false)" title="Erfassung schließen" aria-label="Erfassung schließen">
                         <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
@@ -63,12 +63,12 @@
                         <label class="inventory-choice-card">
                             <input type="radio" name="inventory-stock-type" value="package" checked onchange="updateInventoryStockType()">
                             <span>Einheiten</span>
-                            <small>z.B. 2 × 230 g</small>
+                            <small>Einzelne Einheiten, z.B. 2 × 230 g</small>
                         </label>
                         <label class="inventory-choice-card">
                             <input type="radio" name="inventory-stock-type" value="loose" onchange="updateInventoryStockType()">
                             <span>Freie Menge</span>
-                            <small>z.B. 300 g, 500 ml oder 4 Stk.</small>
+                            <small>Aggregierter Bestand, z.B. 300 g</small>
                         </label>
                     </div>
 

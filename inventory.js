@@ -76,6 +76,8 @@ function refreshSuggestionList() {
 }
 
 function toggleInventoryAddPanel(forceOpen) {
+    closeInventoryEditModal();
+    closeAllInventoryPanels();
     const panel = document.getElementById("inventory-add-panel");
     if (!panel) return;
     const shouldOpen = typeof forceOpen === "boolean" ? forceOpen : panel.classList.contains("is-hidden");
@@ -162,6 +164,8 @@ function editInventoryItem(id) {
 }
 
 function openInventoryEditModal() {
+    toggleInventoryAddPanel(false);
+    closeAllInventoryPanels();
     const modal = document.getElementById("inventory-edit-modal");
     if (!modal) return;
     modal.classList.remove("is-hidden");
@@ -205,47 +209,57 @@ async function saveEditedInventoryItem() {
 
 
 function makeStockKey(parts) {
-    return parts.map(part => encodeURIComponent(String(part ?? ""))).join("||");
+    return parts.map(part => encodeURIComponent(String(part ?? ""))).join("|");
 }
 
 function parseStockKey(key) {
-    return String(key || "")
-        .split("||")
-        .map(part => decodeURIComponent(part || ""));
+    return String(key ?? "").split("|").map(part => decodeURIComponent(part));
 }
 
 function cssSafe(value) {
-    return String(value || "")
-        .replace(/[^a-zA-Z0-9_-]/g, "-")
-        .replace(/-+/g, "-")
-        .replace(/^-|-$/g, "") || "default";
+    return String(value ?? "").replace(/[^a-zA-Z0-9_-]/g, "_");
 }
 
 function getStorageLocationOptions(selectedValue = "") {
     const locations = ["", "TK", "KS", "TK (Keller)", "KS (Keller)", "Vorratsraum"];
-    const selected = String(selectedValue || "");
     return locations.map(location => {
-        const label = location || "Bitte wählen";
-        const isSelected = location === selected ? " selected" : "";
-        return `<option value="${escapeHtml(location)}"${isSelected}>${escapeHtml(label)}</option>`;
+        const label = location || "Lagerort wählen";
+        const selected = location === selectedValue ? " selected" : "";
+        return `<option value="${escapeHtml(location)}"${selected}>${escapeHtml(label)}</option>`;
     }).join("");
 }
 
 function getPrimaryLocations(item) {
     const locations = new Set();
     (item?.batches || []).forEach(batch => {
-        const hasStock = Number(batch.remaining_quantity || 0) > 0 || Number(batch.remaining_weight || 0) > 0;
-        if (hasStock && batch.storage_location) locations.add(batch.storage_location);
+        if ((Number(batch.remaining_quantity || 0) > 0 || Number(batch.remaining_weight || 0) > 0) && batch.storage_location) {
+            locations.add(batch.storage_location);
+        }
     });
     if (!locations.size && item?.storage_location) locations.add(item.storage_location);
     return Array.from(locations).sort((a, b) => a.localeCompare(b));
 }
 
+function closeAllInventoryPanels(exceptItemId = null) {
+    document.querySelectorAll(".inventory-stock-controls").forEach(panel => {
+        if (exceptItemId && panel.id === `inventory-controls-${exceptItemId}`) return;
+        panel.classList.add("is-hidden");
+    });
+}
+
 function toggleInventoryControls(itemId, forceOpen) {
-    const controls = document.getElementById(`inventory-controls-${itemId}`);
-    if (!controls) return;
-    const shouldOpen = typeof forceOpen === "boolean" ? forceOpen : controls.classList.contains("is-hidden");
-    controls.classList.toggle("is-hidden", !shouldOpen);
+    const panel = document.getElementById(`inventory-controls-${itemId}`);
+    if (!panel) return;
+
+    const shouldOpen = typeof forceOpen === "boolean" ? forceOpen : panel.classList.contains("is-hidden");
+    closeInventoryEditModal();
+    toggleInventoryAddPanel(false);
+    closeAllInventoryPanels(itemId);
+    panel.classList.toggle("is-hidden", !shouldOpen);
+
+    if (shouldOpen) {
+        window.requestAnimationFrame(() => panel.scrollIntoView({ behavior: "smooth", block: "nearest" }));
+    }
 }
 
 function getPackageProfiles(item) {
@@ -561,7 +575,7 @@ function renderInventoryList() {
                             </div>
                             ${renderPackageRows(item)}
                             <div class="inventory-inline-add-box">
-                                <h5>Neue Einheit</h5>
+                                <h5>Einheit hinzufügen</h5>
                                 <input id="new-package-count-${item.id}" type="number" min="1" step="1" placeholder="Anzahl">
                                 <input id="new-package-weight-${item.id}" type="number" min="0" step="0.1" placeholder="Inhalt">
                                 <select id="new-package-unit-${item.id}" aria-label="Mengeneinheit">
@@ -582,7 +596,7 @@ function renderInventoryList() {
                             </div>
                             ${renderLooseRows(item)}
                             <div class="inventory-inline-add-box inventory-inline-add-box-loose">
-                                <h5>Neue freie Menge</h5>
+                                <h5>Freie Menge hinzufügen</h5>
                                 <input id="new-loose-amount-${item.id}" type="number" min="0" step="0.1" placeholder="Menge">
                                 <select id="new-loose-unit-${item.id}" aria-label="Mengeneinheit">
                                     <option value="g">g</option>
@@ -611,4 +625,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (nameInput) {
         nameInput.addEventListener("input", () => loadInventorySuggestions(nameInput.value.trim()));
     }
+
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+            closeInventoryEditModal();
+            closeAllInventoryPanels();
+            toggleInventoryAddPanel(false);
+        }
+    });
 });

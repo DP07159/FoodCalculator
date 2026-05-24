@@ -1469,3 +1469,181 @@ body.modal-open {
         grid-template-columns: 1fr;
     }
 }
+
+
+/* =========================================================
+   INVENTAR OPTIMIERUNG: SAUBERE DIALOGE + KOMPAKTE NEUERFASSUNG
+========================================================= */
+.inventory-form-card {
+    border-color: rgba(31, 111, 235, 0.14);
+    background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+}
+
+.inventory-form-card .inventory-section-headline {
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--color-border-soft);
+}
+
+.inventory-choice-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.inventory-choice-card {
+    position: relative;
+    align-items: flex-start;
+    background: #ffffff;
+    border-color: var(--color-border-soft);
+    box-shadow: var(--shadow-soft);
+}
+
+.inventory-choice-card:has(input:checked) {
+    border-color: var(--color-primary-border);
+    background: var(--color-primary-soft);
+}
+
+.inventory-choice-card input {
+    margin-top: 3px;
+    flex-shrink: 0;
+}
+
+.inventory-form-grid + .inventory-choice-row,
+.inventory-choice-row + .inventory-form-grid {
+    margin-top: 4px;
+}
+
+.inventory-inline-inputs select,
+.inventory-inline-add-box select {
+    background-color: #ffffff;
+}
+
+.inventory-item-card-compact {
+    background: rgba(255,255,255,0.96);
+}
+
+.inventory-item-header {
+    align-items: flex-start;
+}
+
+.inventory-icons {
+    align-self: flex-start;
+}
+
+.inventory-stock-controls {
+    position: relative;
+    z-index: 1;
+    background: #ffffff;
+    border: 1px solid rgba(215, 226, 240, 0.95);
+    border-radius: var(--radius-xl);
+    padding: 16px;
+    box-shadow: var(--shadow-soft);
+}
+
+.inventory-stock-panel {
+    background: #fbfdff;
+}
+
+.inventory-stock-panel-header {
+    align-items: flex-start;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--color-border-soft);
+}
+
+.inventory-stock-panel-header span {
+    max-width: 220px;
+    text-align: right;
+}
+
+.inventory-inline-add-box {
+    background: #ffffff;
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 12px;
+}
+
+.inventory-inline-add-box h5 {
+    color: var(--color-primary-text);
+}
+
+.inventory-modal {
+    z-index: 10000;
+    align-items: flex-start;
+    justify-content: center;
+    overflow-y: auto;
+    padding: calc(var(--app-header-height) + 24px) 20px 32px;
+}
+
+.inventory-modal-backdrop {
+    position: fixed;
+    z-index: 0;
+}
+
+.inventory-modal-dialog {
+    width: min(760px, 100%);
+    max-height: none;
+    overflow: visible;
+    border-radius: 26px;
+    box-shadow: 0 30px 80px rgba(17, 24, 39, 0.28);
+}
+
+.inventory-modal-dialog .inventory-section-headline {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    margin: calc(-1 * var(--space-lg)) calc(-1 * var(--space-lg)) 18px;
+    padding: var(--space-lg);
+    background: rgba(255,255,255,0.96);
+    border-bottom: 1px solid var(--color-border-soft);
+    border-radius: 26px 26px 0 0;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+body.modal-open .app-header {
+    z-index: 900;
+}
+
+#inventory-edit-form .inventory-form-grid {
+    grid-template-columns: 1.2fr .8fr;
+}
+
+#inventory-edit-form textarea {
+    min-height: 120px;
+}
+
+@media (max-width: 900px) {
+    .inventory-choice-row,
+    #inventory-edit-form .inventory-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .inventory-stock-panel-header span {
+        max-width: none;
+        text-align: left;
+    }
+}
+
+@media (max-width: 768px) {
+    .inventory-modal {
+        align-items: flex-end;
+        padding: 12px;
+    }
+
+    .inventory-modal-dialog {
+        width: 100%;
+        max-height: calc(100vh - 24px);
+        overflow-y: auto;
+        border-radius: 24px;
+    }
+
+    .inventory-modal-dialog .inventory-section-headline {
+        border-radius: 24px 24px 0 0;
+    }
+
+    .inventory-stock-controls {
+        padding: 12px;
+    }
+
+    .inventory-choice-card {
+        min-height: auto;
+    }
+}

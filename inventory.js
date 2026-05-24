@@ -33,16 +33,9 @@ async function apiFetch(url, options = {}) {
     const response = await fetch(url, options);
     let payload = null;
 
-    try {
-        payload = await response.json();
-    } catch {
-        payload = null;
-    }
+    try { payload = await response.json(); } catch { payload = null; }
 
-    if (!response.ok) {
-        throw new Error(payload?.error || "Serverfehler");
-    }
-
+    if (!response.ok) throw new Error(payload?.error || "Serverfehler");
     return payload;
 }
 
@@ -60,10 +53,7 @@ function toggleInventoryAddPanel(forceOpen) {
     const panel = document.getElementById("inventory-add-panel");
     if (!panel) return;
 
-    const shouldOpen = typeof forceOpen === "boolean"
-        ? forceOpen
-        : panel.classList.contains("is-hidden");
-
+    const shouldOpen = typeof forceOpen === "boolean" ? forceOpen : panel.classList.contains("is-hidden");
     panel.classList.toggle("is-hidden", !shouldOpen);
 
     if (shouldOpen) {
@@ -105,7 +95,7 @@ async function saveInventoryItem() {
         await loadInventory();
     } catch (error) {
         console.error(error);
-        showToast("Eintrag konnte nicht gespeichert werden.");
+        showToast(error.message || "Eintrag konnte nicht gespeichert werden.");
     }
 }
 
@@ -152,7 +142,6 @@ async function saveEditedInventoryItem() {
         showToast("Kein Inventar-Eintrag ausgewählt.");
         return;
     }
-
     if (!payload.name.trim()) {
         showToast("Bitte eine Bezeichnung eingeben.");
         return;
@@ -170,7 +159,7 @@ async function saveEditedInventoryItem() {
         await loadInventory();
     } catch (error) {
         console.error(error);
-        showToast("Eintrag konnte nicht aktualisiert werden.");
+        showToast(error.message || "Eintrag konnte nicht aktualisiert werden.");
     }
 }
 
@@ -187,9 +176,52 @@ function adjustInventoryItem(id) {
     document.getElementById("adjust-inventory-unit-weight").value = "";
     document.getElementById("adjust-inventory-weight-amount").value = "";
 
+    populateBatchSelect(item);
     updateAdjustmentMode();
     updateAdjustmentPreview();
     openInventoryAdjustModal();
+}
+
+function populateBatchSelect(item) {
+    const select = document.getElementById("adjust-inventory-batch");
+    if (!select) return;
+
+    const activeBatches = getActiveBatches(item);
+    select.innerHTML = "";
+
+    if (activeBatches.length === 0) {
+        select.innerHTML = `<option value="">Keine bestehende Einheit vorhanden</option>`;
+        return;
+    }
+
+    activeBatches.forEach(batch => {
+        const option = document.createElement("option");
+        option.value = String(batch.id);
+        option.dataset.unitWeight = String(batch.unit_weight ?? 0);
+        option.textContent = formatBatchLabel(batch, item.unit);
+        select.appendChild(option);
+    });
+}
+
+function getActiveBatches(item) {
+    return (item?.batches || []).filter(batch => Number(batch.remaining_quantity ?? 0) > 0 || Number(batch.remaining_weight ?? 0) > 0);
+}
+
+function getSelectedBatch(item) {
+    const select = document.getElementById("adjust-inventory-batch");
+    const batchId = select?.value;
+    if (!batchId) return null;
+    return (item?.batches || []).find(batch => String(batch.id) === String(batchId)) || null;
+}
+
+function formatBatchLabel(batch, unit = "") {
+    const remainingQuantity = formatNumber(batch.remaining_quantity ?? 0);
+    const remainingWeight = formatNumber(batch.remaining_weight ?? 0);
+    const unitWeight = formatNumber(batch.unit_weight ?? 0);
+    const date = batch.expiry_date ? ` · MHD ${formatDate(batch.expiry_date)}` : "";
+    const location = batch.storage_location ? ` · ${batch.storage_location}` : "";
+    const unitText = unit ? ` ${unit}` : "";
+    return `${remainingQuantity}${unitText} à ${unitWeight} g · ${remainingWeight} g verfügbar${date}${location}`;
 }
 
 function openInventoryAdjustModal() {
@@ -220,23 +252,33 @@ function getSelectedAdjustmentItem() {
 
 function updateAdjustmentMode() {
     const item = getSelectedAdjustmentItem();
+    const action = document.getElementById("adjust-inventory-action")?.value || "add";
     const mode = document.getElementById("adjust-inventory-mode")?.value || "quantity";
     const quantityFields = document.getElementById("adjust-quantity-fields");
     const weightFields = document.getElementById("adjust-weight-fields");
+    const unitWeightInput = document.getElementById("adjust-inventory-unit-weight");
+    const batchSelect = document.getElementById("adjust-inventory-batch");
     const hint = document.getElementById("adjust-inventory-hint");
 
     quantityFields?.classList.toggle("is-hidden", mode !== "quantity");
     weightFields?.classList.toggle("is-hidden", mode !== "weight");
 
+    if (item && batchSelect && batchSelect.value && unitWeightInput) {
+        const batch = getSelectedBatch(item);
+        if (batch?.unit_weight) unitWeightInput.value = formatPlainNumber(batch.unit_weight);
+    }
+
     if (!hint || !item) return;
 
     const currentQuantity = Number(item.quantity ?? 0);
     if (mode === "weight" && currentQuantity !== 1) {
-        hint.textContent = "Gewicht direkt anpassen ist nur möglich, wenn die Menge exakt 1 beträgt. Bitte passe bei diesem Artikel die Menge an und gib das Gewicht je Einheit an.";
+        hint.textContent = "Gewicht direkt anpassen ist nur möglich, wenn die Gesamtmenge exakt 1 beträgt. Bitte passe bei diesem Artikel die Menge über eine vorhandene Einheit an.";
+    } else if (mode === "quantity" && action === "remove") {
+        hint.textContent = "Die Reduzierung erfolgt bestandsgemäß auf Basis der ausgewählten vorhandenen Einheit.";
     } else if (mode === "quantity") {
-        hint.textContent = "Bei Mengenänderungen bitte immer das Gewicht je Einheit angeben, damit das Gesamtgewicht sauber mitgeführt wird.";
+        hint.textContent = "Für neue Bestände kannst du eine bekannte Einheit auswählen oder das Gewicht je Einheit überschreiben.";
     } else {
-        hint.textContent = "Gewichtsanpassungen verändern nur das Gesamtgewicht; die Menge bleibt 1.";
+        hint.textContent = "Gewichtsanpassungen verändern nur die ausgewählte Einzel-Einheit; die Menge bleibt 1, solange Gewicht vorhanden ist.";
     }
 
     updateAdjustmentPreview();
@@ -251,36 +293,39 @@ function calculateAdjustment() {
     const direction = action === "add" ? 1 : -1;
     const currentQuantity = Number(item.quantity ?? 0);
     const currentWeight = Number(item.weight ?? 0);
+    const selectedBatch = getSelectedBatch(item);
 
     if (mode === "weight") {
         const amount = Number(document.getElementById("adjust-inventory-weight-amount").value);
 
-        if (currentQuantity !== 1) {
-            return { error: "Gewicht kann nur direkt angepasst werden, wenn die Menge 1 beträgt." };
-        }
-        if (!Number.isFinite(amount) || amount <= 0) {
-            return { error: "Bitte eine Gewichtsanpassung größer 0 eingeben." };
-        }
+        if (currentQuantity !== 1) return { error: "Gewicht kann nur direkt angepasst werden, wenn die Gesamtmenge 1 beträgt." };
+        if (!Number.isFinite(amount) || amount <= 0) return { error: "Bitte eine Gewichtsanpassung größer 0 eingeben." };
+
+        const baseWeight = Number(selectedBatch?.remaining_weight ?? currentWeight);
+        const batchQuantityAfter = Math.max(0, baseWeight + direction * amount) > 0 ? 1 : 0;
+        const batchWeightAfter = Math.max(0, baseWeight + direction * amount);
 
         return {
-            payload: { action, mode, amount },
-            newQuantity: 1,
-            newWeight: Math.max(0, currentWeight + direction * amount)
+            payload: { action, mode, amount, batchId: selectedBatch?.id || undefined },
+            newQuantity: Math.max(0, currentQuantity - Number(selectedBatch?.remaining_quantity ?? currentQuantity) + batchQuantityAfter),
+            newWeight: Math.max(0, currentWeight - baseWeight + batchWeightAfter)
         };
     }
 
     const amount = Number(document.getElementById("adjust-inventory-amount").value);
-    const unitWeight = Number(document.getElementById("adjust-inventory-unit-weight").value);
+    const unitWeight = Number(document.getElementById("adjust-inventory-unit-weight").value || selectedBatch?.unit_weight || 0);
 
-    if (!Number.isFinite(amount) || amount <= 0) {
-        return { error: "Bitte eine Menge größer 0 eingeben." };
-    }
-    if (!Number.isFinite(unitWeight) || unitWeight <= 0) {
-        return { error: "Bitte ein Gewicht je Einheit größer 0 eingeben." };
+    if (!Number.isFinite(amount) || amount <= 0) return { error: "Bitte eine Menge größer 0 eingeben." };
+    if (!Number.isFinite(unitWeight) || unitWeight <= 0) return { error: "Bitte ein Gewicht je Einheit größer 0 eingeben." };
+
+    if (action === "remove") {
+        if (!selectedBatch) return { error: "Bitte eine vorhandene Bestandseinheit auswählen." };
+        const removableQuantity = Number(selectedBatch.remaining_quantity ?? 0);
+        if (amount > removableQuantity) return { error: `Aus dieser Einheit sind maximal ${formatNumber(removableQuantity)} verfügbar.` };
     }
 
     return {
-        payload: { action, mode, amount, unitWeight },
+        payload: { action, mode, amount, unitWeight, batchId: selectedBatch?.id || undefined },
         newQuantity: Math.max(0, currentQuantity + direction * amount),
         newWeight: Math.max(0, currentWeight + direction * amount * unitWeight)
     };
@@ -354,9 +399,7 @@ function resetInventoryForm() {
 }
 
 function getExpiryStatus(expiryDate) {
-    if (!expiryDate) {
-        return { label: "Kein Ablaufdatum", className: "inventory-neutral" };
-    }
+    if (!expiryDate) return { label: "Kein Ablaufdatum", className: "inventory-neutral" };
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -372,10 +415,14 @@ function getExpiryStatus(expiryDate) {
     return { label: "Haltbar", className: "inventory-good" };
 }
 
-function formatNumber(value) {
+function formatPlainNumber(value) {
     const number = Number(value);
     if (!Number.isFinite(number)) return "0";
-    return Number.isInteger(number) ? String(number) : String(Math.round(number * 10) / 10).replace(".", ",");
+    return Number.isInteger(number) ? String(number) : String(Math.round(number * 10) / 10);
+}
+
+function formatNumber(value) {
+    return formatPlainNumber(value).replace(".", ",");
 }
 
 function formatAmount(item) {
@@ -394,6 +441,21 @@ function formatDate(dateString) {
     return new Date(dateString).toLocaleDateString("de-DE");
 }
 
+function renderInventoryBatches(item) {
+    const activeBatches = getActiveBatches(item);
+    if (activeBatches.length === 0) return `<p class="inventory-batch-list is-empty">Keine aktive Bestandseinheit vorhanden.</p>`;
+
+    const visible = activeBatches.slice(0, 3);
+    const extraCount = activeBatches.length - visible.length;
+
+    return `
+        <div class="inventory-batch-list">
+            ${visible.map(batch => `<span>${escapeHtml(formatBatchLabel(batch, item.unit))}</span>`).join("")}
+            ${extraCount > 0 ? `<span>+ ${extraCount} weitere Einheit(en)</span>` : ""}
+        </div>
+    `;
+}
+
 function renderInventoryList() {
     const list = document.getElementById("inventory-list");
     const searchInput = document.getElementById("inventory-search");
@@ -402,7 +464,8 @@ function renderInventoryList() {
     const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : "";
 
     const filteredItems = inventoryItems.filter(item => {
-        const searchable = [item.name, item.storage_location, item.notes, item.unit].join(" ").toLowerCase();
+        const batchText = (item.batches || []).map(batch => [batch.storage_location, batch.expiry_date, batch.unit_weight].join(" ")).join(" ");
+        const searchable = [item.name, item.storage_location, item.notes, item.unit, batchText].join(" ").toLowerCase();
         return searchable.includes(searchTerm);
     });
 
@@ -434,6 +497,7 @@ function renderInventoryList() {
                     <span class="inventory-date">${escapeHtml(formatDate(item.expiry_date))}</span>
                 </div>
 
+                ${renderInventoryBatches(item)}
                 ${item.notes ? `<p class="inventory-notes">${escapeHtml(item.notes)}</p>` : ""}
             </div>
 
@@ -462,14 +526,18 @@ document.addEventListener("DOMContentLoaded", () => {
     [
         "adjust-inventory-action",
         "adjust-inventory-mode",
+        "adjust-inventory-batch",
         "adjust-inventory-amount",
         "adjust-inventory-unit-weight",
         "adjust-inventory-weight-amount"
     ].forEach(id => {
         const element = document.getElementById(id);
         if (!element) return;
-        element.addEventListener("input", id === "adjust-inventory-mode" ? updateAdjustmentMode : updateAdjustmentPreview);
-        element.addEventListener("change", id === "adjust-inventory-mode" ? updateAdjustmentMode : updateAdjustmentPreview);
+        const handler = ["adjust-inventory-action", "adjust-inventory-mode", "adjust-inventory-batch"].includes(id)
+            ? updateAdjustmentMode
+            : updateAdjustmentPreview;
+        element.addEventListener("input", handler);
+        element.addEventListener("change", handler);
     });
 
     document.addEventListener("keydown", (event) => {

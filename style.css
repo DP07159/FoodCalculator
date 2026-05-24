@@ -1052,3 +1052,39 @@ body.modal-open {
         grid-template-columns: 1fr;
     }
 }
+
+/* Inventar: Bestandseinheiten / Chargen */
+.inventory-batch-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 2px;
+}
+
+.inventory-batch-list span,
+.inventory-batch-list.is-empty {
+    display: inline-flex;
+    width: fit-content;
+    max-width: 100%;
+    padding: 6px 10px;
+    border-radius: var(--radius-md);
+    color: var(--color-text-muted);
+    background: #ffffff;
+    border: 1px solid var(--color-border-soft);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.inventory-adjust-fields-wide {
+    grid-template-columns: minmax(220px, 1.5fr) minmax(120px, .75fr) minmax(160px, .85fr);
+}
+
+.inventory-adjust-batch-field {
+    min-width: 0;
+}
+
+@media (max-width: 768px) {
+    .inventory-adjust-fields-wide {
+        grid-template-columns: 1fr;
+    }
+}

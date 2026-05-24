@@ -716,3 +716,143 @@ h2 {
         min-width: 0;
     }
 }
+
+/* Inventar */
+.inventory-page {
+    max-width: var(--content-max-width);
+    margin: 0 auto;
+}
+
+.inventory-header {
+    text-align: left;
+}
+
+.inventory-form-card,
+.inventory-list-card {
+    margin-bottom: var(--space-xl);
+}
+
+.inventory-form-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-lg);
+    margin-bottom: var(--space-lg);
+}
+
+.inventory-actions {
+    gap: var(--space-sm);
+}
+
+.secondary-button {
+    color: var(--color-text);
+    background: #f4f8fc;
+    border-color: #d7e0ea;
+}
+
+.inventory-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.inventory-item-card {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px;
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface-soft);
+}
+
+.inventory-item-main {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+}
+
+.inventory-item-main h3 {
+    margin: 0;
+    font-size: 17px;
+}
+
+.inventory-item-main p {
+    margin: 0;
+    color: var(--color-text-muted);
+}
+
+.inventory-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.inventory-location,
+.inventory-expiry,
+.inventory-date {
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.inventory-location,
+.inventory-date {
+    color: #4f627a;
+    background: #f4f8fc;
+    border: 1px solid #dfe7f0;
+}
+
+.inventory-good {
+    color: var(--color-success-text);
+    background: var(--color-success-bg);
+    border: 1px solid var(--color-success-border);
+}
+
+.inventory-warning {
+    color: #8a5a00;
+    background: #fff7df;
+    border: 1px solid #f1d78a;
+}
+
+.inventory-critical,
+.inventory-expired {
+    color: var(--color-danger-text);
+    background: var(--color-danger-bg);
+    border: 1px solid var(--color-danger-border);
+}
+
+.inventory-neutral {
+    color: var(--color-text-muted);
+    background: #f4f8fc;
+    border: 1px solid #dfe7f0;
+}
+
+.inventory-notes {
+    font-style: italic;
+}
+
+@media (max-width: 900px) {
+    .inventory-form-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .inventory-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .inventory-item-card {
+        flex-direction: column;
+    }
+
+    .inventory-item-card .recipe-icons {
+        justify-content: flex-end;
+    }
+}

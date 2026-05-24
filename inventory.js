@@ -179,6 +179,91 @@ async function saveEditedInventoryItem() {
     }
 }
 
+function consumeInventoryItem(id) {
+    const item = inventoryItems.find(entry => String(entry.id) === String(id));
+    if (!item) return;
+
+    document.getElementById("consume-inventory-id").value = item.id;
+    document.getElementById("consume-inventory-name").textContent = item.name || "";
+    document.getElementById("consume-inventory-current").textContent = `Aktueller Bestand: ${formatAmount(item)}`;
+    document.getElementById("consume-inventory-amount").value = "";
+    updateConsumptionPreview();
+
+    openInventoryConsumeModal();
+}
+
+function openInventoryConsumeModal() {
+    const modal = document.getElementById("inventory-consume-modal");
+    if (!modal) return;
+
+    modal.classList.remove("is-hidden");
+    document.body.classList.add("modal-open");
+
+    window.requestAnimationFrame(() => {
+        document.getElementById("consume-inventory-amount")?.focus();
+    });
+}
+
+function closeInventoryConsumeModal() {
+    const modal = document.getElementById("inventory-consume-modal");
+    if (!modal) return;
+
+    modal.classList.add("is-hidden");
+    document.body.classList.remove("modal-open");
+    document.getElementById("inventory-consume-form")?.reset();
+    document.getElementById("consume-inventory-id").value = "";
+    document.getElementById("consume-inventory-preview").textContent = "";
+}
+
+function updateConsumptionPreview() {
+    const id = document.getElementById("consume-inventory-id")?.value;
+    const amount = Number(document.getElementById("consume-inventory-amount")?.value);
+    const preview = document.getElementById("consume-inventory-preview");
+    const item = inventoryItems.find(entry => String(entry.id) === String(id));
+
+    if (!preview || !item) return;
+
+    const currentQuantity = item.quantity === null || item.quantity === undefined ? 0 : Number(item.quantity);
+    if (!Number.isFinite(amount) || amount <= 0) {
+        preview.textContent = "Bitte gib eine Entnahmemenge größer 0 ein.";
+        return;
+    }
+
+    const newQuantity = Math.max(0, currentQuantity - amount);
+    const unit = item.unit ? ` ${item.unit}` : "";
+    preview.textContent = `Neuer Bestand: ${newQuantity}${unit}`;
+}
+
+async function saveInventoryConsumption() {
+    const id = document.getElementById("consume-inventory-id").value;
+    const amount = Number(document.getElementById("consume-inventory-amount").value);
+
+    if (!id) {
+        showToast("Kein Inventar-Eintrag ausgewählt.");
+        return;
+    }
+
+    if (!Number.isFinite(amount) || amount <= 0) {
+        showToast("Bitte eine Entnahmemenge größer 0 eingeben.");
+        return;
+    }
+
+    try {
+        await apiFetch(`${API_URL}/inventory/${id}/consume`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ amount })
+        });
+
+        showToast("Entnahme gespeichert.");
+        closeInventoryConsumeModal();
+        await loadInventory();
+    } catch (error) {
+        console.error(error);
+        showToast("Entnahme konnte nicht gespeichert werden.");
+    }
+}
+
 async function deleteInventoryItem(id) {
     const item = inventoryItems.find(entry => String(entry.id) === String(id));
     const itemName = item?.name || "diesen Eintrag";
@@ -291,6 +376,9 @@ function renderInventoryList() {
             </div>
 
             <div class="recipe-icons">
+                <button type="button" onclick="consumeInventoryItem(${item.id})" title="Entnehmen" aria-label="Entnehmen">
+                    <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg>
+                </button>
                 <button type="button" onclick="editInventoryItem(${item.id})" title="Bearbeiten" aria-label="Bearbeiten">
                     <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l11-11a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>
                 </button>
@@ -312,9 +400,15 @@ document.addEventListener("DOMContentLoaded", () => {
         searchInput.addEventListener("input", renderInventoryList);
     }
 
+    const consumeAmountInput = document.getElementById("consume-inventory-amount");
+    if (consumeAmountInput) {
+        consumeAmountInput.addEventListener("input", updateConsumptionPreview);
+    }
+
     document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") {
             closeInventoryEditModal();
+            closeInventoryConsumeModal();
         }
     });
 });

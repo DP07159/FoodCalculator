@@ -168,6 +168,40 @@
         </div>
     </div>
 
+    <div id="inventory-consume-modal" class="inventory-modal is-hidden" role="dialog" aria-modal="true" aria-labelledby="inventory-consume-title">
+        <div class="inventory-modal-backdrop" onclick="closeInventoryConsumeModal()"></div>
+        <div class="inventory-modal-dialog inventory-consume-dialog">
+            <div class="inventory-section-headline">
+                <h2 id="inventory-consume-title">Lebensmittel entnehmen</h2>
+                <button type="button" class="header-icon-button" onclick="closeInventoryConsumeModal()" title="Fenster schließen" aria-label="Fenster schließen">
+                    <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <form id="inventory-consume-form">
+                <input type="hidden" id="consume-inventory-id">
+
+                <div class="inventory-consume-summary">
+                    <p class="recipe-kicker">Ausgewählter Artikel</p>
+                    <h3 id="consume-inventory-name"></h3>
+                    <p id="consume-inventory-current"></p>
+                </div>
+
+                <div class="form-section">
+                    <label for="consume-inventory-amount">Entnahmemenge</label>
+                    <input type="number" id="consume-inventory-amount" min="0" step="0.1" placeholder="z.B. 1">
+                </div>
+
+                <p id="consume-inventory-preview" class="inventory-consume-preview"></p>
+
+                <div class="form-actions inventory-actions">
+                    <button type="button" class="secondary-button" onclick="closeInventoryConsumeModal()">Abbrechen</button>
+                    <button type="button" onclick="saveInventoryConsumption()">Entnahme speichern</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div id="app-toast" class="app-toast is-hidden"></div>
     <script src="navigation.js"></script>
     <script src="inventory.js"></script>

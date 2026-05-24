@@ -77,6 +77,7 @@ function refreshSuggestionList() {
 
 function toggleInventoryAddPanel(forceOpen) {
     closeInventoryEditModal();
+    closeInventoryPositionModal();
     closeAllInventoryPanels();
     const panel = document.getElementById("inventory-add-panel");
     if (!panel) return;
@@ -253,6 +254,7 @@ function toggleInventoryControls(itemId, forceOpen) {
 
     const shouldOpen = typeof forceOpen === "boolean" ? forceOpen : panel.classList.contains("is-hidden");
     closeInventoryEditModal();
+    closeInventoryPositionModal();
     toggleInventoryAddPanel(false);
     closeAllInventoryPanels(itemId);
     panel.classList.toggle("is-hidden", !shouldOpen);
@@ -300,6 +302,159 @@ function getLooseProfiles(item) {
         if (locationCompare) return locationCompare;
         return a.measure_unit.localeCompare(b.measure_unit);
     });
+}
+
+function findPackageProfile(itemId, profileKey) {
+    const item = inventoryItems.find(entry => String(entry.id) === String(itemId));
+    if (!item) return null;
+    return getPackageProfiles(item).find(profile => profile.key === profileKey) || null;
+}
+
+function findLooseProfile(itemId, profileKey) {
+    const item = inventoryItems.find(entry => String(entry.id) === String(itemId));
+    if (!item) return null;
+    return getLooseProfiles(item).find(profile => profile.key === profileKey) || null;
+}
+
+function closeInventoryPositionModal() {
+    const modal = document.getElementById("inventory-position-modal");
+    if (!modal) return;
+    modal.classList.add("is-hidden");
+    document.getElementById("inventory-position-form")?.reset();
+    if (document.getElementById("inventory-edit-modal")?.classList.contains("is-hidden") !== false) {
+        document.body.classList.remove("modal-open");
+    }
+}
+
+function configurePositionFieldVisibility(mode, action) {
+    const amountFields = document.getElementById("position-amount-fields");
+    const amountInput = document.getElementById("position-amount");
+    const unitWeightInput = document.getElementById("position-unit-weight");
+    const measureUnitInput = document.getElementById("position-measure-unit");
+    const amountLabel = document.querySelector('label[for="position-amount"]');
+    const unitWeightSection = unitWeightInput?.closest(".form-section");
+    const measureUnitSection = measureUnitInput?.closest(".form-section");
+
+    const isMeta = action === "meta";
+    amountFields?.classList.toggle("is-hidden", isMeta);
+    unitWeightSection?.classList.toggle("is-hidden", mode !== "package" || isMeta);
+    measureUnitSection?.classList.toggle("is-hidden", isMeta);
+
+    if (amountLabel) amountLabel.textContent = mode === "package" ? "Anzahl Einheiten" : "Freie Menge";
+    if (amountInput) amountInput.step = mode === "package" ? "1" : "0.1";
+    if (unitWeightInput) unitWeightInput.disabled = true;
+    if (measureUnitInput) measureUnitInput.disabled = true;
+}
+
+function openInventoryPositionModal(itemId, mode, action, profileKey) {
+    closeInventoryEditModal();
+    toggleInventoryAddPanel(false);
+
+    const isPackage = mode === "package";
+    const profile = isPackage ? findPackageProfile(itemId, profileKey) : findLooseProfile(itemId, profileKey);
+    if (!profile) return showToast("Position nicht gefunden.");
+
+    document.getElementById("position-item-id").value = itemId;
+    document.getElementById("position-profile-key").value = profileKey;
+    document.getElementById("position-mode").value = mode;
+    document.getElementById("position-action").value = action;
+
+    const title = document.getElementById("inventory-position-title");
+    const kicker = document.getElementById("inventory-position-kicker");
+    const summary = document.getElementById("position-current-summary");
+    const amountInput = document.getElementById("position-amount");
+    const unitWeightInput = document.getElementById("position-unit-weight");
+    const measureUnitInput = document.getElementById("position-measure-unit");
+    const locationInput = document.getElementById("position-location");
+    const expiryInput = document.getElementById("position-expiry");
+    const hint = document.getElementById("position-modal-hint");
+
+    const isMeta = action === "meta";
+    if (title) title.textContent = isMeta ? "Position bearbeiten" : "Bestand erhöhen";
+    if (kicker) kicker.textContent = isPackage ? "Einheiten" : "Freie Menge";
+
+    if (summary) {
+        summary.innerHTML = isPackage
+            ? `<strong>${formatNumber(profile.count)} × ${formatNumber(profile.unit_weight)} ${escapeHtml(profile.measure_unit)}</strong><span>${escapeHtml(profile.storage_location || "Kein Ort")} · ${escapeHtml(profile.expiry_date ? formatDate(profile.expiry_date) : "Kein Ablaufdatum")}</span>`
+            : `<strong>${formatNumber(profile.amount)} ${escapeHtml(profile.measure_unit)}</strong><span>${escapeHtml(profile.storage_location || "Kein Ort")} · ${escapeHtml(profile.expiry_date ? formatDate(profile.expiry_date) : "Kein Ablaufdatum")}</span>`;
+    }
+
+    if (amountInput) amountInput.value = isMeta ? "" : (isPackage ? "1" : "");
+    if (unitWeightInput) unitWeightInput.value = isPackage ? profile.unit_weight : "";
+    if (measureUnitInput) measureUnitInput.value = profile.measure_unit || "g";
+    if (locationInput) locationInput.value = profile.storage_location || "";
+    if (expiryInput) expiryInput.value = profile.expiry_date || "";
+    if (hint) {
+        hint.textContent = isMeta
+            ? "Lagerort und Ablaufdatum werden für diese Position angepasst. Wenn dadurch gleiche Positionen entstehen, werden sie in der Übersicht zusammengefasst."
+            : "Bestehende Werte sind vorausgefüllt. Änderst du Lagerort oder Ablaufdatum, wird eine neue Lagerposition angelegt.";
+    }
+
+    configurePositionFieldVisibility(mode, action);
+
+    const modal = document.getElementById("inventory-position-modal");
+    modal?.classList.remove("is-hidden");
+    document.body.classList.add("modal-open");
+    window.requestAnimationFrame(() => (isMeta ? locationInput : amountInput)?.focus());
+}
+
+async function submitInventoryPositionModal() {
+    const itemId = document.getElementById("position-item-id")?.value;
+    const profileKey = document.getElementById("position-profile-key")?.value;
+    const mode = document.getElementById("position-mode")?.value;
+    const action = document.getElementById("position-action")?.value;
+    const amount = Number(document.getElementById("position-amount")?.value || 0);
+    const unitWeight = Number(document.getElementById("position-unit-weight")?.value || 0);
+    const measureUnit = document.getElementById("position-measure-unit")?.value || "g";
+    const storageLocation = document.getElementById("position-location")?.value || "";
+    const expiryDate = document.getElementById("position-expiry")?.value || "";
+
+    if (!itemId || !profileKey || !mode || !action) return showToast("Position nicht vollständig ausgewählt.");
+
+    try {
+        if (action === "meta") {
+            const payload = mode === "package"
+                ? (() => {
+                    const [oldUnitWeight, oldMeasureUnit, oldStorageLocation, oldExpiryDate] = parseStockKey(profileKey);
+                    return { mode, unitWeight: oldUnitWeight, measureUnit: oldMeasureUnit, storage_location: oldStorageLocation || "", expiry_date: oldExpiryDate || "", new_storage_location: storageLocation, new_expiry_date: expiryDate };
+                })()
+                : (() => {
+                    const [oldMeasureUnit, oldStorageLocation, oldExpiryDate] = parseStockKey(profileKey);
+                    return { mode, measureUnit: oldMeasureUnit, storage_location: oldStorageLocation || "", expiry_date: oldExpiryDate || "", new_storage_location: storageLocation, new_expiry_date: expiryDate };
+                })();
+
+            await apiFetch(`${API_URL}/inventory/${itemId}/stock-profile/meta`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+            showToast("Position aktualisiert.");
+        } else if (mode === "package") {
+            if (!amount || amount <= 0) return showToast("Bitte eine Anzahl eingeben.");
+            if (!unitWeight || unitWeight <= 0) return showToast("Ungültiger Inhalt je Einheit.");
+            await apiFetch(`${API_URL}/inventory/${itemId}/adjust`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ action: "add", mode: "package", amount, unitWeight, measureUnit, storage_location: storageLocation, expiry_date: expiryDate })
+            });
+            showToast("Einheit hinzugefügt.");
+        } else {
+            if (!amount || amount <= 0) return showToast("Bitte eine Menge eingeben.");
+            await apiFetch(`${API_URL}/inventory/${itemId}/adjust`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ action: "add", mode: "loose", amount, measureUnit, storage_location: storageLocation, expiry_date: expiryDate })
+            });
+            showToast("Menge erhöht.");
+        }
+
+        closeInventoryPositionModal();
+        await loadInventory();
+        toggleInventoryControls(itemId, true);
+    } catch (error) {
+        console.error(error);
+        showToast(error.message || "Position konnte nicht angepasst werden.");
+    }
 }
 
 async function adjustPackageProfile(itemId, profileKey, action, amount = 1) {
@@ -536,14 +691,15 @@ function renderPackageRows(item) {
     return profiles.map(profile => {
         const detail = [profile.storage_location || "Kein Ort", profile.expiry_date ? formatDate(profile.expiry_date) : "Kein Ablaufdatum"].join(" · ");
         return `
-            <div class="inventory-stock-row">
+            <div class="inventory-stock-row ${Number(profile.count) <= 0 ? "is-zero" : ""}">
                 <div class="inventory-stock-row-main">
                     <strong>${formatNumber(profile.count)} × ${formatNumber(profile.unit_weight)} ${escapeHtml(profile.measure_unit)}</strong>
                     <span>${escapeHtml(detail)}</span>
                 </div>
                 <div class="inventory-stock-row-actions">
                     <button type="button" class="inventory-mini-button" ${Number(profile.count) <= 0 ? "disabled" : ""} onclick="adjustPackageProfile(${item.id}, '${escapeHtml(profile.key)}', 'remove')" title="Einheit reduzieren" aria-label="Einheit reduzieren">${ICONS.minus}</button>
-                    <button type="button" class="inventory-mini-button" onclick="adjustPackageProfile(${item.id}, '${escapeHtml(profile.key)}', 'add')" title="Einheit erhöhen" aria-label="Einheit erhöhen">${ICONS.plus}</button>
+                    <button type="button" class="inventory-mini-button" onclick="openInventoryPositionModal(${item.id}, 'package', 'add', '${escapeHtml(profile.key)}')" title="Einheit erhöhen" aria-label="Einheit erhöhen">${ICONS.plus}</button>
+                    <button type="button" class="inventory-mini-button" onclick="openInventoryPositionModal(${item.id}, 'package', 'meta', '${escapeHtml(profile.key)}')" title="Position bearbeiten" aria-label="Position bearbeiten">${ICONS.edit}</button>
                     <button type="button" class="inventory-mini-button inventory-mini-button-danger" onclick="deletePackageProfile(${item.id}, '${escapeHtml(profile.key)}')" title="Position löschen" aria-label="Position löschen">${ICONS.trash}</button>
                 </div>
             </div>
@@ -561,7 +717,7 @@ function renderLooseRows(item) {
         const inputId = `loose-adjust-${item.id}-${cssSafe(profile.key)}`;
         const detail = [profile.storage_location || "Kein Ort", profile.expiry_date ? formatDate(profile.expiry_date) : "Kein Ablaufdatum"].join(" · ");
         return `
-            <div class="inventory-stock-row inventory-stock-row-loose">
+            <div class="inventory-stock-row inventory-stock-row-loose ${Number(profile.amount) <= 0 ? "is-zero" : ""}">
                 <div class="inventory-stock-row-main">
                     <strong>${formatNumber(profile.amount)} ${escapeHtml(profile.measure_unit)}</strong>
                     <span>${escapeHtml(detail)}</span>
@@ -569,7 +725,8 @@ function renderLooseRows(item) {
                 <div class="inventory-stock-row-actions inventory-stock-row-actions-wide">
                     <input id="${inputId}" type="number" min="0" step="0.1" placeholder="Menge">
                     <button type="button" class="inventory-mini-button" ${Number(profile.amount) <= 0 ? "disabled" : ""} onclick="adjustLooseAmount(${item.id}, '${escapeHtml(profile.key)}', 'remove')" title="Menge reduzieren" aria-label="Menge reduzieren">${ICONS.minus}</button>
-                    <button type="button" class="inventory-mini-button" onclick="adjustLooseAmount(${item.id}, '${escapeHtml(profile.key)}', 'add')" title="Menge erhöhen" aria-label="Menge erhöhen">${ICONS.plus}</button>
+                    <button type="button" class="inventory-mini-button" onclick="openInventoryPositionModal(${item.id}, 'loose', 'add', '${escapeHtml(profile.key)}')" title="Menge erhöhen" aria-label="Menge erhöhen">${ICONS.plus}</button>
+                    <button type="button" class="inventory-mini-button" onclick="openInventoryPositionModal(${item.id}, 'loose', 'meta', '${escapeHtml(profile.key)}')" title="Position bearbeiten" aria-label="Position bearbeiten">${ICONS.edit}</button>
                     <button type="button" class="inventory-mini-button inventory-mini-button-danger" onclick="deleteLooseProfile(${item.id}, '${escapeHtml(profile.key)}')" title="Position löschen" aria-label="Position löschen">${ICONS.trash}</button>
                 </div>
             </div>
@@ -604,7 +761,6 @@ function renderInventoryList() {
                         <h3>${escapeHtml(item.name)}</h3>
                         <div class="inventory-summary-row">${renderSummaryChips(item)}</div>
                         <div class="inventory-meta inventory-meta-compact">
-                            <span class="inventory-location">${escapeHtml(locations.length ? locations.join(" / ") : "Kein Ort")}</span>
                             <span class="inventory-expiry ${status.className}">${status.label}</span>
                             <span class="inventory-date">${formatDate(item.expiry_date)}</span>
                         </div>
@@ -680,6 +836,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") {
             closeInventoryEditModal();
+            closeInventoryPositionModal();
             closeAllInventoryPanels();
             toggleInventoryAddPanel(false);
         }

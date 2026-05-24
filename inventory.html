@@ -166,6 +166,76 @@
         </div>
     </div>
 
+
+    <div id="inventory-position-modal" class="inventory-modal is-hidden" role="dialog" aria-modal="true" aria-labelledby="inventory-position-title">
+        <div class="inventory-modal-backdrop" onclick="closeInventoryPositionModal()"></div>
+        <div class="inventory-modal-dialog inventory-position-dialog">
+            <div class="inventory-section-headline">
+                <div>
+                    <p id="inventory-position-kicker" class="recipe-kicker">Bestandsposition</p>
+                    <h2 id="inventory-position-title">Position anpassen</h2>
+                </div>
+                <button type="button" class="header-icon-button" onclick="closeInventoryPositionModal()" title="Fenster schließen" aria-label="Fenster schließen">
+                    <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <form id="inventory-position-form">
+                <input type="hidden" id="position-item-id">
+                <input type="hidden" id="position-profile-key">
+                <input type="hidden" id="position-mode">
+                <input type="hidden" id="position-action">
+
+                <div id="position-current-summary" class="inventory-position-summary"></div>
+
+                <div id="position-amount-fields" class="inventory-form-grid inventory-form-grid-compact">
+                    <div class="form-section">
+                        <label for="position-amount">Hinzufügen</label>
+                        <input type="number" id="position-amount" min="0" step="0.1" placeholder="Menge">
+                    </div>
+                    <div class="form-section">
+                        <label for="position-unit-weight">Inhalt je Einheit</label>
+                        <input type="number" id="position-unit-weight" min="0" step="0.1" placeholder="z.B. 230">
+                    </div>
+                    <div class="form-section">
+                        <label for="position-measure-unit">Einheit</label>
+                        <select id="position-measure-unit">
+                            <option value="g">g</option>
+                            <option value="ml">ml</option>
+                            <option value="Stk.">Stk.</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="inventory-form-grid inventory-form-grid-compact">
+                    <div class="form-section">
+                        <label for="position-location">Lagerort</label>
+                        <select id="position-location">
+                            <option value="">Bitte wählen</option>
+                            <option value="TK">TK</option>
+                            <option value="KS">KS</option>
+                            <option value="TK (Keller)">TK (Keller)</option>
+                            <option value="KS (Keller)">KS (Keller)</option>
+                            <option value="Vorratsraum">Vorratsraum</option>
+                        </select>
+                    </div>
+                    <div class="form-section">
+                        <label for="position-expiry">Ablaufdatum</label>
+                        <input type="date" id="position-expiry">
+                    </div>
+                </div>
+
+                <p id="position-modal-hint" class="inventory-adjust-hint"></p>
+
+                <div class="form-actions inventory-actions">
+                    <button type="button" class="secondary-button" onclick="closeInventoryPositionModal()">Abbrechen</button>
+                    <button type="button" onclick="submitInventoryPositionModal()">Speichern</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
     <div id="app-toast" class="app-toast is-hidden"></div>
     <script src="navigation.js"></script>
     <script src="inventory.js"></script>

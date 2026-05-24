@@ -68,9 +68,7 @@ function toggleInventoryAddPanel(forceOpen) {
 
     if (shouldOpen) {
         resetInventoryForm();
-        window.requestAnimationFrame(() => {
-            document.getElementById("inventory-name")?.focus();
-        });
+        window.requestAnimationFrame(() => document.getElementById("inventory-name")?.focus());
     }
 }
 
@@ -133,10 +131,7 @@ function openInventoryEditModal() {
 
     modal.classList.remove("is-hidden");
     document.body.classList.add("modal-open");
-
-    window.requestAnimationFrame(() => {
-        document.getElementById("edit-inventory-name")?.focus();
-    });
+    window.requestAnimationFrame(() => document.getElementById("edit-inventory-name")?.focus());
 }
 
 function closeInventoryEditModal() {
@@ -179,88 +174,162 @@ async function saveEditedInventoryItem() {
     }
 }
 
-function consumeInventoryItem(id) {
+function adjustInventoryItem(id) {
     const item = inventoryItems.find(entry => String(entry.id) === String(id));
     if (!item) return;
 
-    document.getElementById("consume-inventory-id").value = item.id;
-    document.getElementById("consume-inventory-name").textContent = item.name || "";
-    document.getElementById("consume-inventory-current").textContent = `Aktueller Bestand: ${formatAmount(item)}`;
-    document.getElementById("consume-inventory-amount").value = "";
-    updateConsumptionPreview();
+    document.getElementById("adjust-inventory-id").value = item.id;
+    document.getElementById("adjust-inventory-name").textContent = item.name || "";
+    document.getElementById("adjust-inventory-current").textContent = `Aktueller Bestand: ${formatAmount(item)}`;
+    document.getElementById("adjust-inventory-action").value = "add";
+    document.getElementById("adjust-inventory-mode").value = "quantity";
+    document.getElementById("adjust-inventory-amount").value = "";
+    document.getElementById("adjust-inventory-unit-weight").value = "";
+    document.getElementById("adjust-inventory-weight-amount").value = "";
 
-    openInventoryConsumeModal();
+    updateAdjustmentMode();
+    updateAdjustmentPreview();
+    openInventoryAdjustModal();
 }
 
-function openInventoryConsumeModal() {
-    const modal = document.getElementById("inventory-consume-modal");
+function openInventoryAdjustModal() {
+    const modal = document.getElementById("inventory-adjust-modal");
     if (!modal) return;
 
     modal.classList.remove("is-hidden");
     document.body.classList.add("modal-open");
-
-    window.requestAnimationFrame(() => {
-        document.getElementById("consume-inventory-amount")?.focus();
-    });
+    window.requestAnimationFrame(() => document.getElementById("adjust-inventory-amount")?.focus());
 }
 
-function closeInventoryConsumeModal() {
-    const modal = document.getElementById("inventory-consume-modal");
+function closeInventoryAdjustModal() {
+    const modal = document.getElementById("inventory-adjust-modal");
     if (!modal) return;
 
     modal.classList.add("is-hidden");
     document.body.classList.remove("modal-open");
-    document.getElementById("inventory-consume-form")?.reset();
-    document.getElementById("consume-inventory-id").value = "";
-    document.getElementById("consume-inventory-preview").textContent = "";
+    document.getElementById("inventory-adjust-form")?.reset();
+    document.getElementById("adjust-inventory-id").value = "";
+    document.getElementById("adjust-inventory-preview").textContent = "";
+    document.getElementById("adjust-inventory-hint").textContent = "";
 }
 
-function updateConsumptionPreview() {
-    const id = document.getElementById("consume-inventory-id")?.value;
-    const amount = Number(document.getElementById("consume-inventory-amount")?.value);
-    const preview = document.getElementById("consume-inventory-preview");
-    const item = inventoryItems.find(entry => String(entry.id) === String(id));
+function getSelectedAdjustmentItem() {
+    const id = document.getElementById("adjust-inventory-id")?.value;
+    return inventoryItems.find(entry => String(entry.id) === String(id));
+}
 
+function updateAdjustmentMode() {
+    const item = getSelectedAdjustmentItem();
+    const mode = document.getElementById("adjust-inventory-mode")?.value || "quantity";
+    const quantityFields = document.getElementById("adjust-quantity-fields");
+    const weightFields = document.getElementById("adjust-weight-fields");
+    const hint = document.getElementById("adjust-inventory-hint");
+
+    quantityFields?.classList.toggle("is-hidden", mode !== "quantity");
+    weightFields?.classList.toggle("is-hidden", mode !== "weight");
+
+    if (!hint || !item) return;
+
+    const currentQuantity = Number(item.quantity ?? 0);
+    if (mode === "weight" && currentQuantity !== 1) {
+        hint.textContent = "Gewicht direkt anpassen ist nur möglich, wenn die Menge exakt 1 beträgt. Bitte passe bei diesem Artikel die Menge an und gib das Gewicht je Einheit an.";
+    } else if (mode === "quantity") {
+        hint.textContent = "Bei Mengenänderungen bitte immer das Gewicht je Einheit angeben, damit das Gesamtgewicht sauber mitgeführt wird.";
+    } else {
+        hint.textContent = "Gewichtsanpassungen verändern nur das Gesamtgewicht; die Menge bleibt 1.";
+    }
+
+    updateAdjustmentPreview();
+}
+
+function calculateAdjustment() {
+    const item = getSelectedAdjustmentItem();
+    if (!item) return { error: "Kein Inventar-Eintrag ausgewählt." };
+
+    const action = document.getElementById("adjust-inventory-action").value;
+    const mode = document.getElementById("adjust-inventory-mode").value;
+    const direction = action === "add" ? 1 : -1;
+    const currentQuantity = Number(item.quantity ?? 0);
+    const currentWeight = Number(item.weight ?? 0);
+
+    if (mode === "weight") {
+        const amount = Number(document.getElementById("adjust-inventory-weight-amount").value);
+
+        if (currentQuantity !== 1) {
+            return { error: "Gewicht kann nur direkt angepasst werden, wenn die Menge 1 beträgt." };
+        }
+        if (!Number.isFinite(amount) || amount <= 0) {
+            return { error: "Bitte eine Gewichtsanpassung größer 0 eingeben." };
+        }
+
+        return {
+            payload: { action, mode, amount },
+            newQuantity: 1,
+            newWeight: Math.max(0, currentWeight + direction * amount)
+        };
+    }
+
+    const amount = Number(document.getElementById("adjust-inventory-amount").value);
+    const unitWeight = Number(document.getElementById("adjust-inventory-unit-weight").value);
+
+    if (!Number.isFinite(amount) || amount <= 0) {
+        return { error: "Bitte eine Menge größer 0 eingeben." };
+    }
+    if (!Number.isFinite(unitWeight) || unitWeight <= 0) {
+        return { error: "Bitte ein Gewicht je Einheit größer 0 eingeben." };
+    }
+
+    return {
+        payload: { action, mode, amount, unitWeight },
+        newQuantity: Math.max(0, currentQuantity + direction * amount),
+        newWeight: Math.max(0, currentWeight + direction * amount * unitWeight)
+    };
+}
+
+function updateAdjustmentPreview() {
+    const preview = document.getElementById("adjust-inventory-preview");
+    const item = getSelectedAdjustmentItem();
     if (!preview || !item) return;
 
-    const currentQuantity = item.quantity === null || item.quantity === undefined ? 0 : Number(item.quantity);
-    if (!Number.isFinite(amount) || amount <= 0) {
-        preview.textContent = "Bitte gib eine Entnahmemenge größer 0 ein.";
+    const result = calculateAdjustment();
+    if (result.error) {
+        preview.textContent = result.error;
+        preview.classList.add("is-warning");
         return;
     }
 
-    const newQuantity = Math.max(0, currentQuantity - amount);
     const unit = item.unit ? ` ${item.unit}` : "";
-    preview.textContent = `Neuer Bestand: ${newQuantity}${unit}`;
+    preview.classList.remove("is-warning");
+    preview.textContent = `Neuer Bestand: ${formatNumber(result.newQuantity)}${unit} · ${formatNumber(result.newWeight)} g`;
 }
 
-async function saveInventoryConsumption() {
-    const id = document.getElementById("consume-inventory-id").value;
-    const amount = Number(document.getElementById("consume-inventory-amount").value);
+async function saveInventoryAdjustment() {
+    const id = document.getElementById("adjust-inventory-id").value;
+    const result = calculateAdjustment();
 
     if (!id) {
         showToast("Kein Inventar-Eintrag ausgewählt.");
         return;
     }
-
-    if (!Number.isFinite(amount) || amount <= 0) {
-        showToast("Bitte eine Entnahmemenge größer 0 eingeben.");
+    if (result.error) {
+        showToast(result.error);
+        updateAdjustmentPreview();
         return;
     }
 
     try {
-        await apiFetch(`${API_URL}/inventory/${id}/consume`, {
+        await apiFetch(`${API_URL}/inventory/${id}/adjust`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ amount })
+            body: JSON.stringify(result.payload)
         });
 
-        showToast("Entnahme gespeichert.");
-        closeInventoryConsumeModal();
+        showToast("Bestand angepasst.");
+        closeInventoryAdjustModal();
         await loadInventory();
     } catch (error) {
         console.error(error);
-        showToast("Entnahme konnte nicht gespeichert werden.");
+        showToast(error.message || "Bestand konnte nicht angepasst werden.");
     }
 }
 
@@ -297,19 +366,16 @@ function getExpiryStatus(expiryDate) {
 
     const diffDays = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
 
-    if (diffDays < 0) {
-        return { label: "Abgelaufen", className: "inventory-expired" };
-    }
-
-    if (diffDays <= 3) {
-        return { label: "Läuft sehr bald ab", className: "inventory-critical" };
-    }
-
-    if (diffDays <= 7) {
-        return { label: "Läuft bald ab", className: "inventory-warning" };
-    }
-
+    if (diffDays < 0) return { label: "Abgelaufen", className: "inventory-expired" };
+    if (diffDays <= 3) return { label: "Läuft sehr bald ab", className: "inventory-critical" };
+    if (diffDays <= 7) return { label: "Läuft bald ab", className: "inventory-warning" };
     return { label: "Haltbar", className: "inventory-good" };
+}
+
+function formatNumber(value) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return "0";
+    return Number.isInteger(number) ? String(number) : String(Math.round(number * 10) / 10).replace(".", ",");
 }
 
 function formatAmount(item) {
@@ -317,8 +383,8 @@ function formatAmount(item) {
     const unit = item.unit || "";
     const weight = item.weight ?? "";
 
-    const quantityText = quantity !== "" ? `${quantity} ${unit}`.trim() : "";
-    const weightText = weight !== "" ? `${weight} g` : "";
+    const quantityText = quantity !== "" ? `${formatNumber(quantity)} ${unit}`.trim() : "";
+    const weightText = weight !== "" ? `${formatNumber(weight)} g` : "";
 
     return [quantityText, weightText].filter(Boolean).join(" · ") || "Keine Mengenangabe";
 }
@@ -336,13 +402,7 @@ function renderInventoryList() {
     const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : "";
 
     const filteredItems = inventoryItems.filter(item => {
-        const searchable = [
-            item.name,
-            item.storage_location,
-            item.notes,
-            item.unit
-        ].join(" ").toLowerCase();
-
+        const searchable = [item.name, item.storage_location, item.notes, item.unit].join(" ").toLowerCase();
         return searchable.includes(searchTerm);
     });
 
@@ -355,9 +415,10 @@ function renderInventoryList() {
 
     filteredItems.forEach(item => {
         const status = getExpiryStatus(item.expiry_date);
+        const isEmpty = Number(item.quantity ?? 0) === 0 && Number(item.weight ?? 0) === 0;
 
         const card = document.createElement("article");
-        card.className = "inventory-item-card";
+        card.className = `inventory-item-card${isEmpty ? " is-empty" : ""}`;
 
         card.innerHTML = `
             <div class="inventory-item-main">
@@ -367,6 +428,7 @@ function renderInventoryList() {
                 </div>
 
                 <div class="inventory-meta">
+                    ${isEmpty ? `<span class="inventory-empty-badge">Leer</span>` : ""}
                     <span class="inventory-location">${escapeHtml(item.storage_location || "Kein Ort")}</span>
                     <span class="inventory-expiry ${status.className}">${escapeHtml(status.label)}</span>
                     <span class="inventory-date">${escapeHtml(formatDate(item.expiry_date))}</span>
@@ -376,8 +438,8 @@ function renderInventoryList() {
             </div>
 
             <div class="recipe-icons">
-                <button type="button" onclick="consumeInventoryItem(${item.id})" title="Entnehmen" aria-label="Entnehmen">
-                    <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg>
+                <button type="button" onclick="adjustInventoryItem(${item.id})" title="Bestand anpassen" aria-label="Bestand anpassen">
+                    <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/><path d="M19 19H5"/></svg>
                 </button>
                 <button type="button" onclick="editInventoryItem(${item.id})" title="Bearbeiten" aria-label="Bearbeiten">
                     <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l11-11a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>
@@ -395,20 +457,25 @@ function renderInventoryList() {
 document.addEventListener("DOMContentLoaded", () => {
     loadInventory();
 
-    const searchInput = document.getElementById("inventory-search");
-    if (searchInput) {
-        searchInput.addEventListener("input", renderInventoryList);
-    }
+    document.getElementById("inventory-search")?.addEventListener("input", renderInventoryList);
 
-    const consumeAmountInput = document.getElementById("consume-inventory-amount");
-    if (consumeAmountInput) {
-        consumeAmountInput.addEventListener("input", updateConsumptionPreview);
-    }
+    [
+        "adjust-inventory-action",
+        "adjust-inventory-mode",
+        "adjust-inventory-amount",
+        "adjust-inventory-unit-weight",
+        "adjust-inventory-weight-amount"
+    ].forEach(id => {
+        const element = document.getElementById(id);
+        if (!element) return;
+        element.addEventListener("input", id === "adjust-inventory-mode" ? updateAdjustmentMode : updateAdjustmentPreview);
+        element.addEventListener("change", id === "adjust-inventory-mode" ? updateAdjustmentMode : updateAdjustmentPreview);
+    });
 
     document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") {
             closeInventoryEditModal();
-            closeInventoryConsumeModal();
+            closeInventoryAdjustModal();
         }
     });
 });

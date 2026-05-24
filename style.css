@@ -972,3 +972,83 @@ body.modal-open {
         align-items: flex-start;
     }
 }
+
+/* =========================================================
+   INVENTORY STOCK ADJUSTMENT
+========================================================= */
+.inventory-adjust-dialog {
+    width: min(640px, 100%);
+}
+
+.inventory-adjust-summary {
+    margin-bottom: var(--space-lg);
+    padding: var(--space-md);
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface-soft);
+}
+
+.inventory-adjust-summary h3 {
+    margin: 0 0 4px;
+    font-size: 18px;
+}
+
+.inventory-adjust-summary p:last-child {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-weight: 700;
+}
+
+.inventory-adjust-switches,
+.inventory-adjust-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-lg);
+    margin-bottom: var(--space-lg);
+}
+
+.inventory-adjust-fields.is-hidden {
+    display: none;
+}
+
+.inventory-adjust-hint {
+    margin: 0 0 var(--space-sm);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    font-weight: 700;
+}
+
+.inventory-adjust-preview {
+    margin: var(--space-md) 0 var(--space-lg);
+    color: var(--color-primary-text);
+    font-weight: 800;
+}
+
+.inventory-adjust-preview.is-warning {
+    color: var(--color-danger-text);
+}
+
+.inventory-item-card.is-empty {
+    border-color: var(--color-danger-border);
+    background: #fffafa;
+}
+
+.inventory-empty-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--color-danger-text);
+    background: var(--color-danger-bg);
+    border: 1px solid var(--color-danger-border);
+}
+
+@media (max-width: 768px) {
+    .inventory-adjust-switches,
+    .inventory-adjust-fields {
+        grid-template-columns: 1fr;
+    }
+}

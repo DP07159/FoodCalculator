@@ -13,9 +13,7 @@
         <button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen">
             <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
         </button>
-
         <div class="app-header-title">Food Calculator</div>
-
         <div id="burger-dropdown" class="burger-dropdown is-hidden"></div>
     </header>
 
@@ -28,7 +26,10 @@
 
             <section id="inventory-add-panel" class="section-card inventory-form-card is-hidden">
                 <div class="inventory-section-headline">
-                    <h2>Lebensmittel erfassen</h2>
+                    <div>
+                        <p class="recipe-kicker">Bestand erhöhen</p>
+                        <h2>Lebensmittel erfassen</h2>
+                    </div>
                     <button type="button" class="header-icon-button" onclick="toggleInventoryAddPanel(false)" title="Erfassung schließen" aria-label="Erfassung schließen">
                         <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
                     </button>
@@ -36,31 +37,11 @@
 
                 <form id="inventory-form">
                     <div class="inventory-form-grid">
-                        <div class="form-section">
-                            <label for="inventory-name">Bezeichnung</label>
-                            <input type="text" id="inventory-name" placeholder="z.B. Butter">
+                        <div class="form-section inventory-name-field">
+                            <label for="inventory-name">Lebensmittel</label>
+                            <input type="text" id="inventory-name" list="inventory-name-suggestions" placeholder="z.B. Erbsen" autocomplete="off">
+                            <datalist id="inventory-name-suggestions"></datalist>
                         </div>
-
-                        <div class="form-section">
-                            <label for="inventory-quantity">Menge</label>
-                            <input type="number" id="inventory-quantity" min="0" step="0.1" placeholder="z.B. 2">
-                        </div>
-
-                        <div class="form-section">
-                            <label for="inventory-unit">Einheit</label>
-                            <input type="text" id="inventory-unit" placeholder="z.B. Stück, Packung, g">
-                        </div>
-
-                        <div class="form-section">
-                            <label for="inventory-weight">Gewicht</label>
-                            <input type="number" id="inventory-weight" min="0" step="0.1" placeholder="optional">
-                        </div>
-
-                        <div class="form-section">
-                            <label for="inventory-expiry">Ablaufdatum</label>
-                            <input type="date" id="inventory-expiry">
-                        </div>
-
                         <div class="form-section">
                             <label for="inventory-location">Aufbewahrungsort</label>
                             <select id="inventory-location">
@@ -71,6 +52,59 @@
                                 <option value="KS (Keller)">KS (Keller)</option>
                                 <option value="Vorratsraum">Vorratsraum</option>
                             </select>
+                        </div>
+                        <div class="form-section">
+                            <label for="inventory-expiry">Ablaufdatum</label>
+                            <input type="date" id="inventory-expiry">
+                        </div>
+                    </div>
+
+                    <div class="inventory-choice-row" role="group" aria-label="Bestandsart auswählen">
+                        <label class="inventory-choice-card">
+                            <input type="radio" name="inventory-stock-type" value="package" checked onchange="updateInventoryStockType()">
+                            <span>Packungseinheiten</span>
+                            <small>z.B. 2 Dosen à 230 g</small>
+                        </label>
+                        <label class="inventory-choice-card">
+                            <input type="radio" name="inventory-stock-type" value="loose" onchange="updateInventoryStockType()">
+                            <span>Freie Menge</span>
+                            <small>z.B. 300 g, 500 ml oder 4 Stk.</small>
+                        </label>
+                    </div>
+
+                    <div id="inventory-package-fields" class="inventory-form-grid">
+                        <div class="form-section">
+                            <label for="inventory-package-count">Anzahl Packungseinheiten</label>
+                            <input type="number" id="inventory-package-count" min="1" step="1" placeholder="z.B. 2">
+                        </div>
+                        <div class="form-section">
+                            <label for="inventory-unit-label">Packungseinheit</label>
+                            <input type="text" id="inventory-unit-label" placeholder="z.B. Dose, Glas, Packung">
+                        </div>
+                        <div class="form-section">
+                            <label for="inventory-unit-weight">Inhalt je Einheit</label>
+                            <div class="inventory-inline-inputs">
+                                <input type="number" id="inventory-unit-weight" min="0" step="0.1" placeholder="z.B. 230">
+                                <select id="inventory-measure-unit-package" aria-label="Mengeneinheit">
+                                    <option value="g">g</option>
+                                    <option value="ml">ml</option>
+                                    <option value="Stk.">Stk.</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="inventory-loose-fields" class="inventory-form-grid is-hidden">
+                        <div class="form-section">
+                            <label for="inventory-loose-amount">Freie Menge</label>
+                            <div class="inventory-inline-inputs">
+                                <input type="number" id="inventory-loose-amount" min="0" step="0.1" placeholder="z.B. 300">
+                                <select id="inventory-measure-unit-loose" aria-label="Mengeneinheit">
+                                    <option value="g">g</option>
+                                    <option value="ml">ml</option>
+                                    <option value="Stk.">Stk.</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
@@ -112,57 +146,25 @@
                     <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
                 </button>
             </div>
-
             <form id="inventory-edit-form">
                 <input type="hidden" id="edit-inventory-id">
-
                 <div class="inventory-form-grid">
                     <div class="form-section">
                         <label for="edit-inventory-name">Bezeichnung</label>
                         <input type="text" id="edit-inventory-name">
                     </div>
-
                     <div class="form-section">
-                        <label for="edit-inventory-quantity">Menge</label>
-                        <input type="number" id="edit-inventory-quantity" min="0" step="0.1">
-                    </div>
-
-                    <div class="form-section">
-                        <label for="edit-inventory-unit">Einheit</label>
-                        <input type="text" id="edit-inventory-unit">
-                    </div>
-
-                    <div class="form-section">
-                        <label for="edit-inventory-weight">Gewicht</label>
-                        <input type="number" id="edit-inventory-weight" min="0" step="0.1">
-                    </div>
-
-                    <div class="form-section">
-                        <label for="edit-inventory-expiry">Ablaufdatum</label>
-                        <input type="date" id="edit-inventory-expiry">
-                    </div>
-
-                    <div class="form-section">
-                        <label for="edit-inventory-location">Aufbewahrungsort</label>
-                        <select id="edit-inventory-location">
-                            <option value="">Bitte wählen</option>
-                            <option value="TK">TK</option>
-                            <option value="KS">KS</option>
-                            <option value="TK (Keller)">TK (Keller)</option>
-                            <option value="KS (Keller)">KS (Keller)</option>
-                            <option value="Vorratsraum">Vorratsraum</option>
-                        </select>
+                        <label for="edit-inventory-unit">Standard-Einheit</label>
+                        <input type="text" id="edit-inventory-unit" placeholder="z.B. g">
                     </div>
                 </div>
-
                 <div class="form-section">
                     <label for="edit-inventory-notes">Notizen</label>
                     <textarea id="edit-inventory-notes" rows="1"></textarea>
                 </div>
-
                 <div class="form-actions inventory-actions">
                     <button type="button" class="secondary-button" onclick="closeInventoryEditModal()">Abbrechen</button>
-                    <button type="button" onclick="saveEditedInventoryItem()">Änderungen speichern</button>
+                    <button type="button" onclick="saveEditedInventoryItem()">Speichern</button>
                 </div>
             </form>
         </div>
@@ -170,9 +172,12 @@
 
     <div id="inventory-adjust-modal" class="inventory-modal is-hidden" role="dialog" aria-modal="true" aria-labelledby="inventory-adjust-title">
         <div class="inventory-modal-backdrop" onclick="closeInventoryAdjustModal()"></div>
-        <div class="inventory-modal-dialog inventory-adjust-dialog">
+        <div class="inventory-modal-dialog">
             <div class="inventory-section-headline">
-                <h2 id="inventory-adjust-title">Bestand anpassen</h2>
+                <div>
+                    <h2 id="inventory-adjust-title">Bestand anpassen</h2>
+                    <p id="adjust-inventory-name" class="inventory-modal-subtitle"></p>
+                </div>
                 <button type="button" class="header-icon-button" onclick="closeInventoryAdjustModal()" title="Fenster schließen" aria-label="Fenster schließen">
                     <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
                 </button>
@@ -180,52 +185,67 @@
 
             <form id="inventory-adjust-form">
                 <input type="hidden" id="adjust-inventory-id">
+                <p id="adjust-inventory-current" class="inventory-current-stock"></p>
 
-                <div class="inventory-adjust-summary">
-                    <p class="recipe-kicker">Ausgewählter Artikel</p>
-                    <h3 id="adjust-inventory-name"></h3>
-                    <p id="adjust-inventory-current"></p>
+                <div class="inventory-adjust-direction" role="group" aria-label="Aktion auswählen">
+                    <button type="button" id="adjust-action-add" class="inventory-action-toggle is-active" onclick="setAdjustmentAction('add')">
+                        <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                        Erhöhen
+                    </button>
+                    <button type="button" id="adjust-action-remove" class="inventory-action-toggle" onclick="setAdjustmentAction('remove')">
+                        <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg>
+                        Reduzieren
+                    </button>
                 </div>
 
-                <div class="inventory-adjust-switches">
-                    <div class="form-section">
-                        <label for="adjust-inventory-action">Aktion</label>
-                        <select id="adjust-inventory-action">
-                            <option value="add">Bestand erhöhen</option>
-                            <option value="remove">Bestand reduzieren</option>
-                        </select>
-                    </div>
+                <input type="hidden" id="adjust-inventory-action" value="add">
 
+                <div class="form-section">
+                    <label for="adjust-inventory-mode">Anpassung</label>
+                    <select id="adjust-inventory-mode" onchange="updateAdjustmentMode()">
+                        <option value="package">Packungseinheiten</option>
+                        <option value="loose">Freie Menge</option>
+                        <option value="auto">Entnahmemenge automatisch verrechnen</option>
+                    </select>
+                </div>
+
+                <div id="adjust-package-fields" class="inventory-form-grid">
+                    <div class="form-section" id="adjust-package-profile-section">
+                        <label for="adjust-package-profile">Vorhandene Packungseinheit</label>
+                        <select id="adjust-package-profile"></select>
+                    </div>
+                    <div class="form-section" id="adjust-package-label-section">
+                        <label for="adjust-unit-label">Packungseinheit</label>
+                        <input type="text" id="adjust-unit-label" placeholder="z.B. Dose">
+                    </div>
                     <div class="form-section">
-                        <label for="adjust-inventory-mode">Anpassung über</label>
-                        <select id="adjust-inventory-mode">
-                            <option value="quantity">Menge</option>
-                            <option value="weight">Gewicht</option>
-                        </select>
+                        <label for="adjust-inventory-amount">Anzahl</label>
+                        <input type="number" id="adjust-inventory-amount" min="0" step="1" placeholder="z.B. 1" oninput="updateAdjustmentPreview()">
+                    </div>
+                    <div class="form-section" id="adjust-unit-weight-section">
+                        <label for="adjust-unit-weight">Inhalt je Einheit</label>
+                        <div class="inventory-inline-inputs">
+                            <input type="number" id="adjust-unit-weight" min="0" step="0.1" placeholder="z.B. 230" oninput="updateAdjustmentPreview()">
+                            <select id="adjust-measure-unit-package" onchange="updateAdjustmentPreview()">
+                                <option value="g">g</option>
+                                <option value="ml">ml</option>
+                                <option value="Stk.">Stk.</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
-                <div id="adjust-quantity-fields" class="inventory-adjust-fields inventory-adjust-fields-wide">
-                    <div class="form-section inventory-adjust-batch-field">
-                        <label for="adjust-inventory-batch">Bestandseinheit</label>
-                        <select id="adjust-inventory-batch"></select>
-                    </div>
-
+                <div id="adjust-loose-fields" class="inventory-form-grid is-hidden">
                     <div class="form-section">
-                        <label for="adjust-inventory-amount">Menge</label>
-                        <input type="number" id="adjust-inventory-amount" min="0" step="0.1" placeholder="z.B. 1">
-                    </div>
-
-                    <div class="form-section">
-                        <label for="adjust-inventory-unit-weight">Gewicht je Einheit</label>
-                        <input type="number" id="adjust-inventory-unit-weight" min="0" step="0.1" placeholder="z.B. 500">
-                    </div>
-                </div>
-
-                <div id="adjust-weight-fields" class="inventory-adjust-fields is-hidden">
-                    <div class="form-section">
-                        <label for="adjust-inventory-weight-amount">Gewichtsanpassung</label>
-                        <input type="number" id="adjust-inventory-weight-amount" min="0" step="0.1" placeholder="z.B. 80">
+                        <label for="adjust-loose-amount">Menge</label>
+                        <div class="inventory-inline-inputs">
+                            <input type="number" id="adjust-loose-amount" min="0" step="0.1" placeholder="z.B. 100" oninput="updateAdjustmentPreview()">
+                            <select id="adjust-measure-unit-loose" onchange="updateAdjustmentPreview()">
+                                <option value="g">g</option>
+                                <option value="ml">ml</option>
+                                <option value="Stk.">Stk.</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
@@ -234,7 +254,7 @@
 
                 <div class="form-actions inventory-actions">
                     <button type="button" class="secondary-button" onclick="closeInventoryAdjustModal()">Abbrechen</button>
-                    <button type="button" onclick="saveInventoryAdjustment()">Bestand speichern</button>
+                    <button type="button" onclick="submitInventoryAdjustment()">Übernehmen</button>
                 </div>
             </form>
         </div>

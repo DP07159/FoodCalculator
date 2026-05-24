@@ -1088,3 +1088,95 @@ body.modal-open {
         grid-template-columns: 1fr;
     }
 }
+
+/* Inventory stock refinement */
+.inventory-choice-row,
+.inventory-adjust-direction {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-md);
+    margin: 0 0 var(--space-lg);
+}
+
+.inventory-choice-card,
+.inventory-action-toggle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 64px;
+    padding: 14px;
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface-soft);
+    cursor: pointer;
+}
+
+.inventory-choice-card input {
+    width: 18px;
+    min-height: 18px;
+    accent-color: var(--color-primary);
+}
+
+.inventory-choice-card span {
+    display: block;
+    font-weight: 900;
+}
+
+.inventory-choice-card small {
+    display: block;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+}
+
+.inventory-inline-inputs {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 92px;
+    gap: var(--space-sm);
+}
+
+.inventory-action-toggle {
+    justify-content: center;
+    border-color: var(--color-primary-border);
+    color: var(--color-primary-text);
+    font-weight: 900;
+}
+
+.inventory-action-toggle.is-active {
+    background: var(--color-primary-soft);
+    border-color: #bcd5ff;
+    box-shadow: var(--shadow-soft);
+}
+
+.inventory-current-stock,
+.inventory-modal-subtitle,
+.inventory-adjust-hint,
+.inventory-adjust-preview {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-md);
+}
+
+.inventory-adjust-preview {
+    margin-top: var(--space-md);
+    padding: 12px 14px;
+    border: 1px solid var(--color-primary-border);
+    border-radius: var(--radius-md);
+    background: var(--color-primary-soft);
+    color: var(--color-primary-text);
+    font-weight: 800;
+}
+
+.inventory-adjust-preview:empty,
+.inventory-adjust-hint:empty { display: none; }
+
+.inventory-name-field { grid-column: span 1; }
+
+@media (max-width: 768px) {
+    .inventory-choice-row,
+    .inventory-adjust-direction {
+        grid-template-columns: 1fr;
+    }
+
+    .inventory-inline-inputs {
+        grid-template-columns: 1fr;
+    }
+}

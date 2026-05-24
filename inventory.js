@@ -332,27 +332,31 @@ function configurePositionFieldVisibility(mode, action) {
     const unitWeightInput = document.getElementById("position-unit-weight");
     const measureUnitInput = document.getElementById("position-measure-unit");
     const amountLabel = document.querySelector('label[for="position-amount"]');
+    const unitWeightLabel = document.querySelector('label[for="position-unit-weight"]');
     const unitWeightSection = unitWeightInput?.closest(".form-section");
     const measureUnitSection = measureUnitInput?.closest(".form-section");
 
     const isMeta = action === "meta";
+    const isNew = action === "add-new";
     amountFields?.classList.toggle("is-hidden", isMeta);
     unitWeightSection?.classList.toggle("is-hidden", mode !== "package" || isMeta);
     measureUnitSection?.classList.toggle("is-hidden", isMeta);
 
     if (amountLabel) amountLabel.textContent = mode === "package" ? "Anzahl Einheiten" : "Freie Menge";
+    if (unitWeightLabel) unitWeightLabel.textContent = mode === "package" ? "Inhalt je Einheit" : "Inhalt";
     if (amountInput) amountInput.step = mode === "package" ? "1" : "0.1";
-    if (unitWeightInput) unitWeightInput.disabled = true;
-    if (measureUnitInput) measureUnitInput.disabled = true;
+    if (unitWeightInput) unitWeightInput.disabled = mode === "package" && !isNew;
+    if (measureUnitInput) measureUnitInput.disabled = !isNew;
 }
 
-function openInventoryPositionModal(itemId, mode, action, profileKey) {
+function openInventoryPositionModal(itemId, mode, action, profileKey = "__new__") {
     closeInventoryEditModal();
     toggleInventoryAddPanel(false);
 
     const isPackage = mode === "package";
-    const profile = isPackage ? findPackageProfile(itemId, profileKey) : findLooseProfile(itemId, profileKey);
-    if (!profile) return showToast("Position nicht gefunden.");
+    const isNew = action === "add-new";
+    const profile = isNew ? null : (isPackage ? findPackageProfile(itemId, profileKey) : findLooseProfile(itemId, profileKey));
+    if (!isNew && !profile) return showToast("Position nicht gefunden.");
 
     document.getElementById("position-item-id").value = itemId;
     document.getElementById("position-profile-key").value = profileKey;
@@ -370,24 +374,36 @@ function openInventoryPositionModal(itemId, mode, action, profileKey) {
     const hint = document.getElementById("position-modal-hint");
 
     const isMeta = action === "meta";
-    if (title) title.textContent = isMeta ? "Position bearbeiten" : "Bestand erhöhen";
+    if (title) {
+        title.textContent = isMeta
+            ? "Position bearbeiten"
+            : isNew
+                ? (isPackage ? "Neue Einheit hinzufügen" : "Neue freie Menge hinzufügen")
+                : "Bestand erhöhen";
+    }
     if (kicker) kicker.textContent = isPackage ? "Einheiten" : "Freie Menge";
 
     if (summary) {
-        summary.innerHTML = isPackage
-            ? `<strong>${formatNumber(profile.count)} × ${formatNumber(profile.unit_weight)} ${escapeHtml(profile.measure_unit)}</strong><span>${escapeHtml(profile.storage_location || "Kein Ort")} · ${escapeHtml(profile.expiry_date ? formatDate(profile.expiry_date) : "Kein Ablaufdatum")}</span>`
-            : `<strong>${formatNumber(profile.amount)} ${escapeHtml(profile.measure_unit)}</strong><span>${escapeHtml(profile.storage_location || "Kein Ort")} · ${escapeHtml(profile.expiry_date ? formatDate(profile.expiry_date) : "Kein Ablaufdatum")}</span>`;
+        if (isNew) {
+            summary.innerHTML = `<strong>${isPackage ? "Neue Einheit" : "Neue freie Menge"}</strong><span>Lagerort und Ablaufdatum werden direkt für diese neue Position gespeichert.</span>`;
+        } else {
+            summary.innerHTML = isPackage
+                ? `<strong>${formatNumber(profile.count)} × ${formatNumber(profile.unit_weight)} ${escapeHtml(profile.measure_unit)}</strong><span>${escapeHtml(profile.storage_location || "Kein Ort")} · ${escapeHtml(profile.expiry_date ? formatDate(profile.expiry_date) : "Kein Ablaufdatum")}</span>`
+                : `<strong>${formatNumber(profile.amount)} ${escapeHtml(profile.measure_unit)}</strong><span>${escapeHtml(profile.storage_location || "Kein Ort")} · ${escapeHtml(profile.expiry_date ? formatDate(profile.expiry_date) : "Kein Ablaufdatum")}</span>`;
+        }
     }
 
     if (amountInput) amountInput.value = isMeta ? "" : (isPackage ? "1" : "");
-    if (unitWeightInput) unitWeightInput.value = isPackage ? profile.unit_weight : "";
-    if (measureUnitInput) measureUnitInput.value = profile.measure_unit || "g";
-    if (locationInput) locationInput.value = profile.storage_location || "";
-    if (expiryInput) expiryInput.value = profile.expiry_date || "";
+    if (unitWeightInput) unitWeightInput.value = isPackage && profile ? profile.unit_weight : "";
+    if (measureUnitInput) measureUnitInput.value = profile?.measure_unit || "g";
+    if (locationInput) locationInput.value = profile?.storage_location || "";
+    if (expiryInput) expiryInput.value = profile?.expiry_date || "";
     if (hint) {
         hint.textContent = isMeta
             ? "Lagerort und Ablaufdatum werden für diese Position angepasst. Wenn dadurch gleiche Positionen entstehen, werden sie in der Übersicht zusammengefasst."
-            : "Bestehende Werte sind vorausgefüllt. Änderst du Lagerort oder Ablaufdatum, wird eine neue Lagerposition angelegt.";
+            : isNew
+                ? "Diese Position wird neu angelegt. Gleicher Inhalt, gleiche Einheit, gleicher Lagerort und gleiches Ablaufdatum werden in der Übersicht zusammengeführt."
+                : "Bestehende Werte sind vorausgefüllt. Änderst du Lagerort oder Ablaufdatum, wird eine neue Lagerposition angelegt.";
     }
 
     configurePositionFieldVisibility(mode, action);
@@ -774,48 +790,23 @@ function renderInventoryList() {
                 </div>
 
                 <div id="inventory-controls-${item.id}" class="inventory-stock-controls is-hidden">
-                    <div class="inventory-stock-grid">
-                        <section class="inventory-stock-panel">
+                    <section class="inventory-stock-panel inventory-stock-panel-combined">
+                        <div class="inventory-stock-section">
                             <div class="inventory-stock-panel-header">
                                 <h4>Einheiten</h4>
-                                <span>vorhandene Einheiten erhöhen/reduzieren</span>
+                                <button type="button" class="inventory-mini-button" onclick="openInventoryPositionModal(${item.id}, 'package', 'add-new', '__new__')" title="Neue Einheit hinzufügen" aria-label="Neue Einheit hinzufügen">${ICONS.plus}</button>
                             </div>
                             ${renderPackageRows(item)}
-                            <div class="inventory-inline-add-box">
-                                <h5>Einheit hinzufügen</h5>
-                                <input id="new-package-count-${item.id}" type="number" min="1" step="1" placeholder="Anzahl">
-                                <input id="new-package-weight-${item.id}" type="number" min="0" step="0.1" placeholder="Inhalt">
-                                <select id="new-package-unit-${item.id}" aria-label="Mengeneinheit">
-                                    <option value="g">g</option>
-                                    <option value="ml">ml</option>
-                                    <option value="Stk.">Stk.</option>
-                                </select>
-                                <select id="new-package-location-${item.id}" aria-label="Lagerort">${getStorageLocationOptions()}</select>
-                                <input id="new-package-expiry-${item.id}" type="date" title="Ablaufdatum" aria-label="Ablaufdatum">
-                                <button type="button" class="inventory-mini-button" onclick="addNewPackageProfile(${item.id})" title="Einheit hinzufügen" aria-label="Einheit hinzufügen">${ICONS.plus}</button>
-                            </div>
-                        </section>
+                        </div>
 
-                        <section class="inventory-stock-panel">
+                        <div class="inventory-stock-section">
                             <div class="inventory-stock-panel-header">
                                 <h4>Freie Mengen</h4>
-                                <span>nach Ort separat geführt</span>
+                                <button type="button" class="inventory-mini-button" onclick="openInventoryPositionModal(${item.id}, 'loose', 'add-new', '__new__')" title="Neue freie Menge hinzufügen" aria-label="Neue freie Menge hinzufügen">${ICONS.plus}</button>
                             </div>
                             ${renderLooseRows(item)}
-                            <div class="inventory-inline-add-box inventory-inline-add-box-loose">
-                                <h5>Freie Menge hinzufügen</h5>
-                                <input id="new-loose-amount-${item.id}" type="number" min="0" step="0.1" placeholder="Menge">
-                                <select id="new-loose-unit-${item.id}" aria-label="Mengeneinheit">
-                                    <option value="g">g</option>
-                                    <option value="ml">ml</option>
-                                    <option value="Stk.">Stk.</option>
-                                </select>
-                                <select id="new-loose-location-${item.id}" aria-label="Lagerort">${getStorageLocationOptions()}</select>
-                                <input id="new-loose-expiry-${item.id}" type="date" title="Ablaufdatum" aria-label="Ablaufdatum">
-                                <button type="button" class="inventory-mini-button" onclick="addNewLooseAmount(${item.id})" title="Freie Menge hinzufügen" aria-label="Freie Menge hinzufügen">${ICONS.plus}</button>
-                            </div>
-                        </section>
-                    </div>
+                        </div>
+                    </section>
                 </div>
             </article>`;
     }).join("");

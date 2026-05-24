@@ -1894,3 +1894,86 @@ body.modal-open .app-header {
         min-width: 0;
     }
 }
+
+/* =========================================================
+   INVENTAR FEINSCHLIFF: GEMEINSAME BESTANDSBOX + MODAL-ERFASSUNG
+========================================================= */
+.inventory-stock-grid {
+    display: block;
+}
+
+.inventory-stock-panel-combined {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    width: 100%;
+}
+
+.inventory-stock-section {
+    min-width: 0;
+}
+
+.inventory-stock-section + .inventory-stock-section {
+    padding-top: 16px;
+    border-top: 1px solid var(--color-border-soft);
+}
+
+.inventory-stock-panel-combined .inventory-stock-panel-header {
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.inventory-stock-panel-combined .inventory-stock-panel-header h4 {
+    line-height: 1.2;
+}
+
+.inventory-stock-panel-combined .inventory-mini-button {
+    flex-shrink: 0;
+}
+
+.inventory-inline-add-box,
+.inventory-inline-add-box-loose {
+    display: none;
+}
+
+.inventory-position-dialog {
+    width: min(560px, 100%);
+}
+
+.inventory-position-summary {
+    margin-bottom: var(--space-lg);
+    padding: 12px 14px;
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface-soft);
+}
+
+.inventory-position-summary strong,
+.inventory-position-summary span {
+    display: block;
+}
+
+.inventory-position-summary span {
+    margin-top: 3px;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    font-weight: 700;
+}
+
+.inventory-form-grid-compact {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 768px) {
+    .inventory-stock-panel-combined {
+        gap: 14px;
+    }
+
+    .inventory-stock-panel-combined .inventory-stock-panel-header {
+        gap: 10px;
+    }
+
+    .inventory-form-grid-compact {
+        grid-template-columns: 1fr;
+    }
+}

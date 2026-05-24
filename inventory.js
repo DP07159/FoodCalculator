@@ -203,6 +203,51 @@ async function saveEditedInventoryItem() {
     }
 }
 
+
+function makeStockKey(parts) {
+    return parts.map(part => encodeURIComponent(String(part ?? ""))).join("||");
+}
+
+function parseStockKey(key) {
+    return String(key || "")
+        .split("||")
+        .map(part => decodeURIComponent(part || ""));
+}
+
+function cssSafe(value) {
+    return String(value || "")
+        .replace(/[^a-zA-Z0-9_-]/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "") || "default";
+}
+
+function getStorageLocationOptions(selectedValue = "") {
+    const locations = ["", "TK", "KS", "TK (Keller)", "KS (Keller)", "Vorratsraum"];
+    const selected = String(selectedValue || "");
+    return locations.map(location => {
+        const label = location || "Bitte wählen";
+        const isSelected = location === selected ? " selected" : "";
+        return `<option value="${escapeHtml(location)}"${isSelected}>${escapeHtml(label)}</option>`;
+    }).join("");
+}
+
+function getPrimaryLocations(item) {
+    const locations = new Set();
+    (item?.batches || []).forEach(batch => {
+        const hasStock = Number(batch.remaining_quantity || 0) > 0 || Number(batch.remaining_weight || 0) > 0;
+        if (hasStock && batch.storage_location) locations.add(batch.storage_location);
+    });
+    if (!locations.size && item?.storage_location) locations.add(item.storage_location);
+    return Array.from(locations).sort((a, b) => a.localeCompare(b));
+}
+
+function toggleInventoryControls(itemId, forceOpen) {
+    const controls = document.getElementById(`inventory-controls-${itemId}`);
+    if (!controls) return;
+    const shouldOpen = typeof forceOpen === "boolean" ? forceOpen : controls.classList.contains("is-hidden");
+    controls.classList.toggle("is-hidden", !shouldOpen);
+}
+
 function getPackageProfiles(item) {
     const profiles = new Map();
     (item?.batches || []).forEach(batch => {

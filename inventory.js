@@ -101,13 +101,20 @@ function getCheckedValue(name) {
 
 function updateInventoryStockType() {
     const type = getCheckedValue("inventory-stock-type") || "package";
-    document.getElementById("inventory-package-fields")?.classList.toggle("is-hidden", type !== "package");
-    document.getElementById("inventory-loose-fields")?.classList.toggle("is-hidden", type !== "loose");
+    const packageFields = document.getElementById("inventory-package-fields");
+    const looseFields = document.getElementById("inventory-loose-fields");
+
+    packageFields?.classList.toggle("is-muted", type !== "package");
+    looseFields?.classList.toggle("is-muted", type !== "loose");
+
+    packageFields?.querySelectorAll("input, select").forEach(field => { field.disabled = type !== "package"; });
+    looseFields?.querySelectorAll("input, select").forEach(field => { field.disabled = type !== "loose"; });
 }
 
 function getInventoryPayload() {
     const stockType = getCheckedValue("inventory-stock-type") || "package";
-    const measureUnit = stockType === "package"
+    const isPackage = stockType === "package";
+    const measureUnit = isPackage
         ? document.getElementById("inventory-measure-unit-package").value
         : document.getElementById("inventory-measure-unit-loose").value;
 
@@ -120,9 +127,13 @@ function getInventoryPayload() {
         unitWeight: document.getElementById("inventory-unit-weight").value,
         looseAmount: document.getElementById("inventory-loose-amount").value,
         measureUnit,
-        expiry_date: document.getElementById("inventory-expiry").value,
-        storage_location: document.getElementById("inventory-location").value,
-        notes: document.getElementById("inventory-notes").value
+        expiry_date: isPackage
+            ? document.getElementById("inventory-package-expiry").value
+            : document.getElementById("inventory-loose-expiry").value,
+        storage_location: isPackage
+            ? document.getElementById("inventory-package-location").value
+            : document.getElementById("inventory-loose-location").value,
+        notes: ""
     };
 }
 

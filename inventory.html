@@ -35,79 +35,98 @@
                     </button>
                 </div>
 
-                <form id="inventory-form">
-                    <div class="inventory-form-grid">
+                <form id="inventory-form" class="inventory-create-form">
+                    <section class="inventory-create-section inventory-create-section-name">
                         <div class="form-section inventory-name-field">
                             <label for="inventory-name">Lebensmittel</label>
                             <input type="text" id="inventory-name" list="inventory-name-suggestions" placeholder="z.B. Erbsen" autocomplete="off">
                             <datalist id="inventory-name-suggestions"></datalist>
                         </div>
-                        <div class="form-section">
-                            <label for="inventory-location">Aufbewahrungsort</label>
-                            <select id="inventory-location">
-                                <option value="">Bitte wählen</option>
-                                <option value="TK">TK</option>
-                                <option value="KS">KS</option>
-                                <option value="TK (Keller)">TK (Keller)</option>
-                                <option value="KS (Keller)">KS (Keller)</option>
-                                <option value="Vorratsraum">Vorratsraum</option>
-                            </select>
-                        </div>
-                        <div class="form-section">
-                            <label for="inventory-expiry">Ablaufdatum</label>
-                            <input type="date" id="inventory-expiry">
-                        </div>
-                    </div>
+                    </section>
 
-                    <div class="inventory-choice-row" role="group" aria-label="Bestandsart auswählen">
-                        <label class="inventory-choice-card">
+                    <section class="inventory-create-section inventory-create-stock-section">
+                        <label class="inventory-create-type">
                             <input type="radio" name="inventory-stock-type" value="package" checked onchange="updateInventoryStockType()">
-                            <span>Einheiten</span>
-                            <small>Einzelne Einheiten, z.B. 2 × 230 g</small>
+                            <span>
+                                <strong>Einheiten</strong>
+                                <small>z.B. 2 × 230 g</small>
+                            </span>
                         </label>
-                        <label class="inventory-choice-card">
-                            <input type="radio" name="inventory-stock-type" value="loose" onchange="updateInventoryStockType()">
-                            <span>Freie Menge</span>
-                            <small>Aggregierter Bestand, z.B. 300 g</small>
-                        </label>
-                    </div>
 
-                    <div id="inventory-package-fields" class="inventory-form-grid">
-                        <div class="form-section">
-                            <label for="inventory-package-count">Anzahl</label>
-                            <input type="number" id="inventory-package-count" min="1" step="1" placeholder="z.B. 2">
-                        </div>
-                        <div class="form-section">
-                            <label for="inventory-unit-weight">Inhalt je Einheit</label>
-                            <div class="inventory-inline-inputs">
+                        <div id="inventory-package-fields" class="inventory-create-grid inventory-create-grid-package">
+                            <div class="form-section">
+                                <label for="inventory-package-count">Anzahl Einheiten</label>
+                                <input type="number" id="inventory-package-count" min="1" step="1" placeholder="z.B. 2">
+                            </div>
+                            <div class="form-section">
+                                <label for="inventory-unit-weight">Inhalt je Einheit</label>
                                 <input type="number" id="inventory-unit-weight" min="0" step="0.1" placeholder="z.B. 230">
+                            </div>
+                            <div class="form-section">
+                                <label for="inventory-measure-unit-package">Einheit</label>
                                 <select id="inventory-measure-unit-package" aria-label="Mengeneinheit">
                                     <option value="g">g</option>
                                     <option value="ml">ml</option>
                                     <option value="Stk.">Stk.</option>
                                 </select>
                             </div>
+                            <div class="form-section">
+                                <label for="inventory-package-location">Lagerort</label>
+                                <select id="inventory-package-location">
+                                    <option value="">Bitte wählen</option>
+                                    <option value="TK">TK</option>
+                                    <option value="KS">KS</option>
+                                    <option value="TK (Keller)">TK (Keller)</option>
+                                    <option value="KS (Keller)">KS (Keller)</option>
+                                    <option value="Vorratsraum">Vorratsraum</option>
+                                </select>
+                            </div>
+                            <div class="form-section">
+                                <label for="inventory-package-expiry">Ablaufdatum</label>
+                                <input type="date" id="inventory-package-expiry">
+                            </div>
                         </div>
-                    </div>
+                    </section>
 
-                    <div id="inventory-loose-fields" class="inventory-form-grid is-hidden">
-                        <div class="form-section">
-                            <label for="inventory-loose-amount">Freie Menge</label>
-                            <div class="inventory-inline-inputs">
+                    <section class="inventory-create-section inventory-create-stock-section">
+                        <label class="inventory-create-type">
+                            <input type="radio" name="inventory-stock-type" value="loose" onchange="updateInventoryStockType()">
+                            <span>
+                                <strong>Freie Menge</strong>
+                                <small>z.B. 300 g, 500 ml oder 4 Stk.</small>
+                            </span>
+                        </label>
+
+                        <div id="inventory-loose-fields" class="inventory-create-grid inventory-create-grid-loose is-muted">
+                            <div class="form-section">
+                                <label for="inventory-loose-amount">Freie Menge</label>
                                 <input type="number" id="inventory-loose-amount" min="0" step="0.1" placeholder="z.B. 300">
+                            </div>
+                            <div class="form-section">
+                                <label for="inventory-measure-unit-loose">Einheit</label>
                                 <select id="inventory-measure-unit-loose" aria-label="Mengeneinheit">
                                     <option value="g">g</option>
                                     <option value="ml">ml</option>
                                     <option value="Stk.">Stk.</option>
                                 </select>
                             </div>
+                            <div class="form-section">
+                                <label for="inventory-loose-location">Lagerort</label>
+                                <select id="inventory-loose-location">
+                                    <option value="">Bitte wählen</option>
+                                    <option value="TK">TK</option>
+                                    <option value="KS">KS</option>
+                                    <option value="TK (Keller)">TK (Keller)</option>
+                                    <option value="KS (Keller)">KS (Keller)</option>
+                                    <option value="Vorratsraum">Vorratsraum</option>
+                                </select>
+                            </div>
+                            <div class="form-section">
+                                <label for="inventory-loose-expiry">Ablaufdatum</label>
+                                <input type="date" id="inventory-loose-expiry">
+                            </div>
                         </div>
-                    </div>
-
-                    <div class="form-section">
-                        <label for="inventory-notes">Notizen</label>
-                        <textarea id="inventory-notes" rows="1" placeholder="optional"></textarea>
-                    </div>
+                    </section>
 
                     <div class="form-actions inventory-actions">
                         <button type="button" class="secondary-button" onclick="resetInventoryForm(); toggleInventoryAddPanel(false);">Abbrechen</button>

@@ -2168,3 +2168,92 @@ body.modal-open .app-header {
         grid-template-columns: 1fr;
     }
 }
+
+/* =========================================================
+   INVENTAR: MODAL-NEUERFASSUNG + RESPONSIVE DETAIL-FEINSCHLIFF
+========================================================= */
+#inventory-add-panel.inventory-modal.is-hidden {
+    display: none;
+}
+
+.inventory-add-dialog {
+    width: min(940px, 100%);
+}
+
+.inventory-add-dialog.inventory-form-card {
+    margin: 0;
+}
+
+.inventory-date-input-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: stretch;
+    width: 100%;
+    min-width: 0;
+}
+
+.inventory-date-input-row input {
+    min-width: 0;
+}
+
+.inventory-today-button {
+    width: auto;
+    min-width: 78px;
+    padding: 9px 12px;
+    white-space: nowrap;
+}
+
+.inventory-stock-controls {
+    margin-top: 12px;
+    padding: 12px 0 0;
+    border: 0;
+    border-top: 1px solid var(--color-border-soft);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.inventory-stock-panel,
+.inventory-stock-panel-combined {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.inventory-stock-row {
+    padding: 10px 0;
+}
+
+.inventory-create-grid-package {
+    grid-template-columns: minmax(110px, .8fr) minmax(140px, 1fr) minmax(82px, .6fr) minmax(140px, 1fr) minmax(190px, 1.35fr);
+}
+
+.inventory-create-grid-loose {
+    grid-template-columns: minmax(140px, 1fr) minmax(82px, .6fr) minmax(140px, 1fr) minmax(190px, 1.35fr);
+}
+
+@media (max-width: 980px) {
+    .inventory-create-grid-package,
+    .inventory-create-grid-loose {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .inventory-date-input-row,
+    .inventory-create-grid-package,
+    .inventory-create-grid-loose {
+        grid-template-columns: 1fr;
+    }
+
+    .inventory-today-button {
+        width: 100%;
+    }
+
+    .inventory-stock-controls {
+        padding-top: 10px;
+    }
+}

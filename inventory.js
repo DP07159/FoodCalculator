@@ -27,6 +27,18 @@ function showToast(message) {
     }, 2600);
 }
 
+
+function setDateToday(inputId) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    input.value = `${year}-${month}-${day}`;
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+}
+
 function escapeHtml(value) {
     return String(value ?? "")
         .replaceAll("&", "&amp;")
@@ -84,15 +96,22 @@ function toggleInventoryAddPanel(forceOpen) {
     if (shouldOpen) {
         closeInventoryEditModal();
         closeInventoryPositionModal();
-        closeAllInventoryPanels();
         resetInventoryForm();
     }
 
     panel.classList.toggle("is-hidden", !shouldOpen);
+    document.body.classList.toggle("modal-open", shouldOpen || isAnyInventoryModalOpen("inventory-add-panel"));
 
     if (shouldOpen) {
         window.requestAnimationFrame(() => document.getElementById("inventory-name")?.focus());
     }
+}
+
+function isAnyInventoryModalOpen(excludeId = "") {
+    return Array.from(document.querySelectorAll(".inventory-modal")).some(modal => {
+        if (excludeId && modal.id === excludeId) return false;
+        return !modal.classList.contains("is-hidden");
+    });
 }
 
 function getCheckedValue(name) {
@@ -143,6 +162,7 @@ async function saveInventoryItem() {
 
     if (payload.stockType === "package") {
         if (!Number(payload.packageCount) || Number(payload.packageCount) <= 0) return showToast("Bitte die Anzahl eingeben.");
+        if (!Number.isInteger(Number(payload.packageCount))) return showToast("Bitte bei Anzahl Einheiten eine ganze Zahl eingeben.");
         if (!Number(payload.unitWeight) || Number(payload.unitWeight) <= 0) return showToast("Bitte den Inhalt je Einheit eingeben.");
     }
 
@@ -154,7 +174,7 @@ async function saveInventoryItem() {
         await apiFetch(`${API_URL}/inventory`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
+            body: JSON.stringify({ ...payload, packageCount: payload.stockType === "package" ? Math.floor(Number(payload.packageCount)) : payload.packageCount })
         });
         showToast("Bestand gespeichert.");
         resetInventoryForm();
@@ -194,7 +214,7 @@ function closeInventoryEditModal() {
     const modal = document.getElementById("inventory-edit-modal");
     if (!modal) return;
     modal.classList.add("is-hidden");
-    document.body.classList.remove("modal-open");
+    if (!isAnyInventoryModalOpen("inventory-edit-modal")) document.body.classList.remove("modal-open");
     document.getElementById("inventory-edit-form")?.reset();
 }
 
@@ -338,9 +358,7 @@ function closeInventoryPositionModal() {
     if (!modal) return;
     modal.classList.add("is-hidden");
     document.getElementById("inventory-position-form")?.reset();
-    if (document.getElementById("inventory-edit-modal")?.classList.contains("is-hidden") !== false) {
-        document.body.classList.remove("modal-open");
-    }
+    if (!isAnyInventoryModalOpen("inventory-position-modal")) document.body.classList.remove("modal-open");
 }
 
 function configurePositionFieldVisibility(mode, action) {
@@ -361,7 +379,12 @@ function configurePositionFieldVisibility(mode, action) {
 
     if (amountLabel) amountLabel.textContent = mode === "package" ? "Anzahl Einheiten" : "Freie Menge";
     if (unitWeightLabel) unitWeightLabel.textContent = mode === "package" ? "Inhalt je Einheit" : "Inhalt";
-    if (amountInput) amountInput.step = mode === "package" ? "1" : "0.1";
+    if (amountInput) {
+        amountInput.step = mode === "package" ? "1" : "0.1";
+        amountInput.inputMode = mode === "package" ? "numeric" : "decimal";
+        if (mode === "package") amountInput.setAttribute("pattern", "[0-9]*");
+        else amountInput.removeAttribute("pattern");
+    }
     if (unitWeightInput) unitWeightInput.disabled = mode === "package" && !isNew;
     if (measureUnitInput) measureUnitInput.disabled = !isNew;
 }
@@ -464,11 +487,12 @@ async function submitInventoryPositionModal() {
             showToast("Position aktualisiert.");
         } else if (mode === "package") {
             if (!amount || amount <= 0) return showToast("Bitte eine Anzahl eingeben.");
+            if (!Number.isInteger(amount)) return showToast("Bitte bei Anzahl Einheiten eine ganze Zahl eingeben.");
             if (!unitWeight || unitWeight <= 0) return showToast("Ungültiger Inhalt je Einheit.");
             await apiFetch(`${API_URL}/inventory/${itemId}/adjust`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ action: "add", mode: "package", amount, unitWeight, measureUnit, storage_location: storageLocation, expiry_date: expiryDate })
+                body: JSON.stringify({ action: "add", mode: "package", amount: Math.floor(amount), unitWeight, measureUnit, storage_location: storageLocation, expiry_date: expiryDate })
             });
             showToast("Einheit hinzugefügt.");
         } else {
@@ -602,6 +626,7 @@ async function addNewPackageProfile(itemId) {
     const expiryDate = expiryInput?.value || "";
 
     if (!count || count <= 0) return showToast("Bitte eine Anzahl eingeben.");
+    if (!Number.isInteger(count)) return showToast("Bitte bei Anzahl Einheiten eine ganze Zahl eingeben.");
     if (!unitWeight || unitWeight <= 0) return showToast("Bitte den Inhalt je Einheit eingeben.");
     if (!storageLocation) return showToast("Bitte einen Lagerort auswählen.");
 
@@ -609,7 +634,7 @@ async function addNewPackageProfile(itemId) {
         await apiFetch(`${API_URL}/inventory/${itemId}/adjust`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "add", mode: "package", amount: count, unitWeight, measureUnit, storage_location: storageLocation, expiry_date: expiryDate })
+            body: JSON.stringify({ action: "add", mode: "package", amount: Math.floor(count), unitWeight, measureUnit, storage_location: storageLocation, expiry_date: expiryDate })
         });
         showToast("Neue Einheit hinzugefügt.");
         if (countInput) countInput.value = "";

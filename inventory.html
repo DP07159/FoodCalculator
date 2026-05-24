@@ -24,11 +24,30 @@
                 <h1>Inventar</h1>
             </header>
 
-            <section id="inventory-add-panel" class="section-card inventory-form-card is-hidden">
+            <section class="section-card inventory-list-card">
+                <div class="recipe-book-topbar inventory-list-topbar">
+                    <h2>Bestand</h2>
+                    <button type="button" class="recipe-toolbar-toggle-button" onclick="toggleInventoryAddPanel()" title="Lebensmittel hinzufügen" aria-label="Lebensmittel hinzufügen">
+                        <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                    </button>
+                </div>
+
+                <div class="recipe-book-controls inventory-controls">
+                    <input type="text" id="inventory-search" class="recipe-search-input" placeholder="Inventar durchsuchen ...">
+                </div>
+
+                <div id="inventory-list" class="inventory-list inventory-list-detailed"></div>
+            </section>
+        </main>
+    </div>
+
+    <div id="inventory-add-panel" class="inventory-modal is-hidden" role="dialog" aria-modal="true" aria-labelledby="inventory-add-title">
+        <div class="inventory-modal-backdrop" onclick="toggleInventoryAddPanel(false)"></div>
+        <section class="inventory-modal-dialog inventory-add-dialog inventory-form-card">
                 <div class="inventory-section-headline">
                     <div>
                         <p class="recipe-kicker">Neuer Bestand</p>
-                        <h2>Lebensmittel hinzufügen</h2>
+                        <h2 id="inventory-add-title">Lebensmittel hinzufügen</h2>
                     </div>
                     <button type="button" class="header-icon-button" onclick="toggleInventoryAddPanel(false)" title="Erfassung schließen" aria-label="Erfassung schließen">
                         <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
@@ -56,7 +75,7 @@
                         <div id="inventory-package-fields" class="inventory-create-grid inventory-create-grid-package">
                             <div class="form-section">
                                 <label for="inventory-package-count">Anzahl Einheiten</label>
-                                <input type="number" id="inventory-package-count" min="1" step="1" placeholder="z.B. 2">
+                                <input type="number" id="inventory-package-count" min="1" step="1" inputmode="numeric" pattern="[0-9]*" placeholder="z.B. 2">
                             </div>
                             <div class="form-section">
                                 <label for="inventory-unit-weight">Inhalt je Einheit</label>
@@ -83,7 +102,10 @@
                             </div>
                             <div class="form-section">
                                 <label for="inventory-package-expiry">Ablaufdatum</label>
+                                <div class="inventory-date-input-row">
                                 <input type="date" id="inventory-package-expiry">
+                                <button type="button" class="secondary-button inventory-today-button" onclick="setDateToday('inventory-package-expiry')">Heute</button>
+                            </div>
                             </div>
                         </div>
                     </section>
@@ -123,7 +145,10 @@
                             </div>
                             <div class="form-section">
                                 <label for="inventory-loose-expiry">Ablaufdatum</label>
+                                <div class="inventory-date-input-row">
                                 <input type="date" id="inventory-loose-expiry">
+                                <button type="button" class="secondary-button inventory-today-button" onclick="setDateToday('inventory-loose-expiry')">Heute</button>
+                            </div>
                             </div>
                         </div>
                     </section>
@@ -133,23 +158,7 @@
                         <button type="button" onclick="saveInventoryItem()">Speichern</button>
                     </div>
                 </form>
-            </section>
-
-            <section class="section-card inventory-list-card">
-                <div class="recipe-book-topbar inventory-list-topbar">
-                    <h2>Bestand</h2>
-                    <button type="button" class="recipe-toolbar-toggle-button" onclick="toggleInventoryAddPanel()" title="Lebensmittel hinzufügen" aria-label="Lebensmittel hinzufügen">
-                        <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-                    </button>
-                </div>
-
-                <div class="recipe-book-controls inventory-controls">
-                    <input type="text" id="inventory-search" class="recipe-search-input" placeholder="Inventar durchsuchen ...">
-                </div>
-
-                <div id="inventory-list" class="inventory-list inventory-list-detailed"></div>
-            </section>
-        </main>
+        </section>
     </div>
 
     <div id="inventory-edit-modal" class="inventory-modal is-hidden" role="dialog" aria-modal="true" aria-labelledby="inventory-edit-title">
@@ -236,7 +245,10 @@
                     </div>
                     <div class="form-section">
                         <label for="position-expiry">Ablaufdatum</label>
-                        <input type="date" id="position-expiry">
+                        <div class="inventory-date-input-row">
+                            <input type="date" id="position-expiry">
+                            <button type="button" class="secondary-button inventory-today-button" onclick="setDateToday('position-expiry')">Heute</button>
+                        </div>
                     </div>
                 </div>
 

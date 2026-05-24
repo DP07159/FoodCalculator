@@ -1362,3 +1362,110 @@ body.modal-open {
         width: 100%;
     }
 }
+
+/* =========================================================
+   INVENTAR FEINSCHLIFF: KOMPAKTE KARTEN + AUFKLAPPBARE BESTANDSÄNDERUNG
+========================================================= */
+.inventory-item-card-compact {
+    padding: 14px 16px;
+}
+
+.inventory-item-card-compact .inventory-item-header {
+    align-items: flex-start;
+}
+
+.inventory-item-card-compact .inventory-item-main {
+    gap: 8px;
+}
+
+.inventory-summary-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.inventory-summary-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    color: #4f627a;
+    background: #f4f8fc;
+    border: 1px solid #dfe7f0;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.inventory-summary-empty {
+    color: var(--color-danger-text);
+    background: var(--color-danger-bg);
+    border-color: var(--color-danger-border);
+}
+
+.inventory-meta-compact {
+    margin-top: 0;
+}
+
+.inventory-stock-controls {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--color-border-soft);
+}
+
+.inventory-stock-controls.is-hidden {
+    display: none;
+}
+
+.inventory-inline-add-box {
+    display: grid;
+    grid-template-columns: minmax(76px, 0.8fr) minmax(110px, 1fr) minmax(76px, 86px) minmax(140px, 1.2fr) minmax(132px, 1fr) auto;
+    align-items: end;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--color-border);
+}
+
+.inventory-inline-add-box-loose {
+    grid-template-columns: minmax(110px, 1fr) minmax(76px, 86px) minmax(140px, 1.2fr) minmax(132px, 1fr) auto;
+}
+
+.inventory-inline-add-box h5 {
+    grid-column: 1 / -1;
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.inventory-inline-add-box input,
+.inventory-inline-add-box select {
+    min-height: 38px;
+    font-size: var(--font-size-sm);
+}
+
+@media (max-width: 900px) {
+    .inventory-inline-add-box,
+    .inventory-inline-add-box-loose {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .inventory-inline-add-box .inventory-mini-button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .inventory-item-card-compact .inventory-item-header {
+        gap: 12px;
+    }
+
+    .inventory-inline-add-box,
+    .inventory-inline-add-box-loose {
+        grid-template-columns: 1fr;
+    }
+}

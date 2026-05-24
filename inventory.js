@@ -265,8 +265,8 @@ function toggleInventoryControls(itemId, forceOpen) {
 function getPackageProfiles(item) {
     const profiles = new Map();
     (item?.batches || []).forEach(batch => {
-        if (batch.batch_type !== "package" || Number(batch.remaining_quantity || 0) <= 0) return;
-        const unitWeight = Number(batch.unit_weight || batch.remaining_weight || 0);
+        if (batch.batch_type !== "package") return;
+        const unitWeight = Number(batch.unit_weight || batch.original_weight || batch.remaining_weight || 0);
         const measureUnit = batch.measure_unit || item.unit || "g";
         const location = batch.storage_location || "";
         const expiry = batch.expiry_date || "";
@@ -286,7 +286,7 @@ function getPackageProfiles(item) {
 function getLooseProfiles(item) {
     const profiles = new Map();
     (item?.batches || []).forEach(batch => {
-        if (batch.batch_type !== "loose" || Number(batch.remaining_weight || 0) <= 0) return;
+        if (batch.batch_type !== "loose") return;
         const measureUnit = batch.measure_unit || item.unit || "g";
         const location = batch.storage_location || "";
         const expiry = batch.expiry_date || "";
@@ -349,6 +349,55 @@ async function adjustLooseAmount(itemId, profileKey, action) {
     } catch (error) {
         console.error(error);
         showToast(error.message || "Bestand konnte nicht angepasst werden.");
+    }
+}
+
+async function deletePackageProfile(itemId, profileKey) {
+    const [unitWeight, measureUnit, storageLocation, expiryDate] = parseStockKey(profileKey);
+    if (!confirm("Möchtest du diese Einheiten-Position vollständig löschen?")) return;
+
+    try {
+        await apiFetch(`${API_URL}/inventory/${itemId}/stock-profile`, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                mode: "package",
+                unitWeight,
+                measureUnit,
+                storage_location: storageLocation || "",
+                expiry_date: expiryDate || ""
+            })
+        });
+        showToast("Position gelöscht.");
+        await loadInventory();
+        toggleInventoryControls(itemId, true);
+    } catch (error) {
+        console.error(error);
+        showToast(error.message || "Position konnte nicht gelöscht werden.");
+    }
+}
+
+async function deleteLooseProfile(itemId, profileKey) {
+    const [measureUnit, storageLocation, expiryDate] = parseStockKey(profileKey);
+    if (!confirm("Möchtest du diese freie Mengenposition vollständig löschen?")) return;
+
+    try {
+        await apiFetch(`${API_URL}/inventory/${itemId}/stock-profile`, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                mode: "loose",
+                measureUnit,
+                storage_location: storageLocation || "",
+                expiry_date: expiryDate || ""
+            })
+        });
+        showToast("Position gelöscht.");
+        await loadInventory();
+        toggleInventoryControls(itemId, true);
+    } catch (error) {
+        console.error(error);
+        showToast(error.message || "Position konnte nicht gelöscht werden.");
     }
 }
 
@@ -493,8 +542,9 @@ function renderPackageRows(item) {
                     <span>${escapeHtml(detail)}</span>
                 </div>
                 <div class="inventory-stock-row-actions">
-                    <button type="button" class="inventory-mini-button" onclick="adjustPackageProfile(${item.id}, '${escapeHtml(profile.key)}', 'remove')" title="Einheit reduzieren" aria-label="Einheit reduzieren">${ICONS.minus}</button>
+                    <button type="button" class="inventory-mini-button" ${Number(profile.count) <= 0 ? "disabled" : ""} onclick="adjustPackageProfile(${item.id}, '${escapeHtml(profile.key)}', 'remove')" title="Einheit reduzieren" aria-label="Einheit reduzieren">${ICONS.minus}</button>
                     <button type="button" class="inventory-mini-button" onclick="adjustPackageProfile(${item.id}, '${escapeHtml(profile.key)}', 'add')" title="Einheit erhöhen" aria-label="Einheit erhöhen">${ICONS.plus}</button>
+                    <button type="button" class="inventory-mini-button inventory-mini-button-danger" onclick="deletePackageProfile(${item.id}, '${escapeHtml(profile.key)}')" title="Position löschen" aria-label="Position löschen">${ICONS.trash}</button>
                 </div>
             </div>
         `;
@@ -518,8 +568,9 @@ function renderLooseRows(item) {
                 </div>
                 <div class="inventory-stock-row-actions inventory-stock-row-actions-wide">
                     <input id="${inputId}" type="number" min="0" step="0.1" placeholder="Menge">
-                    <button type="button" class="inventory-mini-button" onclick="adjustLooseAmount(${item.id}, '${escapeHtml(profile.key)}', 'remove')" title="Menge reduzieren" aria-label="Menge reduzieren">${ICONS.minus}</button>
+                    <button type="button" class="inventory-mini-button" ${Number(profile.amount) <= 0 ? "disabled" : ""} onclick="adjustLooseAmount(${item.id}, '${escapeHtml(profile.key)}', 'remove')" title="Menge reduzieren" aria-label="Menge reduzieren">${ICONS.minus}</button>
                     <button type="button" class="inventory-mini-button" onclick="adjustLooseAmount(${item.id}, '${escapeHtml(profile.key)}', 'add')" title="Menge erhöhen" aria-label="Menge erhöhen">${ICONS.plus}</button>
+                    <button type="button" class="inventory-mini-button inventory-mini-button-danger" onclick="deleteLooseProfile(${item.id}, '${escapeHtml(profile.key)}')" title="Position löschen" aria-label="Position löschen">${ICONS.trash}</button>
                 </div>
             </div>
         `;

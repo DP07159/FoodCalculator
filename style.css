@@ -1647,3 +1647,29 @@ body.modal-open .app-header {
         min-height: auto;
     }
 }
+
+/* =========================================================
+   INVENTAR FIX: POSITIONSLÖSCHUNG + DISABLED-STATES
+========================================================= */
+.inventory-mini-button:disabled {
+    opacity: 0.42;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.inventory-mini-button:disabled:hover {
+    transform: none;
+    background: rgba(255,255,255,0.9);
+}
+
+.inventory-mini-button-danger {
+    color: var(--color-danger-text);
+    background: var(--color-danger-bg);
+    border-color: var(--color-danger-border);
+}
+
+.inventory-mini-button-danger:hover {
+    background: #fff7f7;
+    border-color: #e8bcbc;
+}

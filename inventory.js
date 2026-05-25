@@ -224,7 +224,8 @@ function getInventoryPayload() {
         storage_location: isPackage
             ? document.getElementById("inventory-package-location").value
             : document.getElementById("inventory-loose-location").value,
-        notes: ""
+        notes: "",
+        calories_per_100g: document.getElementById("inventory-calories")?.value || ""
     };
 }
 
@@ -271,6 +272,7 @@ function editInventoryItem(id) {
     document.getElementById("edit-inventory-id").value = item.id;
     document.getElementById("edit-inventory-name").value = item.name || "";
     document.getElementById("edit-inventory-unit").value = item.unit || "g";
+    document.getElementById("edit-inventory-calories").value = item.calories_per_100g ?? "";
     openInventoryEditModal();
 }
 
@@ -300,7 +302,8 @@ async function saveEditedInventoryItem() {
     const payload = {
         name: document.getElementById("edit-inventory-name").value,
         unit: document.getElementById("edit-inventory-unit").value,
-        notes: currentItem?.notes || ""
+        notes: currentItem?.notes || "",
+        calories_per_100g: document.getElementById("edit-inventory-calories")?.value || ""
     };
 
     if (!id) return showOverlayMessage("Kein Inventar-Eintrag ausgewählt.", "inventory-edit-message");
@@ -827,6 +830,12 @@ function getItemPrimaryLocation(item) {
     return getItemLocations(item)[0] || "";
 }
 
+function hasInventoryStock(item) {
+    return (item?.batches || []).some(batch =>
+        Number(batch.remaining_quantity || 0) > 0 || Number(batch.remaining_weight || 0) > 0
+    ) || Number(item?.quantity || 0) > 0 || Number(item?.weight || 0) > 0;
+}
+
 function updateInventoryLocationFilterOptions() {
     const select = document.getElementById("inventory-location-filter");
     if (!select) return;
@@ -941,12 +950,15 @@ function renderInventoryList() {
 
     const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : "";
     const locationFilter = document.getElementById("inventory-location-filter")?.value || "";
+    const stockFilter = document.getElementById("inventory-stock-filter")?.value || "all";
     const filteredItems = sortInventoryItems(inventoryItems.filter(item => {
         const locations = getItemLocations(item);
         const searchable = [item.name, item.storage_location, item.notes, item.unit, locations.join(" "), formatAmount(item)].join(" ").toLowerCase();
         const matchesSearch = searchable.includes(searchTerm);
         const matchesLocation = !locationFilter || locations.includes(locationFilter);
-        return matchesSearch && matchesLocation;
+        const itemHasStock = hasInventoryStock(item);
+        const matchesStock = stockFilter === "all" || (stockFilter === "in-stock" && itemHasStock) || (stockFilter === "empty" && !itemHasStock);
+        return matchesSearch && matchesLocation && matchesStock;
     }));
 
     if (filteredItems.length === 0) {
@@ -1011,6 +1023,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const locationFilter = document.getElementById("inventory-location-filter");
     if (locationFilter) locationFilter.addEventListener("change", renderInventoryList);
+
+    const stockFilter = document.getElementById("inventory-stock-filter");
+    if (stockFilter) stockFilter.addEventListener("change", renderInventoryList);
 
     const nameInput = document.getElementById("inventory-name");
     if (nameInput) {

@@ -1,4 +1,4 @@
-const CACHE_NAME = "food-calculator-v37";
+const CACHE_NAME = "food-calculator-v11";
 
 const FILES_TO_CACHE = [
     "/",
@@ -6,8 +6,6 @@ const FILES_TO_CACHE = [
     "/style.css",
     "/script.js",
     "/navigation.js",
-    "/inventory.html",
-    "/inventory.js",
     "/recipeInstructions.html",
     "/recipeInstructions.js",
     "/recipeDetails.html",
@@ -33,8 +31,7 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
     if (event.request.method !== "GET") return;
-
     event.respondWith(
-        fetch(event.request).catch(() => caches.match(event.request))
+        caches.match(event.request).then(cached => cached || fetch(event.request))
     );
 });

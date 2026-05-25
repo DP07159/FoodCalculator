@@ -169,40 +169,82 @@ function formatAmount(amount, unit) {
 }
 
 function cleanIngredientName(value) {
+    const unitPattern = "kg|g|gr|gramm|ml|l|liter|stk\\.?|stück|stueck|dose|dosen|glas|gläser|glaeser|packung|packungen|pkg|el|esslöffel|essloeffel|tl|teelöffel|teeloeffel|prise|prisen";
+    const amountPattern = "(?:\\d+\\s+\\d+\\/\\d+|\\d+\\/\\d+|\\d+(?:[,.]\\d+)?|[¼½¾⅓⅔])";
+
     return String(value || "")
-        .replace(/\([^)]*\)/g, "")
-        .replace(/[,;].*$/, "")
-        .replace(/\b(frisch|gekühlt|tiefgekühlt|gehackt|geschnitten|gerieben|optional|nach geschmack)\b/gi, "")
+        .replace(/\([^)]*\)/g, " ")
+        .replace(new RegExp(`\\b(?:a|à)\\s*${amountPattern}\\s*(${unitPattern})\\b`, "gi"), " ")
+        .replace(/[,;]/g, " ")
+        .replace(/\b(frisch|gekuehlt|gekühlt|tiefgekuehlt|tiefgekühlt|gehackt|geschnitten|gerieben|optional|nach geschmack)\b/gi, "")
         .replace(/\s+/g, " ")
         .trim();
+}
+
+function findAmountUnitInIngredient(rawText) {
+    const unitPattern = "kg|g|gr|gramm|ml|l|liter|stk\\.?|stück|stueck|dose|dosen|glas|gläser|glaeser|packung|packungen|pkg|el|esslöffel|essloeffel|tl|teelöffel|teeloeffel|prise|prisen";
+    const amountPattern = "(?:\\d+\\s+\\d+\\/\\d+|\\d+\\/\\d+|\\d+(?:[,.]\\d+)?|[¼½¾⅓⅔])";
+    const amountUnitRegex = new RegExp(`(^|[\\s,(])(${amountPattern})\\s*(${unitPattern})\\b`, "i");
+    const unitAmountRegex = new RegExp(`(^|[\\s,(])(${unitPattern})\\s*(${amountPattern})\\b`, "i");
+
+    let match = rawText.match(amountUnitRegex);
+    if (match) {
+        const prefixLength = match[1] ? match[1].length : 0;
+        const start = match.index + prefixLength;
+        const token = match[0].slice(prefixLength);
+        return {
+            start,
+            end: start + token.length,
+            amountText: match[2],
+            unitText: match[3]
+        };
+    }
+
+    match = rawText.match(unitAmountRegex);
+    if (match) {
+        const prefixLength = match[1] ? match[1].length : 0;
+        const start = match.index + prefixLength;
+        const token = match[0].slice(prefixLength);
+        return {
+            start,
+            end: start + token.length,
+            amountText: match[3],
+            unitText: match[2]
+        };
+    }
+
+    const amountOnlyRegex = new RegExp(`(^|[\\s,(])(${amountPattern})(?=\\s|$)`, "i");
+    match = rawText.match(amountOnlyRegex);
+    if (match) {
+        const prefixLength = match[1] ? match[1].length : 0;
+        const start = match.index + prefixLength;
+        const token = match[0].slice(prefixLength);
+        return {
+            start,
+            end: start + token.length,
+            amountText: match[2],
+            unitText: "Stk."
+        };
+    }
+
+    return null;
 }
 
 function parseIngredientLine(line) {
     const rawText = String(line || "").replace(/^[-•*]\s*/, "").replace(/\s+/g, " ").trim();
     if (!rawText) return null;
 
-    const unitPattern = "kg|g|gr|gramm|ml|l|liter|stk\\.?|stück|stueck|dose|dosen|glas|gläser|glaeser|packung|packungen|pkg|el|esslöffel|essloeffel|tl|teelöffel|teeloeffel|prise|prisen";
-    const amountPattern = "(?:\\d+\\s+\\d+\\/\\d+|\\d+\\/\\d+|\\d+(?:[,.]\\d+)?|[¼½¾⅓⅔])";
-
     let amount = null;
     let unit = "";
     let foodName = rawText;
     let originalAmountText = "";
 
-    let match = rawText.match(new RegExp(`^(${amountPattern})\\s*(${unitPattern})\\b\\s*(.+)$`, "i"));
-    if (match) {
-        originalAmountText = match[1];
-        amount = parseFraction(match[1]);
-        unit = normalizeIngredientUnit(match[2]);
-        foodName = match[3];
-    } else {
-        match = rawText.match(new RegExp(`^(${amountPattern})\\s+(.+)$`, "i"));
-        if (match) {
-            originalAmountText = match[1];
-            amount = parseFraction(match[1]);
-            unit = "Stk.";
-            foodName = match[2];
-        }
+    const amountUnit = findAmountUnitInIngredient(rawText);
+    if (amountUnit) {
+        originalAmountText = amountUnit.amountText;
+        amount = parseFraction(amountUnit.amountText);
+        unit = normalizeIngredientUnit(amountUnit.unitText);
+        foodName = `${rawText.slice(0, amountUnit.start)} ${rawText.slice(amountUnit.end)}`;
     }
 
     foodName = cleanIngredientName(foodName);
@@ -228,13 +270,16 @@ function scaleIngredientLine(rawLine) {
     const factor = getPortionFactor();
     if (factor === 1) return rawLine;
 
-    const amountPattern = "(?:\\d+\\s+\\d+\\/\\d+|\\d+\\/\\d+|\\d+(?:[,.]\\d+)?|[¼½¾⅓⅔])";
-    return String(rawLine || "").replace(new RegExp(`^\\s*(${amountPattern})`, "i"), (match) => {
-        const amount = parseFraction(match);
-        if (amount === null || amount === undefined) return match;
-        const scaled = Math.round(amount * factor * 100) / 100;
-        return String(scaled).replace(".", ",");
-    });
+    const text = String(rawLine || "");
+    const amountUnit = findAmountUnitInIngredient(text);
+    if (!amountUnit) return text;
+
+    const amount = parseFraction(amountUnit.amountText);
+    if (amount === null || amount === undefined) return text;
+
+    const scaled = Math.round(amount * factor * 100) / 100;
+    const scaledText = String(scaled).replace(".", ",");
+    return `${text.slice(0, amountUnit.start)}${scaledText}${text.slice(amountUnit.start + amountUnit.amountText.length)}`;
 }
 
 function findInventoryItemForIngredient(foodName) {
@@ -258,16 +303,17 @@ function getAvailableAmount(item, requestedUnit) {
 
     return batches.reduce((sum, batch) => {
         const batchUnit = unitForInventory(batch.measure_unit || item.unit || "g");
-        if (batchUnit !== inventoryUnit) return sum;
 
         if (inventoryUnit === "g" || inventoryUnit === "ml") {
-            return sum + Number(batch.remaining_weight || 0);
+            return batchUnit === inventoryUnit ? sum + Number(batch.remaining_weight || 0) : sum;
         }
 
-        if (batch.batch_type === "package") {
-            return sum + Number(batch.remaining_quantity || 0);
+        if (inventoryUnit === "Stk.") {
+            if (batch.batch_type === "package") return sum + Number(batch.remaining_quantity || 0);
+            return batchUnit === "Stk." ? sum + Number(batch.remaining_weight || 0) : sum;
         }
-        return sum + Number(batch.remaining_weight || 0);
+
+        return sum;
     }, 0);
 }
 

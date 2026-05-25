@@ -384,13 +384,6 @@ function renderRecipeInstructions() {
         })
         .join("");
 
-    const stockSummary = document.getElementById("recipe-stock-summary");
-    if (stockSummary) {
-        const summary = recipeStockCheck?.summary;
-        stockSummary.textContent = summary
-            ? `${summary.available} vollständig · ${summary.partial} teilweise · ${summary.missing} nicht vorhanden`
-            : "Bestandsprüfung aktuell nicht verfügbar.";
-    }
 
     const instructions = document.getElementById("display-recipe-instructions");
     instructions.innerHTML = (currentRecipe.instructions || "")

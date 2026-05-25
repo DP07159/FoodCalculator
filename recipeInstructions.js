@@ -2,6 +2,7 @@ const API_URL = "https://foodcalculator-server.onrender.com";
 
 let currentRecipe = null;
 let inventoryItems = [];
+let recipeStockCheck = null;
 let basePortions = 1;
 let displayedPortions = 1;
 
@@ -76,18 +77,25 @@ async function loadRecipeInstructions() {
     }
 
     try {
-        const [recipe, inventory] = await Promise.all([
-            apiFetch(`${API_URL}/recipes/${recipeId}`),
-            apiFetch(`${API_URL}/inventory`)
-        ]);
-        currentRecipe = recipe;
-        inventoryItems = Array.isArray(inventory) ? inventory : [];
+        currentRecipe = await apiFetch(`${API_URL}/recipes/${recipeId}`);
         basePortions = getSafePortions(currentRecipe.portions);
         displayedPortions = basePortions;
+        await loadRecipeStockCheck();
         renderRecipeInstructions();
     } catch (error) {
         console.error(error);
         showToast("Rezept konnte nicht geladen werden.");
+    }
+}
+
+async function loadRecipeStockCheck() {
+    if (!currentRecipe?.id) return;
+    try {
+        recipeStockCheck = await apiFetch(`${API_URL}/recipes/${currentRecipe.id}/stock-check?portions=${displayedPortions}`);
+    } catch (error) {
+        console.error(error);
+        recipeStockCheck = null;
+        showToast("Bestandsprüfung konnte nicht geladen werden.");
     }
 }
 
@@ -353,25 +361,24 @@ function renderRecipeInstructions() {
 
     const ingredientsList = document.getElementById("display-recipe-ingredients");
     const ingredientLines = (currentRecipe.ingredients || "").split("\n");
-    let availableCount = 0;
-    let partialCount = 0;
-    let missingCount = 0;
+    const stockEntries = Array.isArray(recipeStockCheck?.ingredients) ? recipeStockCheck.ingredients : [];
+    let stockIndex = 0;
 
     ingredientsList.innerHTML = ingredientLines
         .map(line => {
             if (!line.trim()) return `<li class="empty-line">&nbsp;</li>`;
-            const parsed = parseIngredientLine(line.trim());
-            const stock = getStockStatus(parsed);
-            if (stock.status === "available") availableCount += 1;
-            if (stock.status === "partial") partialCount += 1;
-            if (stock.status === "missing") missingCount += 1;
-            const scaledLine = scaleIngredientLine(line.trim());
+
+            const entry = stockEntries[stockIndex] || null;
+            stockIndex += 1;
+
+            const status = entry?.status || "unknown";
+            const label = entry?.label || "Nicht prüfbar";
+            const displayText = entry?.display_text || scaleIngredientLine(line.trim());
+
             return `
-                <li class="recipe-ingredient-stock-row recipe-stock-${stock.status}">
-                    <span class="recipe-stock-flag" title="${escapeHtml(stock.label)}" aria-label="${escapeHtml(stock.label)}"></span>
-                    <span class="recipe-ingredient-text">${escapeHtml(scaledLine)}</span>
-                    <span class="recipe-stock-label">${escapeHtml(stock.label)}</span>
-                    ${stock.detail ? `<small>${escapeHtml(stock.detail)}</small>` : ""}
+                <li class="recipe-ingredient-stock-row recipe-stock-${status}">
+                    <span class="recipe-ingredient-text">${escapeHtml(displayText)}</span>
+                    <span class="recipe-stock-flag" title="${escapeHtml(label)}" aria-label="${escapeHtml(label)}"></span>
                 </li>
             `;
         })
@@ -379,18 +386,24 @@ function renderRecipeInstructions() {
 
     const stockSummary = document.getElementById("recipe-stock-summary");
     if (stockSummary) {
-        const totalChecked = availableCount + partialCount + missingCount;
-        stockSummary.textContent = totalChecked
-            ? `${availableCount} vollständig · ${partialCount} teilweise · ${missingCount} nicht vorhanden`
-            : "Für diese Zutaten ist noch keine Bestandsprüfung möglich.";
+        const summary = recipeStockCheck?.summary;
+        stockSummary.textContent = summary
+            ? `${summary.available} vollständig · ${summary.partial} teilweise · ${summary.missing} nicht vorhanden`
+            : "Bestandsprüfung aktuell nicht verfügbar.";
     }
 
     const instructions = document.getElementById("display-recipe-instructions");
     instructions.innerHTML = (currentRecipe.instructions || "")
         .split("\n")
         .filter(line => line.trim())
-        .map((line, index) => `<p><span>${index + 1}</span>${escapeHtml(line.trim())}</p>`)
+        .map((line, index) => `
+            <p class="recipe-instruction-step" role="button" tabindex="0" data-step="${index + 1}">
+                <span>${index + 1}</span>${escapeHtml(line.trim())}
+            </p>
+        `)
         .join("");
+
+    setupInstructionStepHighlighting();
 
     updatePortionButtons();
     updateFavoriteButton();
@@ -401,11 +414,30 @@ function updatePortionButtons() {
     if (decreaseButton) decreaseButton.disabled = displayedPortions <= 1;
 }
 
-function adjustDisplayedPortions(delta) {
+async function adjustDisplayedPortions(delta) {
     const nextValue = Math.max(1, displayedPortions + delta);
     if (nextValue === displayedPortions) return;
     displayedPortions = nextValue;
+    await loadRecipeStockCheck();
     renderRecipeInstructions();
+}
+
+function setupInstructionStepHighlighting() {
+    document.querySelectorAll(".recipe-instruction-step").forEach(step => {
+        const activate = () => {
+            document.querySelectorAll(".recipe-instruction-step.is-active").forEach(activeStep => {
+                activeStep.classList.remove("is-active");
+            });
+            step.classList.add("is-active");
+        };
+        step.addEventListener("click", activate);
+        step.addEventListener("keydown", event => {
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                activate();
+            }
+        });
+    });
 }
 
 function getIngredientsTextForSharing() {

@@ -2522,3 +2522,55 @@ body.modal-open .app-header {
         grid-column: 2;
     }
 }
+
+/* =========================================================
+   REZEPTSEITE: SCHLANKE BESTANDS-PUNKTE + AKTIVER ARBEITSSCHRITT
+========================================================= */
+#display-recipe-ingredients .recipe-ingredient-stock-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 12px;
+    gap: 10px;
+    align-items: center;
+    padding: 8px 0;
+}
+
+#display-recipe-ingredients .recipe-ingredient-stock-row .recipe-stock-flag {
+    justify-self: end;
+}
+
+#display-recipe-ingredients .recipe-stock-label,
+#display-recipe-ingredients .recipe-ingredient-stock-row small {
+    display: none !important;
+}
+
+.recipe-instruction-step {
+    cursor: pointer;
+    padding: 8px 10px;
+    border-radius: var(--radius-md);
+    transition: background .16s var(--ease-standard), box-shadow .16s var(--ease-standard), transform .16s var(--ease-standard);
+}
+
+.recipe-instruction-step:hover {
+    background: rgba(238, 245, 255, 0.55);
+}
+
+.recipe-instruction-step.is-active {
+    background: var(--color-primary-soft);
+    box-shadow: inset 0 0 0 1px var(--color-primary-border);
+}
+
+.recipe-instruction-step.is-active span {
+    background: var(--color-primary-text) !important;
+    color: #ffffff !important;
+}
+
+.recipe-instruction-step:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus);
+}
+
+@media (max-width: 768px) {
+    #display-recipe-ingredients .recipe-ingredient-stock-row {
+        grid-template-columns: minmax(0, 1fr) 12px;
+    }
+}

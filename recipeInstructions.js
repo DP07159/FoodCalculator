@@ -183,73 +183,58 @@ function cleanIngredientName(value) {
     return String(value || "")
         .replace(/\([^)]*\)/g, " ")
         .replace(new RegExp(`\\b(?:a|à)\\s*${amountPattern}\\s*(${unitPattern})\\b`, "gi"), " ")
-        .replace(new RegExp(`(^|[\\s,(])${amountPattern}\\s*(${unitPattern})\\b`, "gi"), " ")
-        .replace(new RegExp(`(^|[\\s,(])(${unitPattern})\\s*${amountPattern}\\b`, "gi"), " ")
-        .replace(/\b(?:in|mit)\s+(?:eigenem\s+saft|saft|wasser|oel|öl|lake|tomatensauce)\b/gi, " ")
-        .replace(/[,;:/]/g, " ")
-        .replace(/(^|\s)(?:a|à|je|pro)(?=\s|$)/gi, " ")
-        .replace(/\b(frisch|frische|frischer|frisches|gekuehlt|gekühlt|tiefgekuehlt|tiefgekühlt|gehackt|geschnitten|gerieben|optional|nach geschmack|abtropfgewicht|abgetropft|netto|einwaage|füllmenge|fuellmenge|natur|naturell)\b/gi, " ")
-        .replace(/\b(thunfischstuecke|thunfischstücke|thunfischfilets|thunfischfilet|tunfisch)\b/gi, "Thunfisch")
+        .replace(/[,;]/g, " ")
+        .replace(/\b(frisch|gekuehlt|gekühlt|tiefgekuehlt|tiefgekühlt|gehackt|geschnitten|gerieben|optional|nach geschmack)\b/gi, "")
         .replace(/\s+/g, " ")
         .trim();
 }
 
-function findAmountUnitMatches(rawText, unitPattern) {
-    const text = String(rawText || "");
-    const amountPattern = "(?:\\d+\\s+\\d+\\/\\d+|\\d+\\/\\d+|\\d+(?:[,.]\\d+)?|[¼½¾⅓⅔])";
-    const matches = [];
-    const patterns = [
-        { regex: new RegExp(`(^|[\\s,(])(${amountPattern})\\s*(${unitPattern})\\b`, "gi"), amountIndex: 2, unitIndex: 3 },
-        { regex: new RegExp(`(^|[\\s,(])(${unitPattern})\\s*(${amountPattern})\\b`, "gi"), amountIndex: 3, unitIndex: 2 }
-    ];
-    for (const pattern of patterns) {
-        let match;
-        while ((match = pattern.regex.exec(text)) !== null) {
-            const prefixLength = match[1] ? match[1].length : 0;
-            const start = match.index + prefixLength;
-            const token = match[0].slice(prefixLength);
-            matches.push({ start, end: start + token.length, amountText: match[pattern.amountIndex], unitText: match[pattern.unitIndex], token });
-        }
-    }
-    return matches.sort((a, b) => a.start - b.start);
-}
-
-function getContainerMultiplier(rawText, physicalMatch) {
-    const before = String(rawText || "").slice(0, physicalMatch?.start ?? 0);
-    const containerUnitPattern = "stk\\.?|stück|stueck|dose|dosen|glas|gläser|glaeser|packung|packungen|pkg";
-    const containerMatches = findAmountUnitMatches(before, containerUnitPattern);
-    if (!containerMatches.length) return 1;
-    const last = containerMatches[containerMatches.length - 1];
-    const between = String(rawText || "").slice(last.end, physicalMatch.start).toLowerCase();
-    const multiplier = parseFraction(last.amountText);
-    return between.length <= 50 && multiplier && multiplier > 0 ? multiplier : 1;
-}
-
 function findAmountUnitInIngredient(rawText) {
+    const unitPattern = "kg|g|gr|gramm|ml|l|liter|stk\\.?|stück|stueck|dose|dosen|glas|gläser|glaeser|packung|packungen|pkg|el|esslöffel|essloeffel|tl|teelöffel|teeloeffel|prise|prisen";
     const amountPattern = "(?:\\d+\\s+\\d+\\/\\d+|\\d+\\/\\d+|\\d+(?:[,.]\\d+)?|[¼½¾⅓⅔])";
-    const physicalUnitPattern = "kg|g|gr|gramm|ml|l|liter";
-    const containerUnitPattern = "stk\\.?|stück|stueck|dose|dosen|glas|gläser|glaeser|packung|packungen|pkg|el|esslöffel|essloeffel|tl|teelöffel|teeloeffel|prise|prisen";
+    const amountUnitRegex = new RegExp(`(^|[\\s,(])(${amountPattern})\\s*(${unitPattern})\\b`, "i");
+    const unitAmountRegex = new RegExp(`(^|[\\s,(])(${unitPattern})\\s*(${amountPattern})\\b`, "i");
 
-    const physicalMatches = findAmountUnitMatches(rawText, physicalUnitPattern);
-    if (physicalMatches.length) {
-        const text = String(rawText || "").toLowerCase();
-        const selected = /abtropf|abgetropft|netto|einwaage/.test(text)
-            ? physicalMatches[physicalMatches.length - 1]
-            : physicalMatches[0];
-        return { ...selected, multiplier: getContainerMultiplier(rawText, selected) };
-    }
-
-    const containerMatches = findAmountUnitMatches(rawText, containerUnitPattern);
-    if (containerMatches.length) return { ...containerMatches[0], multiplier: 1 };
-
-    const amountOnlyRegex = new RegExp(`(^|[\\s,(])(${amountPattern})(?=\\s|$)`, "i");
-    const match = String(rawText || "").match(amountOnlyRegex);
+    let match = rawText.match(amountUnitRegex);
     if (match) {
         const prefixLength = match[1] ? match[1].length : 0;
         const start = match.index + prefixLength;
         const token = match[0].slice(prefixLength);
-        return { start, end: start + token.length, amountText: match[2], unitText: "Stk.", multiplier: 1 };
+        return {
+            start,
+            end: start + token.length,
+            amountText: match[2],
+            unitText: match[3]
+        };
     }
+
+    match = rawText.match(unitAmountRegex);
+    if (match) {
+        const prefixLength = match[1] ? match[1].length : 0;
+        const start = match.index + prefixLength;
+        const token = match[0].slice(prefixLength);
+        return {
+            start,
+            end: start + token.length,
+            amountText: match[3],
+            unitText: match[2]
+        };
+    }
+
+    const amountOnlyRegex = new RegExp(`(^|[\\s,(])(${amountPattern})(?=\\s|$)`, "i");
+    match = rawText.match(amountOnlyRegex);
+    if (match) {
+        const prefixLength = match[1] ? match[1].length : 0;
+        const start = match.index + prefixLength;
+        const token = match[0].slice(prefixLength);
+        return {
+            start,
+            end: start + token.length,
+            amountText: match[2],
+            unitText: "Stk."
+        };
+    }
+
     return null;
 }
 
@@ -266,7 +251,6 @@ function parseIngredientLine(line) {
     if (amountUnit) {
         originalAmountText = amountUnit.amountText;
         amount = parseFraction(amountUnit.amountText);
-        if (amount !== null && amount !== undefined && amountUnit.multiplier) amount *= amountUnit.multiplier;
         unit = normalizeIngredientUnit(amountUnit.unitText);
         foodName = `${rawText.slice(0, amountUnit.start)} ${rawText.slice(amountUnit.end)}`;
     }

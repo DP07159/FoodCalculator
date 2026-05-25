@@ -27,6 +27,37 @@ function showToast(message) {
     }, 2600);
 }
 
+function showOverlayMessage(message, targetId = "") {
+    const target = targetId ? document.getElementById(targetId) : null;
+    if (!target) {
+        showToast(message);
+        return;
+    }
+    target.textContent = message;
+    target.classList.remove("is-hidden");
+    window.clearTimeout(showOverlayMessage.timeouts?.[targetId]);
+    showOverlayMessage.timeouts = showOverlayMessage.timeouts || {};
+    showOverlayMessage.timeouts[targetId] = window.setTimeout(() => {
+        target.classList.add("is-hidden");
+        target.textContent = "";
+    }, 4200);
+}
+
+function clearOverlayMessage(targetId) {
+    const target = document.getElementById(targetId);
+    if (!target) return;
+    target.classList.add("is-hidden");
+    target.textContent = "";
+}
+
+function getActiveInventoryMessageTarget() {
+    const active = document.activeElement;
+    if (active?.closest?.("#inventory-add-panel")) return "inventory-add-message";
+    if (active?.closest?.("#inventory-edit-modal")) return "inventory-edit-message";
+    if (active?.closest?.("#inventory-position-modal")) return "inventory-position-message";
+    return "";
+}
+
 
 function setDateToday(inputId) {
     const input = document.getElementById(inputId);
@@ -50,7 +81,7 @@ function showIntegerOnlyHint() {
     const now = Date.now();
     if (showIntegerOnlyHint.lastShown && now - showIntegerOnlyHint.lastShown < 1200) return;
     showIntegerOnlyHint.lastShown = now;
-    showToast("Bitte nur ganze Zahlen eingeben.");
+    showOverlayMessage("Bitte nur ganze Zahlen eingeben.", getActiveInventoryMessageTarget());
 }
 
 function sanitizeIntegerInput(input, showHint = true) {
@@ -113,6 +144,7 @@ async function apiFetch(url, options = {}) {
 async function loadInventory() {
     try {
         inventoryItems = await apiFetch(`${API_URL}/inventory`);
+        updateInventoryLocationFilterOptions();
         renderInventoryList();
         refreshSuggestionList();
     } catch (error) {
@@ -151,6 +183,9 @@ function toggleInventoryAddPanel(forceOpen) {
         closeInventoryEditModal();
         closeInventoryPositionModal();
         resetInventoryForm();
+        clearOverlayMessage("inventory-add-message");
+    } else {
+        clearOverlayMessage("inventory-add-message");
     }
 
     panel.classList.toggle("is-hidden", !shouldOpen);
@@ -212,18 +247,18 @@ function getInventoryPayload() {
 
 async function saveInventoryItem() {
     const payload = getInventoryPayload();
-    if (!payload.name.trim()) return showToast("Bitte eine Bezeichnung eingeben.");
+    if (!payload.name.trim()) return showOverlayMessage("Bitte eine Bezeichnung eingeben.", "inventory-add-message");
 
     if (payload.stockType === "package") {
         sanitizeIntegerInput(document.getElementById("inventory-package-count"), false);
         payload.packageCount = document.getElementById("inventory-package-count")?.value || payload.packageCount;
-        if (!Number(payload.packageCount) || Number(payload.packageCount) <= 0) return showToast("Bitte die Anzahl eingeben.");
-        if (!Number.isInteger(Number(payload.packageCount))) return showToast("Bitte bei Anzahl Einheiten eine ganze Zahl eingeben.");
-        if (!Number(payload.unitWeight) || Number(payload.unitWeight) <= 0) return showToast("Bitte den Inhalt je Einheit eingeben.");
+        if (!Number(payload.packageCount) || Number(payload.packageCount) <= 0) return showOverlayMessage("Bitte die Anzahl eingeben.", "inventory-add-message");
+        if (!Number.isInteger(Number(payload.packageCount))) return showOverlayMessage("Bitte bei Anzahl Einheiten eine ganze Zahl eingeben.", "inventory-add-message");
+        if (!Number(payload.unitWeight) || Number(payload.unitWeight) <= 0) return showOverlayMessage("Bitte den Inhalt je Einheit eingeben.", "inventory-add-message");
     }
 
     if (payload.stockType === "loose" && (!Number(payload.looseAmount) || Number(payload.looseAmount) <= 0)) {
-        return showToast("Bitte die freie Menge eingeben.");
+        return showOverlayMessage("Bitte die freie Menge eingeben.", "inventory-add-message");
     }
 
     try {
@@ -238,7 +273,7 @@ async function saveInventoryItem() {
         await loadInventory();
     } catch (error) {
         console.error(error);
-        showToast(error.message || "Bestand konnte nicht gespeichert werden.");
+        showOverlayMessage(error.message || "Bestand konnte nicht gespeichert werden.", "inventory-add-message");
     }
 }
 
@@ -261,6 +296,7 @@ function openInventoryEditModal() {
     closeAllInventoryPanels();
     const modal = document.getElementById("inventory-edit-modal");
     if (!modal) return;
+    clearOverlayMessage("inventory-edit-message");
     modal.classList.remove("is-hidden");
     document.body.classList.add("modal-open");
     window.requestAnimationFrame(() => document.getElementById("edit-inventory-name")?.focus());
@@ -270,6 +306,7 @@ function closeInventoryEditModal() {
     const modal = document.getElementById("inventory-edit-modal");
     if (!modal) return;
     modal.classList.add("is-hidden");
+    clearOverlayMessage("inventory-edit-message");
     if (!isAnyInventoryModalOpen("inventory-edit-modal")) document.body.classList.remove("modal-open");
     document.getElementById("inventory-edit-form")?.reset();
 }
@@ -283,8 +320,8 @@ async function saveEditedInventoryItem() {
         notes: currentItem?.notes || ""
     };
 
-    if (!id) return showToast("Kein Inventar-Eintrag ausgewählt.");
-    if (!payload.name.trim()) return showToast("Bitte eine Bezeichnung eingeben.");
+    if (!id) return showOverlayMessage("Kein Inventar-Eintrag ausgewählt.", "inventory-edit-message");
+    if (!payload.name.trim()) return showOverlayMessage("Bitte eine Bezeichnung eingeben.", "inventory-edit-message");
 
     try {
         await apiFetch(`${API_URL}/inventory/${id}`, {
@@ -297,7 +334,7 @@ async function saveEditedInventoryItem() {
         await loadInventory();
     } catch (error) {
         console.error(error);
-        showToast(error.message || "Eintrag konnte nicht aktualisiert werden.");
+        showOverlayMessage(error.message || "Eintrag konnte nicht aktualisiert werden.", "inventory-edit-message");
     }
 }
 
@@ -413,6 +450,7 @@ function closeInventoryPositionModal() {
     const modal = document.getElementById("inventory-position-modal");
     if (!modal) return;
     modal.classList.add("is-hidden");
+    clearOverlayMessage("inventory-position-message");
     document.getElementById("inventory-position-form")?.reset();
     if (!isAnyInventoryModalOpen("inventory-position-modal")) document.body.classList.remove("modal-open");
 }
@@ -512,6 +550,7 @@ function openInventoryPositionModal(itemId, mode, action, profileKey = "__new__"
     configurePositionFieldVisibility(mode, action);
 
     const modal = document.getElementById("inventory-position-modal");
+    clearOverlayMessage("inventory-position-message");
     modal?.classList.remove("is-hidden");
     document.body.classList.add("modal-open");
     window.requestAnimationFrame(() => (isMeta ? locationInput : amountInput)?.focus());
@@ -530,7 +569,7 @@ async function submitInventoryPositionModal() {
     const storageLocation = document.getElementById("position-location")?.value || "";
     const expiryDate = document.getElementById("position-expiry")?.value || "";
 
-    if (!itemId || !profileKey || !mode || !action) return showToast("Position nicht vollständig ausgewählt.");
+    if (!itemId || !profileKey || !mode || !action) return showOverlayMessage("Position nicht vollständig ausgewählt.", "inventory-position-message");
 
     try {
         if (action === "meta") {
@@ -551,9 +590,9 @@ async function submitInventoryPositionModal() {
             });
             showToast("Position aktualisiert.");
         } else if (mode === "package") {
-            if (!amount || amount <= 0) return showToast("Bitte eine Anzahl eingeben.");
-            if (!Number.isInteger(amount)) return showToast("Bitte bei Anzahl Einheiten eine ganze Zahl eingeben.");
-            if (!unitWeight || unitWeight <= 0) return showToast("Ungültiger Inhalt je Einheit.");
+            if (!amount || amount <= 0) return showOverlayMessage("Bitte eine Anzahl eingeben.", "inventory-position-message");
+            if (!Number.isInteger(amount)) return showOverlayMessage("Bitte bei Anzahl Einheiten eine ganze Zahl eingeben.", "inventory-position-message");
+            if (!unitWeight || unitWeight <= 0) return showOverlayMessage("Ungültiger Inhalt je Einheit.", "inventory-position-message");
             await apiFetch(`${API_URL}/inventory/${itemId}/adjust`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
@@ -561,7 +600,7 @@ async function submitInventoryPositionModal() {
             });
             showToast("Einheit hinzugefügt.");
         } else {
-            if (!amount || amount <= 0) return showToast("Bitte eine Menge eingeben.");
+            if (!amount || amount <= 0) return showOverlayMessage("Bitte eine Menge eingeben.", "inventory-position-message");
             await apiFetch(`${API_URL}/inventory/${itemId}/adjust`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
@@ -575,7 +614,7 @@ async function submitInventoryPositionModal() {
         toggleInventoryControls(itemId, true);
     } catch (error) {
         console.error(error);
-        showToast(error.message || "Position konnte nicht angepasst werden.");
+        showOverlayMessage(error.message || "Position konnte nicht angepasst werden.", "inventory-position-message");
     }
 }
 
@@ -611,7 +650,7 @@ async function adjustLooseAmount(itemId, profileKey, action) {
     const [measureUnit, storageLocation, expiryDate] = parseStockKey(profileKey);
     const input = document.getElementById(`loose-adjust-${itemId}-${cssSafe(profileKey)}`);
     const amount = Number(input?.value || 0);
-    if (!amount || amount <= 0) return showToast("Bitte eine Menge eingeben.");
+    if (!amount || amount <= 0) return showOverlayMessage("Bitte eine Menge eingeben.", "inventory-position-message");
 
     try {
         await apiFetch(`${API_URL}/inventory/${itemId}/adjust`, {
@@ -777,6 +816,57 @@ function formatNumber(value) {
     return Number.isInteger(number) ? String(number) : number.toLocaleString("de-DE", { maximumFractionDigits: 2 });
 }
 
+function getItemLocations(item) {
+    const locations = new Set();
+    (item?.batches || []).forEach(batch => {
+        if (batch.storage_location) locations.add(batch.storage_location);
+    });
+    if (item?.storage_location) locations.add(item.storage_location);
+    return Array.from(locations).sort((a, b) => a.localeCompare(b));
+}
+
+function getItemExpiryDates(item) {
+    const dates = [];
+    if (item?.expiry_date) dates.push(item.expiry_date);
+    (item?.batches || []).forEach(batch => {
+        if (batch.expiry_date) dates.push(batch.expiry_date);
+    });
+    return dates.sort();
+}
+
+function getItemSortExpiry(item, direction = "asc") {
+    const dates = getItemExpiryDates(item);
+    if (!dates.length) return direction === "asc" ? "9999-12-31" : "0000-01-01";
+    return direction === "asc" ? dates[0] : dates[dates.length - 1];
+}
+
+function getItemPrimaryLocation(item) {
+    return getItemLocations(item)[0] || "";
+}
+
+function updateInventoryLocationFilterOptions() {
+    const select = document.getElementById("inventory-location-filter");
+    if (!select) return;
+    const currentValue = select.value;
+    const locations = new Set();
+    inventoryItems.forEach(item => getItemLocations(item).forEach(location => locations.add(location)));
+    select.innerHTML = `<option value="">Alle Lagerorte</option>` + Array.from(locations).sort((a, b) => a.localeCompare(b))
+        .map(location => `<option value="${escapeHtml(location)}">${escapeHtml(location)}</option>`)
+        .join("");
+    select.value = Array.from(locations).includes(currentValue) ? currentValue : "";
+}
+
+function sortInventoryItems(items) {
+    const sortValue = document.getElementById("inventory-sort")?.value || "name-asc";
+    return [...items].sort((a, b) => {
+        if (sortValue === "name-desc") return (b.name || "").localeCompare(a.name || "", "de", { sensitivity: "base" });
+        if (sortValue === "expiry-asc") return getItemSortExpiry(a, "asc").localeCompare(getItemSortExpiry(b, "asc")) || (a.name || "").localeCompare(b.name || "", "de", { sensitivity: "base" });
+        if (sortValue === "expiry-desc") return getItemSortExpiry(b, "desc").localeCompare(getItemSortExpiry(a, "desc")) || (a.name || "").localeCompare(b.name || "", "de", { sensitivity: "base" });
+        if (sortValue === "location-asc") return getItemPrimaryLocation(a).localeCompare(getItemPrimaryLocation(b), "de", { sensitivity: "base" }) || (a.name || "").localeCompare(b.name || "", "de", { sensitivity: "base" });
+        return (a.name || "").localeCompare(b.name || "", "de", { sensitivity: "base" });
+    });
+}
+
 function getSummaryRows(item) {
     const rows = [];
     getPackageProfiles(item).forEach(profile => {
@@ -867,11 +957,14 @@ function renderInventoryList() {
     if (!list) return;
 
     const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : "";
-    const filteredItems = inventoryItems.filter(item => {
-        const locations = getPrimaryLocations(item).join(" ");
-        const searchable = [item.name, item.storage_location, item.notes, item.unit, locations, formatAmount(item)].join(" ").toLowerCase();
-        return searchable.includes(searchTerm);
-    });
+    const locationFilter = document.getElementById("inventory-location-filter")?.value || "";
+    const filteredItems = sortInventoryItems(inventoryItems.filter(item => {
+        const locations = getItemLocations(item);
+        const searchable = [item.name, item.storage_location, item.notes, item.unit, locations.join(" "), formatAmount(item)].join(" ").toLowerCase();
+        const matchesSearch = searchable.includes(searchTerm);
+        const matchesLocation = !locationFilter || locations.includes(locationFilter);
+        return matchesSearch && matchesLocation;
+    }));
 
     if (filteredItems.length === 0) {
         list.innerHTML = `<p class="recipe-empty-state">Keine Lebensmittel im Inventar gefunden.</p>`;
@@ -880,7 +973,6 @@ function renderInventoryList() {
 
     list.innerHTML = filteredItems.map(item => {
         const status = getExpiryStatus(item.expiry_date);
-        const locations = getPrimaryLocations(item);
         return `
             <article class="inventory-item-card inventory-item-card-detailed inventory-item-card-compact">
                 <div class="inventory-item-header">
@@ -930,6 +1022,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const searchInput = document.getElementById("inventory-search");
     if (searchInput) searchInput.addEventListener("input", renderInventoryList);
+
+    const sortSelect = document.getElementById("inventory-sort");
+    if (sortSelect) sortSelect.addEventListener("change", renderInventoryList);
+
+    const locationFilter = document.getElementById("inventory-location-filter");
+    if (locationFilter) locationFilter.addEventListener("change", renderInventoryList);
 
     const nameInput = document.getElementById("inventory-name");
     if (nameInput) {

@@ -32,8 +32,18 @@
                     </button>
                 </div>
 
-                <div class="recipe-book-controls inventory-controls">
+                <div class="recipe-book-controls inventory-controls inventory-filter-controls">
                     <input type="text" id="inventory-search" class="recipe-search-input" placeholder="Inventar durchsuchen ...">
+                    <select id="inventory-sort" class="inventory-filter-select" aria-label="Inventar sortieren">
+                        <option value="name-asc">Name A–Z</option>
+                        <option value="name-desc">Name Z–A</option>
+                        <option value="expiry-asc">Ablaufdatum aufsteigend</option>
+                        <option value="expiry-desc">Ablaufdatum absteigend</option>
+                        <option value="location-asc">Lagerort A–Z</option>
+                    </select>
+                    <select id="inventory-location-filter" class="inventory-filter-select" aria-label="Nach Lagerort filtern">
+                        <option value="">Alle Lagerorte</option>
+                    </select>
                 </div>
 
                 <div id="inventory-list" class="inventory-list inventory-list-detailed"></div>
@@ -159,6 +169,8 @@
                         </div>
                     </section>
 
+                    <div id="inventory-add-message" class="inventory-overlay-message is-hidden" aria-live="polite"></div>
+
                     <div class="form-actions inventory-actions">
                         <button type="button" class="secondary-button" onclick="resetInventoryForm(); toggleInventoryAddPanel(false);">Abbrechen</button>
                         <button type="button" onclick="saveInventoryItem()">Speichern</button>
@@ -188,6 +200,8 @@
                         <input type="text" id="edit-inventory-unit" placeholder="z.B. g">
                     </div>
                 </div>
+                <div id="inventory-edit-message" class="inventory-overlay-message is-hidden" aria-live="polite"></div>
+
                 <div class="form-actions inventory-actions">
                     <button type="button" class="secondary-button" onclick="closeInventoryEditModal()">Abbrechen</button>
                     <button type="button" onclick="saveEditedInventoryItem()">Speichern</button>
@@ -262,6 +276,7 @@
                 </div>
 
                 <p id="position-modal-hint" class="inventory-adjust-hint"></p>
+                <div id="inventory-position-message" class="inventory-overlay-message is-hidden" aria-live="polite"></div>
 
                 <div class="form-actions inventory-actions">
                     <button type="button" class="secondary-button" onclick="closeInventoryPositionModal()">Abbrechen</button>

@@ -2184,48 +2184,11 @@ body.modal-open .app-header {
     margin: 0;
 }
 
-.inventory-date-input-row {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 8px;
-    align-items: stretch;
-    width: 100%;
-    min-width: 0;
-}
 
-.inventory-date-input-row input {
-    min-width: 0;
-}
 
-.inventory-date-actions {
-    display: inline-flex;
-    align-items: stretch;
-    overflow: hidden;
-    border: 1px solid var(--color-primary-border);
-    border-radius: 12px;
-    background: var(--color-primary-soft);
-}
 
-.inventory-date-button {
-    width: auto;
-    min-width: 64px;
-    min-height: 40px;
-    padding: 8px 10px;
-    border: 0;
-    border-radius: 0;
-    background: transparent;
-    color: var(--color-primary-text);
-    white-space: nowrap;
-    box-shadow: none;
-}
 
-.inventory-date-button + .inventory-date-button {
-    border-left: 1px solid var(--color-primary-border);
-}
 
-.inventory-date-button:hover {
-    background: #e3efff;
-}
 
 .inventory-stock-controls {
     margin-top: 12px;
@@ -2266,19 +2229,9 @@ body.modal-open .app-header {
 }
 
 @media (max-width: 640px) {
-    .inventory-date-input-row,
-    .inventory-date-actions,
     .inventory-create-grid-package,
     .inventory-create-grid-loose {
         grid-template-columns: 1fr;
-    }
-
-    .inventory-date-actions {
-        width: 100%;
-    }
-
-    .inventory-date-button {
-        flex: 1;
     }
 
     .inventory-stock-controls {
@@ -2287,7 +2240,7 @@ body.modal-open .app-header {
 }
 
 /* =========================================================
-   INVENTAR FEINSCHLIFF: FILTER, OVERLAY-HINWEISE, INTEGRIERTE DATUMSSTEUERUNG
+   INVENTAR FEINSCHLIFF: FILTER UND OVERLAY-HINWEISE
 ========================================================= */
 .inventory-filter-controls {
     display: grid;
@@ -2316,68 +2269,13 @@ body.modal-open .app-header {
     display: none;
 }
 
-.inventory-date-input-row {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 0;
-    width: 100%;
-    min-width: 0;
-    overflow: hidden;
-    border: 1px solid var(--color-border);
-    border-radius: 12px;
-    background: #ffffff;
-}
 
-.inventory-date-input-row:focus-within {
-    border-color: #8fb5f4;
-    box-shadow: var(--shadow-focus);
-}
 
-.inventory-date-input-row input[type="date"] {
-    min-width: 0;
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
-    background: transparent;
-}
 
-.inventory-date-input-row input[type="date"]:focus {
-    box-shadow: none;
-}
 
-.inventory-date-actions {
-    display: inline-flex;
-    align-items: stretch;
-    align-self: stretch;
-    overflow: hidden;
-    border: 0;
-    border-left: 1px solid var(--color-border-soft);
-    border-radius: 0;
-    background: var(--color-primary-soft);
-}
 
-.inventory-date-button {
-    min-width: 58px;
-    min-height: 100%;
-    padding: 0 10px;
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
-    background: transparent;
-    color: var(--color-primary-text);
-    font-size: 12px;
-    font-weight: 900;
-    white-space: nowrap;
-}
 
-.inventory-date-button + .inventory-date-button {
-    border-left: 1px solid var(--color-primary-border);
-}
 
-.inventory-date-button:hover {
-    background: #e3efff;
-}
 
 @media (max-width: 980px) {
     .inventory-filter-controls {
@@ -2392,20 +2290,5 @@ body.modal-open .app-header {
 @media (max-width: 640px) {
     .inventory-filter-controls {
         grid-template-columns: 1fr;
-    }
-
-    .inventory-date-input-row {
-        grid-template-columns: minmax(0, 1fr);
-    }
-
-    .inventory-date-actions {
-        border-left: 0;
-        border-top: 1px solid var(--color-border-soft);
-        width: 100%;
-    }
-
-    .inventory-date-button {
-        flex: 1;
-        min-height: 36px;
     }
 }

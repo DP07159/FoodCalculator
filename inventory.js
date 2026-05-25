@@ -59,23 +59,6 @@ function getActiveInventoryMessageTarget() {
 }
 
 
-function setDateToday(inputId) {
-    const input = document.getElementById(inputId);
-    if (!input) return;
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, "0");
-    const day = String(today.getDate()).padStart(2, "0");
-    input.value = `${year}-${month}-${day}`;
-    input.dispatchEvent(new Event("change", { bubbles: true }));
-}
-
-function clearDateInput(inputId) {
-    const input = document.getElementById(inputId);
-    if (!input) return;
-    input.value = "";
-    input.dispatchEvent(new Event("change", { bubbles: true }));
-}
 
 function showIntegerOnlyHint() {
     const now = Date.now();

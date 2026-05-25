@@ -27,7 +27,16 @@
                     <h1 id="display-recipe-name"></h1>
                 </div>
                 <div class="recipe-header-actions">
-                    <div class="recipe-stat"><span class="recipe-stat-icon"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="12" r="6"/><circle cx="11" cy="12" r="3"/><path d="M20 4v16"/></svg></span><span id="display-recipe-portions"></span></div>
+                    <div class="recipe-stat recipe-portions-control" title="Portionen anpassen">
+                        <button type="button" id="decrease-portions-button" class="recipe-portion-button" aria-label="Portionen reduzieren">
+                            <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg>
+                        </button>
+                        <span class="recipe-stat-icon"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="12" r="6"/><circle cx="11" cy="12" r="3"/><path d="M20 4v16"/></svg></span>
+                        <span id="display-recipe-portions"></span>
+                        <button type="button" id="increase-portions-button" class="recipe-portion-button" aria-label="Portionen erhöhen">
+                            <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                        </button>
+                    </div>
                     <div class="recipe-stat"><span class="recipe-stat-icon"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22c4 0 7-2.7 7-6.8 0-2.6-1.5-5.1-4.4-7.5.1 2.1-.7 3.5-2.1 4.2.2-3.3-1.3-6-4.1-8.1.2 3.6-3.4 5.6-3.4 11.2C5 19.3 8 22 12 22z"/></svg></span><span id="display-recipe-calories"></span></div>
                     <button type="button" id="favorite-recipe-button" class="header-icon-button favorite-header-button" title="Als Favorit markieren" aria-label="Als Favorit markieren"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8z"/></svg></button>
                     <button type="button" id="share-ingredients-button" class="header-icon-button" title="Zutatenliste teilen" aria-label="Zutatenliste teilen"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M20 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h5"/></svg></button>
@@ -37,6 +46,7 @@
 
             <section class="content-section ingredients-content-section">
                 <h2>Zutaten</h2>
+                <p id="recipe-stock-summary" class="recipe-stock-summary"></p>
                 <ul id="display-recipe-ingredients"></ul>
             </section>
 

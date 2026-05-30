@@ -1,4 +1,4 @@
-const CACHE_NAME = "food-calculator-recipe-stock-thunfisch-fix-v1";
+const CACHE_NAME = "food-calculator-inventory-recipe-links-v1";
 
 const FILES_TO_CACHE = [
     "/",
@@ -6,6 +6,8 @@ const FILES_TO_CACHE = [
     "/style.css",
     "/script.js",
     "/navigation.js",
+    "/inventory.html",
+    "/inventory.js",
     "/recipeInstructions.html",
     "/recipeInstructions.js",
     "/recipeDetails.html",

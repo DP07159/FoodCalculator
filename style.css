@@ -2574,3 +2574,142 @@ body.modal-open .app-header {
         grid-template-columns: minmax(0, 1fr) 12px;
     }
 }
+
+/* =========================================================
+   INVENTAR ↔ REZEPTE VERKNÜPFUNG
+========================================================= */
+.inventory-item-name-button {
+    display: inline-flex;
+    align-items: center;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-weight: 900;
+    text-align: left;
+    cursor: pointer;
+}
+
+.inventory-item-name-button:hover {
+    color: var(--color-primary-text);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.ingredient-recipes-dialog,
+.recipe-inventory-dialog {
+    width: min(720px, 100%);
+}
+
+.ingredient-recipes-content,
+.recipe-inventory-content,
+.recipe-inventory-stock-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.ingredient-recipe-card {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 14px 16px;
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface-soft);
+    color: var(--color-text);
+    text-decoration: none;
+}
+
+.ingredient-recipe-card:hover {
+    border-color: var(--color-primary-border);
+    background: var(--color-primary-soft);
+    color: var(--color-primary-text);
+}
+
+.ingredient-recipe-card span {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    font-weight: 700;
+}
+
+.recipe-ingredient-row-button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+}
+
+.recipe-ingredient-row-button:hover .recipe-ingredient-text {
+    color: var(--color-primary-text);
+}
+
+.recipe-inventory-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface-soft);
+}
+
+.recipe-inventory-summary span {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    font-weight: 800;
+}
+
+.recipe-inventory-stock-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--color-border-soft);
+}
+
+.recipe-inventory-stock-row:last-child {
+    border-bottom: 0;
+}
+
+.recipe-inventory-stock-row div {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.recipe-inventory-stock-row div span {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    font-weight: 700;
+}
+
+.recipe-inventory-stock-row.is-zero strong {
+    color: var(--color-danger-text);
+}
+
+.recipe-inventory-actions {
+    margin-top: 6px;
+}
+
+@media (max-width: 768px) {
+    .recipe-inventory-summary,
+    .recipe-inventory-stock-row {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .recipe-ingredient-row-button {
+        align-items: flex-start;
+    }
+}

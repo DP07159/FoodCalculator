@@ -183,58 +183,73 @@ function cleanIngredientName(value) {
     return String(value || "")
         .replace(/\([^)]*\)/g, " ")
         .replace(new RegExp(`\\b(?:a|à)\\s*${amountPattern}\\s*(${unitPattern})\\b`, "gi"), " ")
-        .replace(/[,;]/g, " ")
-        .replace(/\b(frisch|gekuehlt|gekühlt|tiefgekuehlt|tiefgekühlt|gehackt|geschnitten|gerieben|optional|nach geschmack)\b/gi, "")
+        .replace(new RegExp(`(^|[\\s,(])${amountPattern}\\s*(${unitPattern})\\b`, "gi"), " ")
+        .replace(new RegExp(`(^|[\\s,(])(${unitPattern})\\s*${amountPattern}\\b`, "gi"), " ")
+        .replace(/\b(?:in|mit)\s+(?:eigenem\s+saft|saft|wasser|oel|öl|lake|tomatensauce)\b/gi, " ")
+        .replace(/[,;:/]/g, " ")
+        .replace(/(^|\s)(?:a|à|je|pro)(?=\s|$)/gi, " ")
+        .replace(/\b(frisch|frische|frischer|frisches|gekuehlt|gekühlt|tiefgekuehlt|tiefgekühlt|gehackt|geschnitten|gerieben|optional|nach geschmack|abtropfgewicht|abgetropft|netto|einwaage|füllmenge|fuellmenge|natur|naturell)\b/gi, " ")
+        .replace(/\b(thunfischstuecke|thunfischstücke|thunfischfilets|thunfischfilet|tunfisch)\b/gi, "Thunfisch")
         .replace(/\s+/g, " ")
         .trim();
 }
 
-function findAmountUnitInIngredient(rawText) {
-    const unitPattern = "kg|g|gr|gramm|ml|l|liter|stk\\.?|stück|stueck|dose|dosen|glas|gläser|glaeser|packung|packungen|pkg|el|esslöffel|essloeffel|tl|teelöffel|teeloeffel|prise|prisen";
+function findAmountUnitMatches(rawText, unitPattern) {
+    const text = String(rawText || "");
     const amountPattern = "(?:\\d+\\s+\\d+\\/\\d+|\\d+\\/\\d+|\\d+(?:[,.]\\d+)?|[¼½¾⅓⅔])";
-    const amountUnitRegex = new RegExp(`(^|[\\s,(])(${amountPattern})\\s*(${unitPattern})\\b`, "i");
-    const unitAmountRegex = new RegExp(`(^|[\\s,(])(${unitPattern})\\s*(${amountPattern})\\b`, "i");
+    const matches = [];
+    const patterns = [
+        { regex: new RegExp(`(^|[\\s,(])(${amountPattern})\\s*(${unitPattern})\\b`, "gi"), amountIndex: 2, unitIndex: 3 },
+        { regex: new RegExp(`(^|[\\s,(])(${unitPattern})\\s*(${amountPattern})\\b`, "gi"), amountIndex: 3, unitIndex: 2 }
+    ];
+    for (const pattern of patterns) {
+        let match;
+        while ((match = pattern.regex.exec(text)) !== null) {
+            const prefixLength = match[1] ? match[1].length : 0;
+            const start = match.index + prefixLength;
+            const token = match[0].slice(prefixLength);
+            matches.push({ start, end: start + token.length, amountText: match[pattern.amountIndex], unitText: match[pattern.unitIndex], token });
+        }
+    }
+    return matches.sort((a, b) => a.start - b.start);
+}
 
-    let match = rawText.match(amountUnitRegex);
-    if (match) {
-        const prefixLength = match[1] ? match[1].length : 0;
-        const start = match.index + prefixLength;
-        const token = match[0].slice(prefixLength);
-        return {
-            start,
-            end: start + token.length,
-            amountText: match[2],
-            unitText: match[3]
-        };
+function getContainerMultiplier(rawText, physicalMatch) {
+    const before = String(rawText || "").slice(0, physicalMatch?.start ?? 0);
+    const containerUnitPattern = "stk\\.?|stück|stueck|dose|dosen|glas|gläser|glaeser|packung|packungen|pkg";
+    const containerMatches = findAmountUnitMatches(before, containerUnitPattern);
+    if (!containerMatches.length) return 1;
+    const last = containerMatches[containerMatches.length - 1];
+    const between = String(rawText || "").slice(last.end, physicalMatch.start).toLowerCase();
+    const multiplier = parseFraction(last.amountText);
+    return between.length <= 50 && multiplier && multiplier > 0 ? multiplier : 1;
+}
+
+function findAmountUnitInIngredient(rawText) {
+    const amountPattern = "(?:\\d+\\s+\\d+\\/\\d+|\\d+\\/\\d+|\\d+(?:[,.]\\d+)?|[¼½¾⅓⅔])";
+    const physicalUnitPattern = "kg|g|gr|gramm|ml|l|liter";
+    const containerUnitPattern = "stk\\.?|stück|stueck|dose|dosen|glas|gläser|glaeser|packung|packungen|pkg|el|esslöffel|essloeffel|tl|teelöffel|teeloeffel|prise|prisen";
+
+    const physicalMatches = findAmountUnitMatches(rawText, physicalUnitPattern);
+    if (physicalMatches.length) {
+        const text = String(rawText || "").toLowerCase();
+        const selected = /abtropf|abgetropft|netto|einwaage/.test(text)
+            ? physicalMatches[physicalMatches.length - 1]
+            : physicalMatches[0];
+        return { ...selected, multiplier: getContainerMultiplier(rawText, selected) };
     }
 
-    match = rawText.match(unitAmountRegex);
-    if (match) {
-        const prefixLength = match[1] ? match[1].length : 0;
-        const start = match.index + prefixLength;
-        const token = match[0].slice(prefixLength);
-        return {
-            start,
-            end: start + token.length,
-            amountText: match[3],
-            unitText: match[2]
-        };
-    }
+    const containerMatches = findAmountUnitMatches(rawText, containerUnitPattern);
+    if (containerMatches.length) return { ...containerMatches[0], multiplier: 1 };
 
     const amountOnlyRegex = new RegExp(`(^|[\\s,(])(${amountPattern})(?=\\s|$)`, "i");
-    match = rawText.match(amountOnlyRegex);
+    const match = String(rawText || "").match(amountOnlyRegex);
     if (match) {
         const prefixLength = match[1] ? match[1].length : 0;
         const start = match.index + prefixLength;
         const token = match[0].slice(prefixLength);
-        return {
-            start,
-            end: start + token.length,
-            amountText: match[2],
-            unitText: "Stk."
-        };
+        return { start, end: start + token.length, amountText: match[2], unitText: "Stk.", multiplier: 1 };
     }
-
     return null;
 }
 
@@ -251,6 +266,7 @@ function parseIngredientLine(line) {
     if (amountUnit) {
         originalAmountText = amountUnit.amountText;
         amount = parseFraction(amountUnit.amountText);
+        if (amount !== null && amount !== undefined && amountUnit.multiplier) amount *= amountUnit.multiplier;
         unit = normalizeIngredientUnit(amountUnit.unitText);
         foodName = `${rawText.slice(0, amountUnit.start)} ${rawText.slice(amountUnit.end)}`;
     }
@@ -352,6 +368,121 @@ function getStockStatus(parsedIngredient) {
     return { status: "partial", label: "Teilbestand", detail: `${formatAmount(required, parsedIngredient.original_unit || parsedIngredient.unit)} benötigt · ${formatAmount(available, parsedIngredient.unit || item.unit)} vorhanden` };
 }
 
+
+function getExpiryStatus(expiryDate) {
+    if (!expiryDate) return { label: "Kein Ablaufdatum", className: "inventory-neutral" };
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const expiry = new Date(expiryDate);
+    expiry.setHours(0, 0, 0, 0);
+    const diffDays = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
+    if (diffDays < 0) return { label: "Abgelaufen", className: "inventory-expired" };
+    if (diffDays <= 3) return { label: "Läuft sehr bald ab", className: "inventory-critical" };
+    if (diffDays <= 7) return { label: "Läuft bald ab", className: "inventory-warning" };
+    return { label: "Haltbar", className: "inventory-good" };
+}
+
+function formatDate(dateString) {
+    if (!dateString) return "Kein Ablaufdatum";
+    return new Date(dateString).toLocaleDateString("de-DE");
+}
+
+function formatNumber(value) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return "0";
+    return String(Math.round(number * 100) / 100).replace(".", ",");
+}
+
+function getInventoryOverlayRows(item) {
+    const batches = Array.isArray(item?.batches) ? item.batches : [];
+    if (!batches.length) return `<p class="recipe-empty-state">Noch keine Bestandspositionen vorhanden.</p>`;
+
+    return batches.map(batch => {
+        const status = getExpiryStatus(batch.expiry_date);
+        const isPackage = batch.batch_type === "package";
+        const title = isPackage
+            ? `${formatNumber(batch.remaining_quantity)} × ${formatNumber(batch.unit_weight)} ${batch.measure_unit || item.unit || "g"}`
+            : `${formatNumber(batch.remaining_weight)} ${batch.measure_unit || item.unit || "g"}`;
+        const detail = [batch.storage_location || "Kein Ort", formatDate(batch.expiry_date)].join(" · ");
+        return `
+            <div class="recipe-inventory-stock-row ${Number(batch.remaining_weight || batch.remaining_quantity || 0) <= 0 ? "is-zero" : ""}">
+                <div>
+                    <strong>${escapeHtml(title)}</strong>
+                    <span>${escapeHtml(detail)}</span>
+                </div>
+                <span class="inventory-expiry inventory-position-expiry ${status.className}">${escapeHtml(status.label)}</span>
+            </div>`;
+    }).join("");
+}
+
+function ensureIngredientInventoryModal() {
+    let modal = document.getElementById("ingredient-inventory-modal");
+    if (modal) return modal;
+
+    modal = document.createElement("div");
+    modal.id = "ingredient-inventory-modal";
+    modal.className = "inventory-modal is-hidden";
+    modal.setAttribute("role", "dialog");
+    modal.setAttribute("aria-modal", "true");
+    modal.innerHTML = `
+        <div class="inventory-modal-backdrop" onclick="closeIngredientInventoryModal()"></div>
+        <div class="inventory-modal-dialog recipe-inventory-dialog">
+            <div class="inventory-section-headline">
+                <div>
+                    <p class="recipe-kicker">Inventar</p>
+                    <h2 id="ingredient-inventory-title">Inventarartikel</h2>
+                </div>
+                <button type="button" class="header-icon-button" onclick="closeIngredientInventoryModal()" title="Fenster schließen" aria-label="Fenster schließen">
+                    <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div id="ingredient-inventory-content" class="recipe-inventory-content"></div>
+        </div>`;
+    document.body.appendChild(modal);
+    return modal;
+}
+
+function closeIngredientInventoryModal() {
+    const modal = document.getElementById("ingredient-inventory-modal");
+    if (!modal) return;
+    modal.classList.add("is-hidden");
+    document.body.classList.remove("modal-open");
+}
+
+async function openIngredientInventoryOverlay(ingredientName) {
+    const lookupName = String(ingredientName || "").trim();
+    if (!lookupName) return;
+
+    const modal = ensureIngredientInventoryModal();
+    const title = document.getElementById("ingredient-inventory-title");
+    const content = document.getElementById("ingredient-inventory-content");
+    title.textContent = lookupName;
+    content.innerHTML = `<p class="recipe-empty-state">Inventar wird geladen ...</p>`;
+    modal.classList.remove("is-hidden");
+    document.body.classList.add("modal-open");
+
+    try {
+        const item = await apiFetch(`${API_URL}/inventory/by-ingredient/${encodeURIComponent(lookupName)}`);
+        title.textContent = item.name || lookupName;
+        content.innerHTML = `
+            <div class="recipe-inventory-summary">
+                <strong>${escapeHtml(item.name || lookupName)}</strong>
+                ${item.calories_per_100g !== null && item.calories_per_100g !== undefined ? `<span>${formatNumber(item.calories_per_100g)} kcal / 100 g</span>` : ""}
+            </div>
+            <div class="recipe-inventory-stock-list">${getInventoryOverlayRows(item)}</div>
+            <div class="form-actions inventory-actions recipe-inventory-actions">
+                <button type="button" onclick="window.location.href='/inventory.html'">Im Inventar bearbeiten</button>
+            </div>`;
+    } catch (error) {
+        console.error(error);
+        content.innerHTML = `
+            <p class="recipe-empty-state">Kein passender Inventarartikel gefunden.</p>
+            <div class="form-actions inventory-actions recipe-inventory-actions">
+                <button type="button" onclick="window.location.href='/inventory.html'">Inventar öffnen</button>
+            </div>`;
+    }
+}
+
 function renderRecipeInstructions() {
     if (!currentRecipe) return;
 
@@ -375,10 +506,13 @@ function renderRecipeInstructions() {
             const label = entry?.label || "Nicht prüfbar";
             const displayText = entry?.display_text || scaleIngredientLine(line.trim());
 
+            const lookupName = entry?.food_name || displayText;
             return `
                 <li class="recipe-ingredient-stock-row recipe-stock-${status}">
-                    <span class="recipe-ingredient-text">${escapeHtml(displayText)}</span>
-                    <span class="recipe-stock-flag" title="${escapeHtml(label)}" aria-label="${escapeHtml(label)}"></span>
+                    <button type="button" class="recipe-ingredient-row-button" onclick="openIngredientInventoryOverlay('${escapeHtml(lookupName)}')" title="Inventar zu ${escapeHtml(displayText)} anzeigen">
+                        <span class="recipe-ingredient-text">${escapeHtml(displayText)}</span>
+                        <span class="recipe-stock-flag" title="${escapeHtml(label)}" aria-label="${escapeHtml(label)}"></span>
+                    </button>
                 </li>
             `;
         })
@@ -467,6 +601,7 @@ function setupButtons() {
     });
     document.getElementById("decrease-portions-button")?.addEventListener("click", () => adjustDisplayedPortions(-1));
     document.getElementById("increase-portions-button")?.addEventListener("click", () => adjustDisplayedPortions(1));
+    document.addEventListener("keydown", event => { if (event.key === "Escape") closeIngredientInventoryModal(); });
 }
 
 window.onload = function () {

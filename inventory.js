@@ -8,7 +8,8 @@ const ICONS = {
     minus: `<svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg>`,
     edit: `<svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l11-11a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>`,
     trash: `<svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 14h10l1-14"/><path d="M9 7V4h6v3"/></svg>`,
-    plusMinus: `<svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v6"/><path d="M9 8h6"/><path d="M5 16h14"/></svg>`
+    plusMinus: `<svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v6"/><path d="M9 8h6"/><path d="M5 16h14"/></svg>`,
+    book: `<svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"/></svg>`
 };
 
 function showToast(message) {
@@ -943,6 +944,75 @@ function renderLooseRows(item) {
     }).join("");
 }
 
+
+function ensureIngredientRecipesModal() {
+    let modal = document.getElementById("ingredient-recipes-modal");
+    if (modal) return modal;
+
+    modal = document.createElement("div");
+    modal.id = "ingredient-recipes-modal";
+    modal.className = "inventory-modal is-hidden";
+    modal.setAttribute("role", "dialog");
+    modal.setAttribute("aria-modal", "true");
+    modal.innerHTML = `
+        <div class="inventory-modal-backdrop" onclick="closeIngredientRecipesModal()"></div>
+        <div class="inventory-modal-dialog ingredient-recipes-dialog">
+            <div class="inventory-section-headline">
+                <div>
+                    <p class="recipe-kicker">Rezepte</p>
+                    <h2 id="ingredient-recipes-title">Rezepte mit Zutat</h2>
+                </div>
+                <button type="button" class="header-icon-button" onclick="closeIngredientRecipesModal()" title="Fenster schließen" aria-label="Fenster schließen">
+                    <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div id="ingredient-recipes-content" class="ingredient-recipes-content"></div>
+        </div>`;
+    document.body.appendChild(modal);
+    return modal;
+}
+
+function closeIngredientRecipesModal() {
+    const modal = document.getElementById("ingredient-recipes-modal");
+    if (!modal) return;
+    modal.classList.add("is-hidden");
+    if (!isAnyInventoryModalOpen("ingredient-recipes-modal")) document.body.classList.remove("modal-open");
+}
+
+async function openRecipesForInventoryItem(itemId) {
+    const item = inventoryItems.find(entry => Number(entry.id) === Number(itemId));
+    if (!item) return;
+
+    const modal = ensureIngredientRecipesModal();
+    const title = document.getElementById("ingredient-recipes-title");
+    const content = document.getElementById("ingredient-recipes-content");
+    title.textContent = `Rezepte mit ${item.name}`;
+    content.innerHTML = `<p class="recipe-empty-state">Rezepte werden geladen ...</p>`;
+    modal.classList.remove("is-hidden");
+    document.body.classList.add("modal-open");
+
+    try {
+        const payload = await apiFetch(`${API_URL}/recipes/by-ingredient/${encodeURIComponent(item.name)}`);
+        const recipes = Array.isArray(payload.recipes) ? payload.recipes : [];
+        if (!recipes.length) {
+            content.innerHTML = `<p class="recipe-empty-state">Keine Rezepte mit ${escapeHtml(item.name)} gefunden.</p>`;
+            return;
+        }
+
+        content.innerHTML = recipes.map(recipe => {
+            const matches = (recipe.matched_ingredients || []).map(match => escapeHtml(match.raw_text)).join(" · ");
+            return `
+                <a class="ingredient-recipe-card" href="/recipeInstructions.html?id=${recipe.id}">
+                    <strong>${escapeHtml(recipe.name)}</strong>
+                    ${matches ? `<span>${matches}</span>` : ""}
+                </a>`;
+        }).join("");
+    } catch (error) {
+        console.error(error);
+        content.innerHTML = `<p class="recipe-empty-state">Rezepte konnten nicht geladen werden.</p>`;
+    }
+}
+
 function renderInventoryList() {
     const list = document.getElementById("inventory-list");
     const searchInput = document.getElementById("inventory-search");
@@ -972,7 +1042,7 @@ function renderInventoryList() {
             <article class="inventory-item-card inventory-item-card-detailed inventory-item-card-compact">
                 <div class="inventory-item-header">
                     <div class="inventory-item-main">
-                        <h3>${escapeHtml(item.name)}</h3>
+                        <h3><button type="button" class="inventory-item-name-button" onclick="openRecipesForInventoryItem(${item.id})" title="Rezepte mit ${escapeHtml(item.name)} anzeigen">${escapeHtml(item.name)}</button></h3>
                         <div class="inventory-summary-row">${renderSummaryChips(item)}</div>
                         <div class="inventory-meta inventory-meta-compact">
                             <span class="inventory-expiry ${status.className}">${status.label}</span>
@@ -981,6 +1051,7 @@ function renderInventoryList() {
                         ${item.notes ? `<p class="inventory-notes">${escapeHtml(item.notes)}</p>` : ""}
                     </div>
                     <div class="recipe-icons inventory-icons">
+                        <button type="button" onclick="openRecipesForInventoryItem(${item.id})" title="Rezepte mit diesem Lebensmittel" aria-label="Rezepte mit diesem Lebensmittel">${ICONS.book}</button>
                         <button type="button" onclick="toggleInventoryControls(${item.id})" title="Bestand anpassen" aria-label="Bestand anpassen">${ICONS.plusMinus}</button>
                         <button type="button" onclick="editInventoryItem(${item.id})" title="Bearbeiten" aria-label="Bearbeiten">${ICONS.edit}</button>
                         <button type="button" class="toolbar-delete-button" onclick="deleteInventoryItem(${item.id})" title="Löschen" aria-label="Löschen">${ICONS.trash}</button>
@@ -1036,6 +1107,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (event.key === "Escape") {
             closeInventoryEditModal();
             closeInventoryPositionModal();
+            closeIngredientRecipesModal();
             toggleInventoryAddPanel(false);
         }
     });

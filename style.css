@@ -2841,3 +2841,51 @@ body.modal-open .app-header {
         max-width: 200px;
     }
 }
+
+
+/* =========================================================
+   REZEPTSEITE: INVENTAR-OVERLAY LINK-FIX
+   Der klickbare Artikelname nutzt das bestehende Designsystem
+   und darf keine Standard-Link-Styles in die Seite ziehen.
+========================================================= */
+.recipe-inventory-item-link {
+    min-width: 0;
+    max-width: 100%;
+    display: inline-flex;
+    align-items: center;
+    color: var(--color-text);
+    font-size: 17px;
+    font-weight: 900;
+    line-height: 1.2;
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.recipe-inventory-item-link:hover,
+.recipe-inventory-item-link:focus-visible {
+    color: var(--color-primary-text);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    outline: none;
+}
+
+.recipe-inventory-summary {
+    min-width: 0;
+}
+
+.recipe-inventory-summary span {
+    flex: 0 0 auto;
+}
+
+@media (max-width: 768px) {
+    .recipe-inventory-summary {
+        align-items: flex-start;
+    }
+
+    .recipe-inventory-item-link {
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+}

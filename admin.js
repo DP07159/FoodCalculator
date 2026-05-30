@@ -170,48 +170,93 @@ function closeAdminItemModal() {
     document.body.classList.remove("modal-open");
 }
 
+function normalizeAdminRecipeLinksFromPreview(item) {
+    const usedInRecipes = Array.isArray(item?.used_in_recipes) ? item.used_in_recipes : [];
+    const unique = new Map();
+
+    usedInRecipes.forEach(entry => {
+        const id = Number(entry.recipe_id || entry.id);
+        if (!Number.isFinite(id)) return;
+        if (!unique.has(id)) {
+            unique.set(id, {
+                id,
+                name: entry.recipe_name || entry.name || "Unbenanntes Rezept",
+                detail: entry.raw_text || entry.food_name || "enthält diesen Artikel"
+            });
+        }
+    });
+
+    return Array.from(unique.values()).sort((a, b) => String(a.name).localeCompare(String(b.name), "de"));
+}
+
+function normalizeAdminRecipeLinksFromApi(payload) {
+    const recipes = Array.isArray(payload) ? payload : (Array.isArray(payload?.recipes) ? payload.recipes : []);
+    return recipes.map(recipe => {
+        const matchedIngredients = Array.isArray(recipe.matched_ingredients) ? recipe.matched_ingredients : [];
+        const firstMatch = matchedIngredients[0];
+        return {
+            id: Number(recipe.id),
+            name: recipe.name || "Unbenanntes Rezept",
+            detail: firstMatch?.raw_text || firstMatch?.food_name || "enthält diesen Artikel"
+        };
+    }).filter(recipe => Number.isFinite(recipe.id));
+}
+
+function renderAdminRecipeLinks(recipes = []) {
+    if (!recipes.length) {
+        return `<p class="admin-empty-state">Aktuell ist kein Rezept mit diesem Artikel verknüpft.</p>`;
+    }
+
+    return recipes.map(recipe => `
+        <a class="ingredient-recipe-card" href="/recipeInstructions.html?id=${Number(recipe.id)}">
+            <strong>${escapeHtml(recipe.name)}</strong>
+            <span>${escapeHtml(recipe.detail || "enthält diesen Artikel")}</span>
+        </a>
+    `).join("");
+}
+
+function renderAdminItemOverlayContent(itemId, itemName, item, recipes, showLoadWarning = false) {
+    const content = document.getElementById("admin-item-modal-content");
+    if (!content) return;
+
+    content.innerHTML = `
+        <div class="recipe-inventory-summary">
+            <strong>${escapeHtml(itemName)}</strong>
+            ${item?.canonical_name ? `<span>${escapeHtml(item.canonical_name)}</span>` : ""}
+        </div>
+        <div class="admin-item-modal-actions">
+            <a class="form-actions-button-like" href="/inventory.html?item=${Number(itemId)}">Zur Artikelbox im Inventar</a>
+        </div>
+        ${showLoadWarning ? `<p class="admin-result-note">Hinweis: Die Live-Abfrage konnte nicht geladen werden. Angezeigt werden die Rezeptverknüpfungen aus der Admin-Analyse.</p>` : ""}
+        <h3 class="admin-modal-subheadline">Verknüpfte Rezepte</h3>
+        <div class="ingredient-recipes-content">${renderAdminRecipeLinks(recipes)}</div>
+    `;
+}
+
 async function openAdminInventoryItemOverlay(itemId, fallbackName = "") {
     const item = findPreviewItem(itemId, fallbackName);
     const modal = ensureAdminItemModal();
     const title = document.getElementById("admin-item-modal-title");
     const content = document.getElementById("admin-item-modal-content");
     const itemName = item?.name || fallbackName || "Artikel";
+    const previewRecipes = normalizeAdminRecipeLinksFromPreview(item);
 
     title.textContent = itemName;
     content.innerHTML = `<p class="admin-empty-state">Verknüpfte Rezepte werden geladen ...</p>`;
     modal.classList.remove("is-hidden");
     document.body.classList.add("modal-open");
 
-    try {
-        const recipes = await apiFetch(`${API_URL}/recipes/by-ingredient/${encodeURIComponent(itemName)}`);
-        const recipeList = Array.isArray(recipes) && recipes.length
-            ? recipes.map(recipe => `
-                <a class="ingredient-recipe-card" href="/recipeInstructions.html?id=${Number(recipe.id)}">
-                    <strong>${escapeHtml(recipe.name)}</strong>
-                    ${recipe.ingredients ? `<span>${escapeHtml(String(recipe.ingredients).split("\n").find(line => line.toLowerCase().includes(String(itemName).toLowerCase())) || "enthält diese Zutat")}</span>` : `<span>enthält diese Zutat</span>`}
-                </a>
-            `).join("")
-            : `<p class="admin-empty-state">Aktuell ist kein Rezept mit diesem Artikel verknüpft.</p>`;
+    if (previewRecipes.length) {
+        renderAdminItemOverlayContent(itemId, itemName, item, previewRecipes);
+    }
 
-        content.innerHTML = `
-            <div class="recipe-inventory-summary">
-                <strong>${escapeHtml(itemName)}</strong>
-                ${item?.canonical_name ? `<span>${escapeHtml(item.canonical_name)}</span>` : ""}
-            </div>
-            <div class="admin-item-modal-actions">
-                <a class="form-actions-button-like" href="/inventory.html?item=${Number(itemId)}">Zur Artikelbox im Inventar</a>
-            </div>
-            <h3 class="admin-modal-subheadline">Verknüpfte Rezepte</h3>
-            <div class="ingredient-recipes-content">${recipeList}</div>
-        `;
+    try {
+        const payload = await apiFetch(`${API_URL}/recipes/by-ingredient/${encodeURIComponent(itemName)}`);
+        const apiRecipes = normalizeAdminRecipeLinksFromApi(payload);
+        renderAdminItemOverlayContent(itemId, itemName, item, apiRecipes.length ? apiRecipes : previewRecipes);
     } catch (error) {
         console.error(error);
-        content.innerHTML = `
-            <p class="admin-empty-state">Verknüpfte Rezepte konnten nicht geladen werden.</p>
-            <div class="admin-item-modal-actions">
-                <a class="form-actions-button-like" href="/inventory.html?item=${Number(itemId)}">Zur Artikelbox im Inventar</a>
-            </div>
-        `;
+        renderAdminItemOverlayContent(itemId, itemName, item, previewRecipes, true);
     }
 }
 

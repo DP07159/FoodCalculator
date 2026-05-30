@@ -28,6 +28,14 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+function escapeJsString(value) {
+    return String(value || "")
+        .replace(/\\/g, "\\\\")
+        .replace(/'/g, "\\'")
+        .replace(/\"/g, "&quot;")
+        .replace(/\n/g, " ")
+        .replace(/\r/g, " ");
+}
 function isFavoriteRecipe(recipe) {
     return Number(recipe?.is_favorite) === 1;
 }
@@ -449,20 +457,23 @@ function closeIngredientInventoryModal() {
     document.body.classList.remove("modal-open");
 }
 
-async function openIngredientInventoryOverlay(ingredientName) {
+async function openIngredientInventoryOverlay(ingredientName, itemId = null) {
     const lookupName = String(ingredientName || "").trim();
-    if (!lookupName) return;
+    const numericItemId = itemId !== null && itemId !== undefined && itemId !== "" ? Number(itemId) : null;
+    if (!lookupName && !Number.isFinite(numericItemId)) return;
 
     const modal = ensureIngredientInventoryModal();
     const title = document.getElementById("ingredient-inventory-title");
     const content = document.getElementById("ingredient-inventory-content");
-    title.textContent = lookupName;
+    title.textContent = lookupName || "Inventarartikel";
     content.innerHTML = `<p class="recipe-empty-state">Inventar wird geladen ...</p>`;
     modal.classList.remove("is-hidden");
     document.body.classList.add("modal-open");
 
     try {
-        const item = await apiFetch(`${API_URL}/inventory/by-ingredient/${encodeURIComponent(lookupName)}`);
+        const item = Number.isFinite(numericItemId)
+            ? await apiFetch(`${API_URL}/inventory/${numericItemId}`)
+            : await apiFetch(`${API_URL}/inventory/by-ingredient/${encodeURIComponent(lookupName)}`);
         title.textContent = item.name || lookupName;
         content.innerHTML = `
             <div class="recipe-inventory-summary">
@@ -507,9 +518,10 @@ function renderRecipeInstructions() {
             const displayText = entry?.display_text || scaleIngredientLine(line.trim());
 
             const lookupName = entry?.food_name || displayText;
+            const lookupItemId = entry?.item_id ? Number(entry.item_id) : "";
             return `
                 <li class="recipe-ingredient-stock-row recipe-stock-${status}">
-                    <button type="button" class="recipe-ingredient-row-button" onclick="openIngredientInventoryOverlay('${escapeHtml(lookupName)}')" title="Inventar zu ${escapeHtml(displayText)} anzeigen">
+                    <button type="button" class="recipe-ingredient-row-button" onclick="openIngredientInventoryOverlay('${escapeJsString(lookupName)}', '${lookupItemId}')" title="Inventar zu ${escapeHtml(displayText)} anzeigen">
                         <span class="recipe-ingredient-text">${escapeHtml(displayText)}</span>
                         <span class="recipe-stock-flag" title="${escapeHtml(label)}" aria-label="${escapeHtml(label)}"></span>
                     </button>

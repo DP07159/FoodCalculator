@@ -1,4 +1,4 @@
-const CACHE_NAME = "food-calculator-inventory-recipe-links-v1";
+const CACHE_NAME = "food-calculator-inventory-recipe-links-v-ajvar-ingredient-id";
 
 const FILES_TO_CACHE = [
     "/",

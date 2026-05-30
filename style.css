@@ -2713,3 +2713,131 @@ body.modal-open .app-header {
         align-items: flex-start;
     }
 }
+
+/* =========================================================
+   INVENTAR KOMPAKTANSICHT: SCHLANKERE LISTE + EINZEILIGE CHIPS
+========================================================= */
+.inventory-list.inventory-list-detailed {
+    gap: 10px;
+}
+
+.inventory-item-card.inventory-item-card-compact {
+    padding: 10px 12px;
+    border-radius: 18px;
+}
+
+.inventory-item-card-compact .inventory-item-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+}
+
+.inventory-item-card-compact .inventory-item-main {
+    gap: 6px;
+    min-width: 0;
+}
+
+.inventory-item-card-compact h3 {
+    margin: 0;
+    line-height: 1.15;
+}
+
+.inventory-item-name-button {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.inventory-summary-row {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 1px 0 3px;
+    scrollbar-width: thin;
+}
+
+.inventory-summary-row::-webkit-scrollbar {
+    height: 4px;
+}
+
+.inventory-summary-chip {
+    flex: 0 0 auto;
+    min-height: 22px;
+    max-width: 230px;
+    padding: 3px 8px;
+    font-size: 11px;
+    line-height: 1.15;
+}
+
+.inventory-meta-compact {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 6px;
+    margin-top: 0;
+    overflow-x: auto;
+    padding-bottom: 1px;
+}
+
+.inventory-meta-compact .inventory-expiry,
+.inventory-meta-compact .inventory-date {
+    flex: 0 0 auto;
+    min-height: 22px;
+    padding: 3px 8px;
+    font-size: 11px;
+}
+
+.recipe-icons.inventory-icons {
+    align-self: center;
+    gap: 6px;
+}
+
+.recipe-icons.inventory-icons button {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    border-radius: 12px;
+}
+
+.inventory-stock-controls {
+    margin-top: 10px;
+    padding-top: 10px;
+}
+
+.inventory-stock-section + .inventory-stock-section {
+    margin-top: 12px;
+    padding-top: 12px;
+}
+
+.inventory-stock-row {
+    padding: 8px 0;
+}
+
+@media (max-width: 768px) {
+    .inventory-item-card-compact .inventory-item-header {
+        grid-template-columns: 1fr;
+        align-items: stretch;
+        gap: 8px;
+    }
+
+    .recipe-icons.inventory-icons {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        width: 100%;
+    }
+
+    .recipe-icons.inventory-icons button {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .inventory-summary-chip {
+        max-width: 200px;
+    }
+}

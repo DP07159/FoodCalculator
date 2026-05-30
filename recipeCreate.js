@@ -1,5 +1,14 @@
 const API_URL = "https://foodcalculator-server.onrender.com";
 
+let ingredientLinksByLine = new Map();
+let ingredientAutocomplete = {
+    panel: null,
+    textarea: null,
+    activeLineIndex: null,
+    activeLineText: "",
+    suggestions: []
+};
+
 function showToast(message) {
     const toast = document.getElementById("app-toast");
     if (!toast) {
@@ -31,186 +40,165 @@ function initAutoResize() {
     });
 }
 
-
-let ingredientAutocompleteState = {
-    textarea: null,
-    suggestions: [],
-    activeIndex: -1,
-    timeoutId: null
-};
-
-function getIngredientAutocompletePanel() {
-    let panel = document.getElementById("ingredient-autocomplete-panel");
-    if (!panel) {
-        panel = document.createElement("div");
-        panel.id = "ingredient-autocomplete-panel";
-        panel.className = "ingredient-autocomplete-panel is-hidden";
-        document.body.appendChild(panel);
-    }
-    return panel;
-}
-
-function getCurrentIngredientLine(textarea) {
-    const value = textarea.value || "";
-    const cursor = textarea.selectionStart || 0;
-    const lineStart = value.lastIndexOf("\n", cursor - 1) + 1;
-    let lineEnd = value.indexOf("\n", cursor);
-    if (lineEnd === -1) lineEnd = value.length;
-    const line = value.slice(lineStart, lineEnd);
-    return { value, cursor, lineStart, lineEnd, line };
-}
-
-function splitIngredientLineForSuggestion(line) {
-    const amountPattern = "(?:\\d+\\s+\\d+\\/\\d+|\\d+\\/\\d+|\\d+(?:[,.]\\d+)?|[¼½¾⅓⅔])";
-    const unitPattern = "kg|g|gr|gramm|ml|l|liter|stk\\.?|stück|stueck|dose|dosen|glas|gläser|glaeser|packung|packungen|pkg|el|esslöffel|essloeffel|tl|teelöffel|teeloeffel|prise|prisen";
-    const match = String(line || "").match(new RegExp(`^(\\s*(?:[-•*]\\s*)?(?:${amountPattern})?\\s*(?:${unitPattern})?\\s*)(.*)$`, "i"));
-    return {
-        prefix: match ? match[1] : "",
-        query: (match ? match[2] : line).trim()
-    };
-}
-
-function positionIngredientAutocompletePanel(textarea) {
-    const panel = getIngredientAutocompletePanel();
-    const rect = textarea.getBoundingClientRect();
-    panel.style.left = `${rect.left + window.scrollX}px`;
-    panel.style.top = `${rect.bottom + window.scrollY + 6}px`;
-    panel.style.width = `${rect.width}px`;
-}
-
-function hideIngredientAutocomplete() {
-    const panel = getIngredientAutocompletePanel();
-    panel.classList.add("is-hidden");
-    panel.innerHTML = "";
-    ingredientAutocompleteState.suggestions = [];
-    ingredientAutocompleteState.activeIndex = -1;
-}
-
-async function fetchIngredientSuggestions(query) {
-    const url = `${API_URL}/inventory/suggestions?q=${encodeURIComponent(query)}`;
-    return apiFetch(url);
-}
-
-function applyIngredientSuggestion(suggestion) {
-    const textarea = ingredientAutocompleteState.textarea;
-    if (!textarea || !suggestion?.name) return;
-
-    const current = getCurrentIngredientLine(textarea);
-    const split = splitIngredientLineForSuggestion(current.line);
-    const newLine = `${split.prefix}${suggestion.name}`.trimStart();
-    textarea.value = `${current.value.slice(0, current.lineStart)}${newLine}${current.value.slice(current.lineEnd)}`;
-    const newCursor = current.lineStart + newLine.length;
-    textarea.setSelectionRange(newCursor, newCursor);
-    textarea.focus();
-    resizeTextArea(textarea);
-    hideIngredientAutocomplete();
-}
-
-function renderIngredientAutocomplete(suggestions) {
-    const panel = getIngredientAutocompletePanel();
-    ingredientAutocompleteState.suggestions = Array.isArray(suggestions) ? suggestions : [];
-    ingredientAutocompleteState.activeIndex = -1;
-
-    if (!ingredientAutocompleteState.suggestions.length) {
-        hideIngredientAutocomplete();
-        return;
-    }
-
-    positionIngredientAutocompletePanel(ingredientAutocompleteState.textarea);
-    panel.innerHTML = ingredientAutocompleteState.suggestions.map((suggestion, index) => `
-        <button type="button" class="ingredient-autocomplete-option" data-index="${index}">
-            <span>${suggestion.name}</span>
-            ${suggestion.calories_per_100g !== null && suggestion.calories_per_100g !== undefined ? `<small>${suggestion.calories_per_100g} kcal / 100 g</small>` : ""}
-        </button>
-    `).join("");
-    panel.classList.remove("is-hidden");
-
-    panel.querySelectorAll(".ingredient-autocomplete-option").forEach(button => {
-        button.addEventListener("mousedown", (event) => {
-            event.preventDefault();
-            const index = Number(button.dataset.index);
-            applyIngredientSuggestion(ingredientAutocompleteState.suggestions[index]);
-        });
-    });
-}
-
-function updateIngredientAutocomplete() {
-    const textarea = ingredientAutocompleteState.textarea;
-    if (!textarea) return;
-    const { line } = getCurrentIngredientLine(textarea);
-    const { query } = splitIngredientLineForSuggestion(line);
-
-    window.clearTimeout(ingredientAutocompleteState.timeoutId);
-    if (query.length < 2) {
-        hideIngredientAutocomplete();
-        return;
-    }
-
-    ingredientAutocompleteState.timeoutId = window.setTimeout(async () => {
-        try {
-            const suggestions = await fetchIngredientSuggestions(query);
-            renderIngredientAutocomplete(suggestions.filter(item => item.name.toLowerCase() !== query.toLowerCase()).slice(0, 8));
-        } catch (error) {
-            console.error("Zutatenvorschläge konnten nicht geladen werden:", error);
-            hideIngredientAutocomplete();
-        }
-    }, 160);
-}
-
-function initIngredientAutocomplete() {
-    const textarea = document.getElementById("recipe-ingredients");
-    if (!textarea) return;
-    ingredientAutocompleteState.textarea = textarea;
-    textarea.setAttribute("autocomplete", "off");
-
-    textarea.addEventListener("input", updateIngredientAutocomplete);
-    textarea.addEventListener("click", updateIngredientAutocomplete);
-    textarea.addEventListener("keyup", (event) => {
-        if (["ArrowUp", "ArrowDown", "Enter", "Escape"].includes(event.key)) return;
-        updateIngredientAutocomplete();
-    });
-    textarea.addEventListener("keydown", (event) => {
-        const panel = getIngredientAutocompletePanel();
-        if (panel.classList.contains("is-hidden")) return;
-        const suggestions = ingredientAutocompleteState.suggestions;
-        if (!suggestions.length) return;
-
-        if (event.key === "Escape") {
-            hideIngredientAutocomplete();
-            return;
-        }
-
-        if (event.key === "ArrowDown" || event.key === "ArrowUp") {
-            event.preventDefault();
-            const delta = event.key === "ArrowDown" ? 1 : -1;
-            ingredientAutocompleteState.activeIndex = (ingredientAutocompleteState.activeIndex + delta + suggestions.length) % suggestions.length;
-            panel.querySelectorAll(".ingredient-autocomplete-option").forEach((button, index) => {
-                button.classList.toggle("is-active", index === ingredientAutocompleteState.activeIndex);
-            });
-        }
-
-        if (event.key === "Enter" && ingredientAutocompleteState.activeIndex >= 0) {
-            event.preventDefault();
-            applyIngredientSuggestion(suggestions[ingredientAutocompleteState.activeIndex]);
-        }
-    });
-
-    document.addEventListener("click", (event) => {
-        const panel = getIngredientAutocompletePanel();
-        if (event.target === textarea || panel.contains(event.target)) return;
-        hideIngredientAutocomplete();
-    });
-
-    window.addEventListener("resize", () => {
-        if (!getIngredientAutocompletePanel().classList.contains("is-hidden")) positionIngredientAutocompletePanel(textarea);
-    });
-}
-
 async function apiFetch(url, options = {}) {
     const response = await fetch(url, options);
     const payload = await response.json().catch(() => null);
     if (!response.ok) throw new Error(payload?.error || "Serverfehler");
     return payload;
+}
+
+function getIngredientLines() {
+    const textarea = document.getElementById("recipe-ingredients");
+    return textarea ? textarea.value.split(/\r?\n/) : [];
+}
+
+function getLineInfoAtCursor(textarea) {
+    const value = textarea.value;
+    const cursor = textarea.selectionStart || 0;
+    const before = value.slice(0, cursor);
+    const lineIndex = before.split(/\r?\n/).length - 1;
+    const lines = value.split(/\r?\n/);
+    return { lineIndex, lineText: lines[lineIndex] || "" };
+}
+
+function invalidateChangedIngredientLinks() {
+    const lines = getIngredientLines();
+    Array.from(ingredientLinksByLine.entries()).forEach(([lineIndex, link]) => {
+        if ((lines[lineIndex] || "").trim() !== (link.raw_text || "").trim()) {
+            ingredientLinksByLine.delete(lineIndex);
+        }
+    });
+}
+
+function getIngredientLinksPayload() {
+    const lines = getIngredientLines();
+    return Array.from(ingredientLinksByLine.entries())
+        .map(([lineIndex, link]) => ({
+            line_index: Number(lineIndex),
+            raw_text: lines[lineIndex] || link.raw_text || "",
+            food_item_id: link.food_item_id
+        }))
+        .filter(link => link.raw_text.trim() && link.food_item_id);
+}
+
+function ensureIngredientAutocompletePanel() {
+    if (ingredientAutocomplete.panel) return ingredientAutocomplete.panel;
+    const panel = document.createElement("div");
+    panel.id = "ingredient-autocomplete-panel";
+    panel.className = "ingredient-autocomplete-panel is-hidden";
+    document.body.appendChild(panel);
+    ingredientAutocomplete.panel = panel;
+    return panel;
+}
+
+function positionIngredientAutocompletePanel(textarea) {
+    const panel = ensureIngredientAutocompletePanel();
+    const rect = textarea.getBoundingClientRect();
+    panel.style.left = `${rect.left + window.scrollX}px`;
+    panel.style.top = `${rect.bottom + window.scrollY + 8}px`;
+    panel.style.width = `${rect.width}px`;
+}
+
+function hideIngredientAutocompletePanel() {
+    const panel = ensureIngredientAutocompletePanel();
+    panel.classList.add("is-hidden");
+    panel.innerHTML = "";
+    ingredientAutocomplete.suggestions = [];
+}
+
+function renderIngredientAutocompletePanel(suggestions) {
+    const panel = ensureIngredientAutocompletePanel();
+    panel.innerHTML = "";
+
+    if (!suggestions.length) {
+        hideIngredientAutocompletePanel();
+        return;
+    }
+
+    suggestions.forEach((item, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `ingredient-autocomplete-option${index === 0 ? " is-active" : ""}`;
+        button.innerHTML = `<span>${item.display_name}</span><small>${item.score === 100 ? "Exakter Treffer" : "Vorschlag"}</small>`;
+        button.addEventListener("mousedown", (event) => {
+            event.preventDefault();
+            selectIngredientSuggestion(item);
+        });
+        panel.appendChild(button);
+    });
+
+    panel.classList.remove("is-hidden");
+}
+
+async function updateIngredientAutocomplete() {
+    const textarea = document.getElementById("recipe-ingredients");
+    if (!textarea) return;
+
+    invalidateChangedIngredientLinks();
+
+    const { lineIndex, lineText } = getLineInfoAtCursor(textarea);
+    ingredientAutocomplete.activeLineIndex = lineIndex;
+    ingredientAutocomplete.activeLineText = lineText;
+
+    if (!lineText.trim() || lineText.trim().length < 2) {
+        hideIngredientAutocompletePanel();
+        return;
+    }
+
+    try {
+        const result = await apiFetch(`${API_URL}/food-items/resolve?q=${encodeURIComponent(lineText)}`);
+        const suggestions = [];
+        if (result.exact) suggestions.push({ ...result.exact, score: 100 });
+        (result.suggestions || []).forEach(item => {
+            if (!suggestions.some(existing => Number(existing.id) === Number(item.id))) suggestions.push(item);
+        });
+
+        ingredientAutocomplete.suggestions = suggestions.slice(0, 5);
+        positionIngredientAutocompletePanel(textarea);
+        renderIngredientAutocompletePanel(ingredientAutocomplete.suggestions);
+    } catch (error) {
+        console.error(error);
+        hideIngredientAutocompletePanel();
+    }
+}
+
+function selectIngredientSuggestion(item) {
+    const textarea = document.getElementById("recipe-ingredients");
+    if (!textarea || ingredientAutocomplete.activeLineIndex === null) return;
+
+    const lines = getIngredientLines();
+    const rawText = lines[ingredientAutocomplete.activeLineIndex] || ingredientAutocomplete.activeLineText || "";
+    ingredientLinksByLine.set(ingredientAutocomplete.activeLineIndex, {
+        line_index: ingredientAutocomplete.activeLineIndex,
+        raw_text: rawText,
+        food_item_id: item.id,
+        display_name: item.display_name
+    });
+
+    hideIngredientAutocompletePanel();
+    showToast(`Zutat mit „${item.display_name}“ verknüpft.`);
+    textarea.focus();
+}
+
+function initIngredientAutocomplete() {
+    const textarea = document.getElementById("recipe-ingredients");
+    if (!textarea) return;
+    ensureIngredientAutocompletePanel();
+
+    textarea.addEventListener("input", () => {
+        resizeTextArea(textarea);
+        window.clearTimeout(updateIngredientAutocomplete.timeoutId);
+        updateIngredientAutocomplete.timeoutId = window.setTimeout(updateIngredientAutocomplete, 180);
+    });
+    textarea.addEventListener("click", updateIngredientAutocomplete);
+    textarea.addEventListener("keyup", updateIngredientAutocomplete);
+    textarea.addEventListener("blur", () => {
+        window.setTimeout(hideIngredientAutocompletePanel, 160);
+    });
+
+    window.addEventListener("resize", () => {
+        if (!ensureIngredientAutocompletePanel().classList.contains("is-hidden")) positionIngredientAutocompletePanel(textarea);
+    });
 }
 
 window.createRecipe = async function() {
@@ -230,7 +218,15 @@ window.createRecipe = async function() {
         const recipe = await apiFetch(`${API_URL}/recipes`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name, calories, portions, mealTypes, ingredients, instructions })
+            body: JSON.stringify({
+                name,
+                calories,
+                portions,
+                mealTypes,
+                ingredients,
+                instructions,
+                ingredientLinks: getIngredientLinksPayload()
+            })
         });
         window.location.href = `/recipeInstructions.html?id=${recipe.id}`;
     } catch (error) {
@@ -240,7 +236,7 @@ window.createRecipe = async function() {
 };
 
 window.onload = function () {
-    initBurgerMenu();
+    if (typeof initBurgerMenu === "function") initBurgerMenu();
     initAutoResize();
     initIngredientAutocomplete();
 };

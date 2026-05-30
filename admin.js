@@ -98,6 +98,123 @@ function renderAdminDeleteButton(item, label = "Artikel endgültig löschen") {
     `;
 }
 
+function escapeJsString(value) {
+    return String(value ?? "")
+        .replace(/\\/g, "\\\\")
+        .replace(/'/g, "\\'")
+        .replace(/\n/g, "\\n")
+        .replace(/\r/g, "");
+}
+
+function renderAdminItemNameButton(item, headingLevel = "h3") {
+    const tag = headingLevel === "h4" ? "h4" : "h3";
+    const itemId = Number(item?.id);
+    const itemName = escapeHtml(item?.name || "Unbenannter Artikel");
+    return `<${tag}><button type="button" class="admin-item-name-button" onclick="openAdminInventoryItemOverlay(${itemId}, '${escapeJsString(item?.name || "")}')" title="Details zu ${itemName} anzeigen">${itemName}</button></${tag}>`;
+}
+
+function getAllPreviewItems() {
+    if (!latestCleanupPreview) return [];
+    const map = new Map();
+    [
+        ...(latestCleanupPreview.inventory_items || []),
+        ...(latestCleanupPreview.orphan_recipe_items || []),
+        ...(latestCleanupPreview.protected_items || [])
+    ].forEach(item => {
+        if (item?.id !== undefined) map.set(Number(item.id), item);
+    });
+    (latestCleanupPreview.possible_duplicates || []).forEach(group => {
+        (group.candidates || []).forEach(item => {
+            if (item?.id !== undefined) map.set(Number(item.id), item);
+        });
+    });
+    return Array.from(map.values());
+}
+
+function findPreviewItem(itemId, fallbackName = "") {
+    return getAllPreviewItems().find(item => Number(item.id) === Number(itemId)) || { id: Number(itemId), name: fallbackName };
+}
+
+function ensureAdminItemModal() {
+    let modal = document.getElementById("admin-item-modal");
+    if (modal) return modal;
+
+    modal = document.createElement("div");
+    modal.id = "admin-item-modal";
+    modal.className = "inventory-modal is-hidden";
+    modal.setAttribute("role", "dialog");
+    modal.setAttribute("aria-modal", "true");
+    modal.setAttribute("aria-labelledby", "admin-item-modal-title");
+    modal.innerHTML = `
+        <div class="inventory-modal-backdrop" onclick="closeAdminItemModal()"></div>
+        <div class="inventory-modal-dialog admin-item-dialog">
+            <div class="inventory-section-headline">
+                <div>
+                    <p class="recipe-kicker">Inventarartikel</p>
+                    <h2 id="admin-item-modal-title">Artikel</h2>
+                </div>
+                <button type="button" class="header-icon-button" onclick="closeAdminItemModal()" title="Fenster schließen" aria-label="Fenster schließen">
+                    <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div id="admin-item-modal-content" class="admin-item-modal-content"></div>
+        </div>`;
+    document.body.appendChild(modal);
+    return modal;
+}
+
+function closeAdminItemModal() {
+    const modal = document.getElementById("admin-item-modal");
+    if (!modal) return;
+    modal.classList.add("is-hidden");
+    document.body.classList.remove("modal-open");
+}
+
+async function openAdminInventoryItemOverlay(itemId, fallbackName = "") {
+    const item = findPreviewItem(itemId, fallbackName);
+    const modal = ensureAdminItemModal();
+    const title = document.getElementById("admin-item-modal-title");
+    const content = document.getElementById("admin-item-modal-content");
+    const itemName = item?.name || fallbackName || "Artikel";
+
+    title.textContent = itemName;
+    content.innerHTML = `<p class="admin-empty-state">Verknüpfte Rezepte werden geladen ...</p>`;
+    modal.classList.remove("is-hidden");
+    document.body.classList.add("modal-open");
+
+    try {
+        const recipes = await apiFetch(`${API_URL}/recipes/by-ingredient/${encodeURIComponent(itemName)}`);
+        const recipeList = Array.isArray(recipes) && recipes.length
+            ? recipes.map(recipe => `
+                <a class="ingredient-recipe-card" href="/recipeInstructions.html?id=${Number(recipe.id)}">
+                    <strong>${escapeHtml(recipe.name)}</strong>
+                    ${recipe.ingredients ? `<span>${escapeHtml(String(recipe.ingredients).split("\n").find(line => line.toLowerCase().includes(String(itemName).toLowerCase())) || "enthält diese Zutat")}</span>` : `<span>enthält diese Zutat</span>`}
+                </a>
+            `).join("")
+            : `<p class="admin-empty-state">Aktuell ist kein Rezept mit diesem Artikel verknüpft.</p>`;
+
+        content.innerHTML = `
+            <div class="recipe-inventory-summary">
+                <strong>${escapeHtml(itemName)}</strong>
+                ${item?.canonical_name ? `<span>${escapeHtml(item.canonical_name)}</span>` : ""}
+            </div>
+            <div class="admin-item-modal-actions">
+                <a class="form-actions-button-like" href="/inventory.html?item=${Number(itemId)}">Zur Artikelbox im Inventar</a>
+            </div>
+            <h3 class="admin-modal-subheadline">Verknüpfte Rezepte</h3>
+            <div class="ingredient-recipes-content">${recipeList}</div>
+        `;
+    } catch (error) {
+        console.error(error);
+        content.innerHTML = `
+            <p class="admin-empty-state">Verknüpfte Rezepte konnten nicht geladen werden.</p>
+            <div class="admin-item-modal-actions">
+                <a class="form-actions-button-like" href="/inventory.html?item=${Number(itemId)}">Zur Artikelbox im Inventar</a>
+            </div>
+        `;
+    }
+}
+
 function renderInventoryItems(items = []) {
     if (!items.length) return `<p class="admin-empty-state">Keine Inventarartikel gefunden.</p>`;
     return items
@@ -109,7 +226,7 @@ function renderInventoryItems(items = []) {
                     <div class="admin-result-card-header admin-result-card-header-compact">
                         <div>
                             <span class="admin-pill">Inventarartikel</span>
-                            <h3>${escapeHtml(item.name)}</h3>
+                            ${renderAdminItemNameButton(item)}
                         </div>
                         <small>${escapeHtml(item.canonical_name || "kein Schlüssel")}</small>
                     </div>
@@ -144,7 +261,7 @@ function renderDuplicates(duplicates = []) {
                             <div class="admin-duplicate-item-head">
                                 <div>
                                     <span class="admin-pill">${Number(item.id) === masterId ? "Vorschlag: behalten" : "Kandidat"}</span>
-                                    <h4>${escapeHtml(item.name)}</h4>
+                                    ${renderAdminItemNameButton(item, "h4")}
                                 </div>
                                 ${renderAdminDeleteButton(item, "Diesen Artikel endgültig löschen")}
                             </div>
@@ -182,7 +299,7 @@ function renderOrphans(orphanItems = []) {
                     <div class="admin-result-card-header admin-result-card-header-compact">
                         <div>
                             <span class="admin-pill">Verwaiste Auto-Zutat</span>
-                            <h3>${escapeHtml(item.name)}</h3>
+                            ${renderAdminItemNameButton(item)}
                         </div>
                         <small>${escapeHtml(item.canonical_name || "")}</small>
                     </div>
@@ -205,7 +322,7 @@ function renderProtected(protectedItems = []) {
                     <div class="admin-result-card-header admin-result-card-header-compact">
                         <div>
                             <span class="admin-pill">Geschützt</span>
-                            <h3>${escapeHtml(item.name)}</h3>
+                            ${renderAdminItemNameButton(item)}
                         </div>
                         <small>${escapeHtml(item.canonical_name || "")}</small>
                     </div>
@@ -307,4 +424,9 @@ async function keepDuplicatePair(itemIdA, itemIdB) {
     }
 }
 
-document.addEventListener("DOMContentLoaded", loadInventoryCleanupPreview);
+document.addEventListener("DOMContentLoaded", () => {
+    loadInventoryCleanupPreview();
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") closeAdminItemModal();
+    });
+});

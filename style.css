@@ -3207,3 +3207,72 @@ body.modal-open .app-header {
         width: 100%;
     }
 }
+
+/* =========================================================
+   ADMIN ↔ INVENTAR DIREKTVERKNÜPFUNG + INVENTAR-HIGHLIGHT
+========================================================= */
+.admin-item-name-button {
+    max-width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.admin-item-name-button:hover,
+.admin-item-name-button:focus-visible {
+    color: var(--color-primary-text);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    outline: none;
+}
+
+.admin-item-dialog {
+    width: min(720px, 100%);
+}
+
+.admin-item-modal-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.admin-item-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-sm);
+}
+
+.admin-modal-subheadline {
+    margin: 6px 0 0;
+    font-size: 16px;
+    font-weight: 900;
+}
+
+.inventory-item-highlight {
+    border-color: var(--color-primary-border) !important;
+    box-shadow: var(--shadow-focus), 0 18px 42px rgba(17, 24, 39, 0.12) !important;
+    animation: inventoryHighlightPulse 1.35s var(--ease-standard) 1;
+}
+
+@keyframes inventoryHighlightPulse {
+    0% { transform: translateY(0); }
+    35% { transform: translateY(-2px); }
+    100% { transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+    .admin-item-modal-actions {
+        justify-content: stretch;
+    }
+
+    .admin-item-modal-actions .form-actions-button-like {
+        width: 100%;
+        text-align: center;
+    }
+}

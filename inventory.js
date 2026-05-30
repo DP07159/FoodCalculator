@@ -1039,7 +1039,7 @@ function renderInventoryList() {
     list.innerHTML = filteredItems.map(item => {
         const status = getExpiryStatus(item.expiry_date);
         return `
-            <article class="inventory-item-card inventory-item-card-detailed inventory-item-card-compact">
+            <article id="inventory-item-${item.id}" class="inventory-item-card inventory-item-card-detailed inventory-item-card-compact">
                 <div class="inventory-item-header">
                     <div class="inventory-item-main">
                         <h3><button type="button" class="inventory-item-name-button" onclick="openRecipesForInventoryItem(${item.id})" title="Rezepte mit ${escapeHtml(item.name)} anzeigen">${escapeHtml(item.name)}</button></h3>
@@ -1081,8 +1081,42 @@ function renderInventoryList() {
     }).join("");
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-    loadInventory();
+
+function openInventoryItemFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const itemId = params.get("item");
+    if (!itemId) return;
+
+    const numericItemId = Number(itemId);
+    if (!Number.isFinite(numericItemId)) return;
+
+    const itemExists = inventoryItems.some(item => Number(item.id) === numericItemId);
+    if (!itemExists) return;
+
+    const searchInput = document.getElementById("inventory-search");
+    const locationFilter = document.getElementById("inventory-location-filter");
+    const stockFilter = document.getElementById("inventory-stock-filter");
+
+    if (searchInput) searchInput.value = "";
+    if (locationFilter) locationFilter.value = "";
+    if (stockFilter) stockFilter.value = "all";
+
+    renderInventoryList();
+
+    const card = document.getElementById(`inventory-item-${numericItemId}`);
+    if (!card) return;
+
+    const controls = document.getElementById(`inventory-controls-${numericItemId}`);
+    if (controls) controls.classList.remove("is-hidden");
+
+    card.classList.add("inventory-item-highlight");
+    window.setTimeout(() => card.classList.remove("inventory-item-highlight"), 2600);
+    window.setTimeout(() => card.scrollIntoView({ behavior: "smooth", block: "center" }), 80);
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+    await loadInventory();
+    openInventoryItemFromUrl();
     updateInventoryStockType();
     setupIntegerOnlyFields();
 

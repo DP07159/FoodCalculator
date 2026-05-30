@@ -1,4 +1,4 @@
-const CACHE_NAME = "food-calculator-v12";
+const CACHE_NAME = "food-calculator-v13";
 
 const FILES_TO_CACHE = [
     "/",
@@ -14,7 +14,9 @@ const FILES_TO_CACHE = [
     "/recipeDetails.js",
     "/recipeCreate.html",
     "/recipeCreate.js",
-    "/manifest.json"
+    "/manifest.json",
+    "/admin.html",
+    "/admin.js"
 ];
 
 self.addEventListener("install", (event) => {

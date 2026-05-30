@@ -3,7 +3,8 @@ const APP_NAVIGATION_LINKS = [
     { label: "Inventar", href: "/inventory.html" },
     { label: "Neues Rezept", href: "/recipeCreate.html" },
     { label: "Rezeptbuch", href: "/index.html#recipe-book" },
-    { label: "Wochenplan", href: "/index.html#meal-plan" }
+    { label: "Wochenplan", href: "/index.html#meal-plan" },
+    { label: "Admin", href: "/admin.html" }
 ];
 
 function renderBurgerMenu() {

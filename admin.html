@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin · Food Calculator</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#f5f7fb">
+</head>
+<body>
+    <header class="app-header">
+        <button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen">
+            <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+        <div class="app-header-title">Food Calculator</div>
+        <div id="burger-dropdown" class="burger-dropdown is-hidden"></div>
+    </header>
+
+    <div class="container">
+        <main class="page-content admin-page">
+            <header class="page-header admin-header">
+                <p class="recipe-kicker">Administration</p>
+                <h1>Admin</h1>
+                <p class="admin-intro">Hier bündeln wir administrative Funktionen. Aktuell verfügbar: eine sichere Vorschau zur Inventar-Bereinigung.</p>
+            </header>
+
+            <section class="section-card admin-card">
+                <div class="admin-card-header">
+                    <div>
+                        <p class="recipe-kicker">Inventar</p>
+                        <h2>Inventar-Bereinigung</h2>
+                        <p>Analysiert mögliche Dubletten und automatisch erzeugte, verwaiste Rezept-Zutaten. Es wird zunächst nichts gelöscht.</p>
+                    </div>
+                    <button type="button" class="recipe-toolbar-toggle-button" onclick="loadInventoryCleanupPreview()" title="Analyse starten" aria-label="Analyse starten">
+                        <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5"/><path d="M20 12a8 8 0 1 1-2.3-5.7L20 8"/></svg>
+                    </button>
+                </div>
+
+                <div id="admin-cleanup-message" class="inventory-overlay-message is-hidden" aria-live="polite"></div>
+                <div id="admin-cleanup-summary" class="admin-summary-grid"></div>
+                <div id="admin-cleanup-results" class="admin-results"></div>
+            </section>
+        </main>
+    </div>
+
+    <div id="app-toast" class="app-toast is-hidden"></div>
+    <script src="navigation.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>

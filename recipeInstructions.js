@@ -32,10 +32,11 @@ function escapeJsString(value) {
     return String(value || "")
         .replace(/\\/g, "\\\\")
         .replace(/'/g, "\\'")
-        .replace(/\"/g, "&quot;")
+        .replace(/"/g, "&quot;")
         .replace(/\n/g, " ")
         .replace(/\r/g, " ");
 }
+
 function isFavoriteRecipe(recipe) {
     return Number(recipe?.is_favorite) === 1;
 }
@@ -475,15 +476,15 @@ async function openIngredientInventoryOverlay(ingredientName, itemId = null) {
             ? await apiFetch(`${API_URL}/inventory/${numericItemId}`)
             : await apiFetch(`${API_URL}/inventory/by-ingredient/${encodeURIComponent(lookupName)}`);
         title.textContent = item.name || lookupName;
+        const inventoryHref = item.id ? `/inventory.html?item=${encodeURIComponent(item.id)}` : "/inventory.html";
         content.innerHTML = `
             <div class="recipe-inventory-summary">
-                <strong>${escapeHtml(item.name || lookupName)}</strong>
+                <a class="recipe-inventory-item-link" href="${inventoryHref}" title="${escapeHtml(item.name || lookupName)} im Inventar öffnen">
+                    ${escapeHtml(item.name || lookupName)}
+                </a>
                 ${item.calories_per_100g !== null && item.calories_per_100g !== undefined ? `<span>${formatNumber(item.calories_per_100g)} kcal / 100 g</span>` : ""}
             </div>
-            <div class="recipe-inventory-stock-list">${getInventoryOverlayRows(item)}</div>
-            <div class="form-actions inventory-actions recipe-inventory-actions">
-                <button type="button" onclick="window.location.href='/inventory.html'">Im Inventar bearbeiten</button>
-            </div>`;
+            <div class="recipe-inventory-stock-list">${getInventoryOverlayRows(item)}</div>`;
     } catch (error) {
         console.error(error);
         content.innerHTML = `

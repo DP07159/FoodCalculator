@@ -41,6 +41,24 @@
                 <div id="admin-cleanup-summary" class="admin-summary-grid"></div>
                 <div id="admin-cleanup-results" class="admin-results"></div>
             </section>
+
+            <section class="section-card admin-card">
+                <div class="admin-card-header">
+                    <div>
+                        <p class="recipe-kicker">Rezepte</p>
+                        <h2>Rezept-Zutaten neu aufbauen</h2>
+                        <p>Parst alle Rezeptzutaten nach den aktuellen Regeln neu. Artikel mit Bestand bleiben geschützt; bestandslose Parse-Altlasten können entfernt werden.</p>
+                    </div>
+                    <button type="button" class="recipe-toolbar-toggle-button" onclick="loadRecipeResyncPreview()" title="Vorschau erstellen" aria-label="Vorschau erstellen">
+                        <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5"/><path d="M20 12a8 8 0 1 1-2.3-5.7L20 8"/></svg>
+                    </button>
+                </div>
+
+                <div id="admin-resync-message" class="inventory-overlay-message is-hidden" aria-live="polite"></div>
+                <div id="admin-resync-summary" class="admin-summary-grid"></div>
+                <div id="admin-resync-results" class="admin-results"></div>
+            </section>
+
         </main>
     </div>
 

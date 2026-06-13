@@ -286,10 +286,9 @@ function renderDuplicates(duplicates = []) {
     if (!duplicates.length) {
         return `<p class="admin-empty-state">Keine möglichen Dubletten gefunden.</p>`;
     }
-    return duplicates.map((group, groupIndex) => {
+    return duplicates.map(group => {
         const masterId = Number(group.suggested_master?.id);
         const candidates = group.candidates || [];
-        const candidateIds = candidates.map(item => Number(item.id)).filter(Number.isFinite);
         return `
             <article class="admin-result-card admin-duplicate-card">
                 <div class="admin-result-card-header">
@@ -302,28 +301,19 @@ function renderDuplicates(duplicates = []) {
                 </div>
 
                 <div class="admin-duplicate-grid">
-                    ${candidates.map(item => {
-                        const itemId = Number(item.id);
-                        const otherIds = candidateIds.filter(id => id !== itemId);
-                        const isSuggestedMaster = itemId === masterId;
-                        return `
-                            <section class="admin-duplicate-item ${isSuggestedMaster ? "is-suggested-master" : ""}">
-                                <div class="admin-duplicate-item-head">
-                                    <div>
-                                        <span class="admin-pill">${isSuggestedMaster ? "Vorschlag: behalten" : "Kandidat"}</span>
-                                        ${renderAdminItemNameButton(item, "h4")}
-                                    </div>
-                                    ${renderAdminDeleteButton(item, "Diesen Artikel endgültig löschen")}
+                    ${candidates.map(item => `
+                        <section class="admin-duplicate-item ${Number(item.id) === masterId ? "is-suggested-master" : ""}">
+                            <div class="admin-duplicate-item-head">
+                                <div>
+                                    <span class="admin-pill">${Number(item.id) === masterId ? "Vorschlag: behalten" : "Kandidat"}</span>
+                                    ${renderAdminItemNameButton(item, "h4")}
                                 </div>
-                                ${renderItemMeta(item)}
-                                <p class="admin-result-note">ID ${itemId} · ${escapeHtml(item.canonical_name || "")}</p>
-                                <div class="admin-duplicate-actions">
-                                    ${!isSuggestedMaster && masterId ? `<button type="button" class="form-actions-button-like" onclick="mergeDuplicateInto(${masterId}, ${itemId})">In Vorschlag zusammenführen</button>` : ""}
-                                    ${otherIds.length ? `<button type="button" class="form-actions-button-like" onclick="mergeDuplicateGroup(${itemId}, [${otherIds.join(",")}])">Diesen behalten</button>` : ""}
-                                </div>
-                            </section>
-                        `;
-                    }).join("")}
+                                ${renderAdminDeleteButton(item, "Diesen Artikel endgültig löschen")}
+                            </div>
+                            ${renderItemMeta(item)}
+                            <p class="admin-result-note">ID ${Number(item.id)} · ${escapeHtml(item.canonical_name || "")}</p>
+                        </section>
+                    `).join("")}
                 </div>
 
                 ${candidates.length === 2 ? `
@@ -331,7 +321,7 @@ function renderDuplicates(duplicates = []) {
                         <p>Diese beiden Artikel sind ähnlich, sollen aber getrennt erhalten bleiben.</p>
                         <button type="button" class="form-actions-button-like" onclick="keepDuplicatePair(${Number(candidates[0].id)}, ${Number(candidates[1].id)})">Beide behalten</button>
                     </div>
-                ` : `<p class="admin-result-note">Bei Gruppen mit mehr als zwei Artikeln kannst du einen Zielartikel wählen und alle anderen dort zusammenführen.</p>`}
+                ` : `<p class="admin-result-note">Bei Gruppen mit mehr als zwei Artikeln bitte einzelne falsche Artikel löschen. Eine „beide behalten“-Entscheidung ist hier bewusst nicht automatisch möglich.</p>`}
             </article>
         `;
     }).join("");
@@ -463,60 +453,6 @@ async function deleteAdminInventoryItem(itemId) {
     }
 }
 
-
-async function mergeDuplicateInto(masterItemId, duplicateItemId) {
-    const master = findPreviewItem(masterItemId);
-    const duplicate = findPreviewItem(duplicateItemId);
-    const masterName = master?.name || `ID ${masterItemId}`;
-    const duplicateName = duplicate?.name || `ID ${duplicateItemId}`;
-    if (!confirm(`Dubletten zusammenführen?\n\nBehalten: „${masterName}“\nZusammenführen und entfernen: „${duplicateName}“\n\nDabei werden Bestände, Rezeptverknüpfungen und Aliase auf den behaltenen Artikel übertragen.`)) return;
-
-    try {
-        const result = await apiFetch(`${API_URL}/admin/duplicates/merge`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                master_item_id: Number(masterItemId),
-                duplicate_item_id: Number(duplicateItemId)
-            })
-        });
-        renderCleanupPreview(result.preview);
-        showToast(`„${duplicateName}“ wurde in „${masterName}“ zusammengeführt.`);
-    } catch (error) {
-        console.error(error);
-        setAdminMessage(error.message || "Dubletten konnten nicht zusammengeführt werden.");
-    }
-}
-
-async function mergeDuplicateGroup(masterItemId, duplicateIds = []) {
-    const master = findPreviewItem(masterItemId);
-    const masterName = master?.name || `ID ${masterItemId}`;
-    const ids = (Array.isArray(duplicateIds) ? duplicateIds : []).map(Number).filter(id => Number.isFinite(id) && id !== Number(masterItemId));
-    if (!ids.length) return;
-    if (!confirm(`Alle anderen Artikel dieser Gruppe in „${masterName}“ zusammenführen?\n\nAnzahl zu entfernender Artikel: ${ids.length}\n\nBestände, Rezeptverknüpfungen und Aliase werden übernommen.`)) return;
-
-    try {
-        let latestPreview = null;
-        for (const duplicateId of ids) {
-            const result = await apiFetch(`${API_URL}/admin/duplicates/merge`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    master_item_id: Number(masterItemId),
-                    duplicate_item_id: Number(duplicateId)
-                })
-            });
-            latestPreview = result.preview;
-        }
-        if (latestPreview) renderCleanupPreview(latestPreview);
-        showToast(`${ids.length} Artikel zusammengeführt.`);
-    } catch (error) {
-        console.error(error);
-        setAdminMessage(error.message || "Dubletten-Gruppe konnte nicht vollständig zusammengeführt werden.");
-        await loadInventoryCleanupPreview();
-    }
-}
-
 async function keepDuplicatePair(itemIdA, itemIdB) {
     if (!confirm("Diese zwei Artikel künftig nicht mehr als Dublette vorschlagen?")) return;
     try {
@@ -539,3 +475,135 @@ document.addEventListener("DOMContentLoaded", () => {
         if (event.key === "Escape") closeAdminItemModal();
     });
 });
+
+let latestRecipeResyncPreview = null;
+
+function setAdminResyncMessage(message, type = "error") {
+    const box = document.getElementById("admin-resync-message");
+    if (!box) return;
+    box.textContent = message || "";
+    box.classList.toggle("is-hidden", !message);
+    box.dataset.type = type;
+}
+
+function renderRecipeResyncSummary(preview) {
+    const target = document.getElementById("admin-resync-summary");
+    if (!target) return;
+    const counts = preview?.counts || {};
+    const cards = [
+        ["Rezepte", counts.recipes ?? 0],
+        ["Erkannte Zutaten", counts.parsed_ingredients ?? 0],
+        ["Neu anzulegen", counts.create_new ?? 0],
+        ["Altlasten löschbar", counts.delete_candidates ?? 0]
+    ];
+    target.innerHTML = cards.map(([label, count]) => `
+        <div class="admin-summary-card">
+            <span>${escapeHtml(label)}</span>
+            <strong>${Number(count) || 0}</strong>
+        </div>
+    `).join("");
+}
+
+function renderRecipeResyncTargetItems(items = []) {
+    if (!items.length) return `<p class="admin-empty-state">Keine Rezept-Zutaten erkannt.</p>`;
+    return items.slice(0, 80).map(item => {
+        const occurrenceCount = Array.isArray(item.occurrences) ? item.occurrences.length : 0;
+        return `
+            <article class="admin-result-card admin-item-row">
+                <div>
+                    <div class="admin-result-card-header admin-result-card-header-compact">
+                        <div>
+                            <span class="admin-pill">${item.action === "create_new" ? "wird neu angelegt" : "wird verknüpft"}</span>
+                            <h3>${escapeHtml(item.display_name)}</h3>
+                        </div>
+                        <small>${escapeHtml(item.canonical_key || "")}</small>
+                    </div>
+                    <div class="admin-item-meta">
+                        <span class="inventory-summary-chip">${occurrenceCount} Rezept-Vorkommen</span>
+                        ${item.existing_item ? `<span class="inventory-summary-chip">Ziel: ${escapeHtml(item.existing_item.name)}</span>` : ""}
+                        ${item.will_rename_existing ? `<span class="inventory-summary-chip">Altlast wird umbenannt</span>` : ""}
+                    </div>
+                </div>
+            </article>
+        `;
+    }).join("") + (items.length > 80 ? `<p class="admin-result-note">Weitere ${items.length - 80} Einträge werden nach Ausführung ebenfalls verarbeitet.</p>` : "");
+}
+
+function renderRecipeResyncDeleteCandidates(items = []) {
+    if (!items.length) return `<p class="admin-empty-state">Keine bestandslosen Parse-Altlasten zum Löschen gefunden.</p>`;
+    return items.slice(0, 80).map(item => `
+        <article class="admin-result-card admin-item-row">
+            <div>
+                <div class="admin-result-card-header admin-result-card-header-compact">
+                    <div>
+                        <span class="admin-pill">wird gelöscht</span>
+                        <h3>${escapeHtml(item.name)}</h3>
+                    </div>
+                    <small>${escapeHtml(item.canonical_name || item.effective_canonical_name || "")}</small>
+                </div>
+                <div class="admin-item-meta">
+                    <span class="inventory-summary-chip inventory-summary-empty">Bestand 0</span>
+                    <span class="inventory-summary-chip">aus Rezept-Parse</span>
+                </div>
+            </div>
+        </article>
+    `).join("") + (items.length > 80 ? `<p class="admin-result-note">Weitere ${items.length - 80} Löschkandidaten werden nach Ausführung ebenfalls verarbeitet.</p>` : "");
+}
+
+function renderRecipeResyncPreview(preview) {
+    latestRecipeResyncPreview = preview;
+    renderRecipeResyncSummary(preview);
+    const target = document.getElementById("admin-resync-results");
+    if (!target) return;
+    if (!preview) {
+        target.innerHTML = `<p class="admin-empty-state">Noch keine Vorschau geladen.</p>`;
+        return;
+    }
+    target.innerHTML = `
+        <section class="admin-result-section">
+            <h2>Vorschau</h2>
+            <p class="admin-result-note">Es werden nur bestandslose automatisch erzeugte Parse-Artikel entfernt. Artikel mit Bestand bleiben geschützt.</p>
+            <div class="admin-action-row admin-action-row-neutral">
+                <p>Wenn die Vorschau plausibel ist, kannst du die Rezept-Zutaten neu aufbauen.</p>
+                <button type="button" class="form-actions-button-like" onclick="applyRecipeResync()">Synchronisierung ausführen</button>
+            </div>
+        </section>
+        <section class="admin-result-section">
+            <h2>Zielartikel</h2>
+            ${renderRecipeResyncTargetItems(preview.target_items || [])}
+        </section>
+        <section class="admin-result-section">
+            <h2>Löschbare Altlasten</h2>
+            ${renderRecipeResyncDeleteCandidates(preview.delete_candidates || [])}
+        </section>
+    `;
+}
+
+async function loadRecipeResyncPreview() {
+    setAdminResyncMessage("");
+    const target = document.getElementById("admin-resync-results");
+    if (target) target.innerHTML = `<p class="admin-empty-state">Vorschau wird erstellt ...</p>`;
+    try {
+        const preview = await apiFetch(`${API_URL}/admin/recipe-resync-preview`);
+        renderRecipeResyncPreview(preview);
+        showToast("Vorschau erstellt.");
+    } catch (error) {
+        console.error(error);
+        setAdminResyncMessage(error.message || "Vorschau konnte nicht erstellt werden.");
+    }
+}
+
+async function applyRecipeResync() {
+    const deleteCount = Number(latestRecipeResyncPreview?.counts?.delete_candidates || 0);
+    const createCount = Number(latestRecipeResyncPreview?.counts?.create_new || 0);
+    if (!confirm(`Rezept-Zutaten wirklich neu aufbauen?\n\nNeu anzulegen: ${createCount}\nBestandslose Altlasten löschen: ${deleteCount}\n\nArtikel mit Bestand bleiben geschützt.`)) return;
+    try {
+        const result = await apiFetch(`${API_URL}/admin/recipe-resync-apply`, { method: "POST" });
+        renderRecipeResyncPreview(result.preview);
+        if (result.cleanup_preview) renderCleanupPreview(result.cleanup_preview);
+        showToast(`Synchronisierung abgeschlossen: ${result.result?.linked_ingredients || 0} Zutaten verknüpft.`);
+    } catch (error) {
+        console.error(error);
+        setAdminResyncMessage(error.message || "Synchronisierung konnte nicht ausgeführt werden.");
+    }
+}

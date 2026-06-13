@@ -289,6 +289,7 @@ function renderDuplicates(duplicates = []) {
     return duplicates.map(group => {
         const masterId = Number(group.suggested_master?.id);
         const candidates = group.candidates || [];
+        const candidateIds = candidates.map(item => Number(item.id)).filter(Number.isFinite);
         return `
             <article class="admin-result-card admin-duplicate-card">
                 <div class="admin-result-card-header">
@@ -301,19 +302,27 @@ function renderDuplicates(duplicates = []) {
                 </div>
 
                 <div class="admin-duplicate-grid">
-                    ${candidates.map(item => `
-                        <section class="admin-duplicate-item ${Number(item.id) === masterId ? "is-suggested-master" : ""}">
+                    ${candidates.map(item => {
+                        const itemId = Number(item.id);
+                        const otherIds = candidateIds.filter(id => id !== itemId);
+                        return `
+                        <section class="admin-duplicate-item ${itemId === masterId ? "is-suggested-master" : ""}">
                             <div class="admin-duplicate-item-head">
                                 <div>
-                                    <span class="admin-pill">${Number(item.id) === masterId ? "Vorschlag: behalten" : "Kandidat"}</span>
+                                    <span class="admin-pill">${itemId === masterId ? "Vorschlag: behalten" : "Kandidat"}</span>
                                     ${renderAdminItemNameButton(item, "h4")}
                                 </div>
                                 ${renderAdminDeleteButton(item, "Diesen Artikel endgültig löschen")}
                             </div>
                             ${renderItemMeta(item)}
-                            <p class="admin-result-note">ID ${Number(item.id)} · ${escapeHtml(item.canonical_name || "")}</p>
-                        </section>
-                    `).join("")}
+                            <p class="admin-result-note">ID ${itemId} · ${escapeHtml(item.canonical_name || "")}</p>
+                            ${otherIds.length ? `
+                                <button type="button" class="form-actions-button-like" onclick="mergeDuplicateGroupKeeping(${itemId}, [${otherIds.join(",")}])">
+                                    Diesen Artikel behalten
+                                </button>
+                            ` : ""}
+                        </section>`;
+                    }).join("")}
                 </div>
 
                 ${candidates.length === 2 ? `
@@ -321,7 +330,7 @@ function renderDuplicates(duplicates = []) {
                         <p>Diese beiden Artikel sind ähnlich, sollen aber getrennt erhalten bleiben.</p>
                         <button type="button" class="form-actions-button-like" onclick="keepDuplicatePair(${Number(candidates[0].id)}, ${Number(candidates[1].id)})">Beide behalten</button>
                     </div>
-                ` : `<p class="admin-result-note">Bei Gruppen mit mehr als zwei Artikeln bitte einzelne falsche Artikel löschen. Eine „beide behalten“-Entscheidung ist hier bewusst nicht automatisch möglich.</p>`}
+                ` : `<p class="admin-result-note">Bei Gruppen mit mehr als zwei Artikeln kannst du über „Diesen Artikel behalten“ alle anderen Kandidaten in diesen Artikel überführen.</p>`}
             </article>
         `;
     }).join("");
@@ -469,6 +478,25 @@ async function keepDuplicatePair(itemIdA, itemIdB) {
     }
 }
 
+
+async function mergeDuplicateGroupKeeping(masterItemId, duplicateItemIds = []) {
+    const ids = Array.isArray(duplicateItemIds) ? duplicateItemIds.map(Number).filter(Number.isFinite) : [];
+    if (!ids.length) return;
+    if (!confirm(`Diesen Artikel behalten und ${ids.length} Dubletten in ihn überführen?\n\nBestände, Rezeptverknüpfungen und Aliase werden übernommen.`)) return;
+    try {
+        const result = await apiFetch(`${API_URL}/admin/duplicates/merge-all`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ master_item_id: Number(masterItemId), duplicate_item_ids: ids })
+        });
+        renderCleanupPreview(result.preview);
+        showToast(`${result.merged?.merged_items?.length || ids.length} Dubletten zusammengeführt.`);
+    } catch (error) {
+        console.error(error);
+        setAdminMessage(error.message || "Dubletten konnten nicht zusammengeführt werden.");
+    }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     loadInventoryCleanupPreview();
     document.addEventListener("keydown", (event) => {
@@ -494,7 +522,8 @@ function renderRecipeResyncSummary(preview) {
         ["Rezepte", counts.recipes ?? 0],
         ["Erkannte Zutaten", counts.parsed_ingredients ?? 0],
         ["Neu anzulegen", counts.create_new ?? 0],
-        ["Altlasten löschbar", counts.delete_candidates ?? 0]
+        ["Auto-Altlasten löschbar", counts.delete_candidates ?? 0],
+        ["Großer Neuaufbau: löschbar", counts.full_rebuild_delete_candidates ?? counts.delete_candidates ?? 0]
     ];
     target.innerHTML = cards.map(([label, count]) => `
         <div class="admin-summary-card">
@@ -529,8 +558,8 @@ function renderRecipeResyncTargetItems(items = []) {
     }).join("") + (items.length > 80 ? `<p class="admin-result-note">Weitere ${items.length - 80} Einträge werden nach Ausführung ebenfalls verarbeitet.</p>` : "");
 }
 
-function renderRecipeResyncDeleteCandidates(items = []) {
-    if (!items.length) return `<p class="admin-empty-state">Keine bestandslosen Parse-Altlasten zum Löschen gefunden.</p>`;
+function renderRecipeResyncDeleteCandidates(items = [], modeLabel = "aus Rezept-Parse") {
+    if (!items.length) return `<p class="admin-empty-state">Keine bestandslosen Altlasten zum Löschen gefunden.</p>`;
     return items.slice(0, 80).map(item => `
         <article class="admin-result-card admin-item-row">
             <div>
@@ -543,7 +572,8 @@ function renderRecipeResyncDeleteCandidates(items = []) {
                 </div>
                 <div class="admin-item-meta">
                     <span class="inventory-summary-chip inventory-summary-empty">Bestand 0</span>
-                    <span class="inventory-summary-chip">aus Rezept-Parse</span>
+                    <span class="inventory-summary-chip">${escapeHtml(modeLabel)}</span>
+                    ${item.source ? `<span class="inventory-summary-chip">Quelle: ${escapeHtml(formatSourceLabel(item.source))}</span>` : ""}
                 </div>
             </div>
         </article>
@@ -562,10 +592,14 @@ function renderRecipeResyncPreview(preview) {
     target.innerHTML = `
         <section class="admin-result-section">
             <h2>Vorschau</h2>
-            <p class="admin-result-note">Es werden nur bestandslose automatisch erzeugte Parse-Artikel entfernt. Artikel mit Bestand bleiben geschützt.</p>
+            <p class="admin-result-note">Artikel mit Bestand bleiben immer geschützt. Du kannst entweder nur Auto-Altlasten entfernen oder den großen Neuaufbau für alle nicht verwendeten Bestand-0-Artikel starten.</p>
             <div class="admin-action-row admin-action-row-neutral">
-                <p>Wenn die Vorschau plausibel ist, kannst du die Rezept-Zutaten neu aufbauen.</p>
-                <button type="button" class="form-actions-button-like" onclick="applyRecipeResync()">Synchronisierung ausführen</button>
+                <p>Standard: Rezept-Zutaten neu aufbauen und nur bestandslose automatisch erzeugte Parse-Altlasten löschen.</p>
+                <button type="button" class="form-actions-button-like" onclick="applyRecipeResync(false)">Standard-Synchronisierung ausführen</button>
+            </div>
+            <div class="admin-action-row">
+                <p>Großer Neuaufbau: Rezept-Zutaten neu aufbauen und alle nicht verwendeten Artikel mit Bestand 0 löschen. Artikel mit Bestand bleiben geschützt.</p>
+                <button type="button" class="form-actions-button-like" onclick="applyRecipeResync(true)">Großen Neuaufbau ausführen</button>
             </div>
         </section>
         <section class="admin-result-section">
@@ -573,8 +607,13 @@ function renderRecipeResyncPreview(preview) {
             ${renderRecipeResyncTargetItems(preview.target_items || [])}
         </section>
         <section class="admin-result-section">
-            <h2>Löschbare Altlasten</h2>
-            ${renderRecipeResyncDeleteCandidates(preview.delete_candidates || [])}
+            <h2>Löschbare Auto-Altlasten</h2>
+            ${renderRecipeResyncDeleteCandidates(preview.delete_candidates || [], "aus Rezept-Parse")}
+        </section>
+        <section class="admin-result-section">
+            <h2>Großer Neuaufbau: löschbare Bestand-0-Artikel</h2>
+            <p class="admin-result-note">Diese Liste ist breiter: Sie umfasst alle aktuell nicht als Zielartikel verwendeten Artikel mit Bestand 0. Bitte nur ausführen, wenn du genau diesen vollständigen Neuaufbau möchtest.</p>
+            ${renderRecipeResyncDeleteCandidates(preview.full_rebuild_delete_candidates || preview.delete_candidates || [], "Bestand 0")}
         </section>
     `;
 }
@@ -593,12 +632,22 @@ async function loadRecipeResyncPreview() {
     }
 }
 
-async function applyRecipeResync() {
-    const deleteCount = Number(latestRecipeResyncPreview?.counts?.delete_candidates || 0);
+async function applyRecipeResync(deleteAllZeroStock = false) {
+    const standardDeleteCount = Number(latestRecipeResyncPreview?.counts?.delete_candidates || 0);
+    const fullDeleteCount = Number(latestRecipeResyncPreview?.counts?.full_rebuild_delete_candidates || standardDeleteCount);
+    const deleteCount = deleteAllZeroStock ? fullDeleteCount : standardDeleteCount;
     const createCount = Number(latestRecipeResyncPreview?.counts?.create_new || 0);
-    if (!confirm(`Rezept-Zutaten wirklich neu aufbauen?\n\nNeu anzulegen: ${createCount}\nBestandslose Altlasten löschen: ${deleteCount}\n\nArtikel mit Bestand bleiben geschützt.`)) return;
+    const headline = deleteAllZeroStock ? "Großen Neuaufbau wirklich ausführen?" : "Rezept-Zutaten wirklich neu aufbauen?";
+    const detail = deleteAllZeroStock
+        ? "Alle nicht verwendeten Artikel mit Bestand 0 werden gelöscht. Artikel mit Bestand bleiben geschützt."
+        : "Nur bestandslose automatisch erzeugte Parse-Altlasten werden gelöscht. Artikel mit Bestand bleiben geschützt.";
+    if (!confirm(`${headline}\n\nNeu anzulegen: ${createCount}\nZu löschen: ${deleteCount}\n\n${detail}`)) return;
     try {
-        const result = await apiFetch(`${API_URL}/admin/recipe-resync-apply`, { method: "POST" });
+        const result = await apiFetch(`${API_URL}/admin/recipe-resync-apply`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ delete_all_zero_stock: Boolean(deleteAllZeroStock) })
+        });
         renderRecipeResyncPreview(result.preview);
         if (result.cleanup_preview) renderCleanupPreview(result.cleanup_preview);
         showToast(`Synchronisierung abgeschlossen: ${result.result?.linked_ingredients || 0} Zutaten verknüpft.`);

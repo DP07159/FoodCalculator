@@ -1,4 +1,4 @@
-const CACHE_NAME = "food-calculator-v11-admin-resync";
+const CACHE_NAME = "food-calculator-v12-admin-merge-full-rebuild";
 
 const FILES_TO_CACHE = [
     "/",

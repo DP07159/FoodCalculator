@@ -1,4 +1,4 @@
-const CACHE_NAME = "food-calculator-v11-recipe-links";
+const CACHE_NAME = "food-calculator-v11-admin-merge-cleanup";
 
 const FILES_TO_CACHE = [
     "/",
@@ -12,7 +12,11 @@ const FILES_TO_CACHE = [
     "/recipeDetails.js",
     "/recipeCreate.html",
     "/recipeCreate.js",
-    "/manifest.json"
+    "/manifest.json",
+    "/admin.html",
+    "/admin.js",
+    "/inventory.html",
+    "/inventory.js"
 ];
 
 self.addEventListener("install", (event) => {

@@ -286,9 +286,10 @@ function renderDuplicates(duplicates = []) {
     if (!duplicates.length) {
         return `<p class="admin-empty-state">Keine möglichen Dubletten gefunden.</p>`;
     }
-    return duplicates.map(group => {
+    return duplicates.map((group, groupIndex) => {
         const masterId = Number(group.suggested_master?.id);
         const candidates = group.candidates || [];
+        const candidateIds = candidates.map(item => Number(item.id)).filter(Number.isFinite);
         return `
             <article class="admin-result-card admin-duplicate-card">
                 <div class="admin-result-card-header">
@@ -301,19 +302,28 @@ function renderDuplicates(duplicates = []) {
                 </div>
 
                 <div class="admin-duplicate-grid">
-                    ${candidates.map(item => `
-                        <section class="admin-duplicate-item ${Number(item.id) === masterId ? "is-suggested-master" : ""}">
-                            <div class="admin-duplicate-item-head">
-                                <div>
-                                    <span class="admin-pill">${Number(item.id) === masterId ? "Vorschlag: behalten" : "Kandidat"}</span>
-                                    ${renderAdminItemNameButton(item, "h4")}
+                    ${candidates.map(item => {
+                        const itemId = Number(item.id);
+                        const otherIds = candidateIds.filter(id => id !== itemId);
+                        const isSuggestedMaster = itemId === masterId;
+                        return `
+                            <section class="admin-duplicate-item ${isSuggestedMaster ? "is-suggested-master" : ""}">
+                                <div class="admin-duplicate-item-head">
+                                    <div>
+                                        <span class="admin-pill">${isSuggestedMaster ? "Vorschlag: behalten" : "Kandidat"}</span>
+                                        ${renderAdminItemNameButton(item, "h4")}
+                                    </div>
+                                    ${renderAdminDeleteButton(item, "Diesen Artikel endgültig löschen")}
                                 </div>
-                                ${renderAdminDeleteButton(item, "Diesen Artikel endgültig löschen")}
-                            </div>
-                            ${renderItemMeta(item)}
-                            <p class="admin-result-note">ID ${Number(item.id)} · ${escapeHtml(item.canonical_name || "")}</p>
-                        </section>
-                    `).join("")}
+                                ${renderItemMeta(item)}
+                                <p class="admin-result-note">ID ${itemId} · ${escapeHtml(item.canonical_name || "")}</p>
+                                <div class="admin-duplicate-actions">
+                                    ${!isSuggestedMaster && masterId ? `<button type="button" class="form-actions-button-like" onclick="mergeDuplicateInto(${masterId}, ${itemId})">In Vorschlag zusammenführen</button>` : ""}
+                                    ${otherIds.length ? `<button type="button" class="form-actions-button-like" onclick="mergeDuplicateGroup(${itemId}, [${otherIds.join(",")}])">Diesen behalten</button>` : ""}
+                                </div>
+                            </section>
+                        `;
+                    }).join("")}
                 </div>
 
                 ${candidates.length === 2 ? `
@@ -321,7 +331,7 @@ function renderDuplicates(duplicates = []) {
                         <p>Diese beiden Artikel sind ähnlich, sollen aber getrennt erhalten bleiben.</p>
                         <button type="button" class="form-actions-button-like" onclick="keepDuplicatePair(${Number(candidates[0].id)}, ${Number(candidates[1].id)})">Beide behalten</button>
                     </div>
-                ` : `<p class="admin-result-note">Bei Gruppen mit mehr als zwei Artikeln bitte einzelne falsche Artikel löschen. Eine „beide behalten“-Entscheidung ist hier bewusst nicht automatisch möglich.</p>`}
+                ` : `<p class="admin-result-note">Bei Gruppen mit mehr als zwei Artikeln kannst du einen Zielartikel wählen und alle anderen dort zusammenführen.</p>`}
             </article>
         `;
     }).join("");
@@ -450,6 +460,60 @@ async function deleteAdminInventoryItem(itemId) {
     } catch (error) {
         console.error(error);
         setAdminMessage(error.message || "Artikel konnte nicht gelöscht werden.");
+    }
+}
+
+
+async function mergeDuplicateInto(masterItemId, duplicateItemId) {
+    const master = findPreviewItem(masterItemId);
+    const duplicate = findPreviewItem(duplicateItemId);
+    const masterName = master?.name || `ID ${masterItemId}`;
+    const duplicateName = duplicate?.name || `ID ${duplicateItemId}`;
+    if (!confirm(`Dubletten zusammenführen?\n\nBehalten: „${masterName}“\nZusammenführen und entfernen: „${duplicateName}“\n\nDabei werden Bestände, Rezeptverknüpfungen und Aliase auf den behaltenen Artikel übertragen.`)) return;
+
+    try {
+        const result = await apiFetch(`${API_URL}/admin/duplicates/merge`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                master_item_id: Number(masterItemId),
+                duplicate_item_id: Number(duplicateItemId)
+            })
+        });
+        renderCleanupPreview(result.preview);
+        showToast(`„${duplicateName}“ wurde in „${masterName}“ zusammengeführt.`);
+    } catch (error) {
+        console.error(error);
+        setAdminMessage(error.message || "Dubletten konnten nicht zusammengeführt werden.");
+    }
+}
+
+async function mergeDuplicateGroup(masterItemId, duplicateIds = []) {
+    const master = findPreviewItem(masterItemId);
+    const masterName = master?.name || `ID ${masterItemId}`;
+    const ids = (Array.isArray(duplicateIds) ? duplicateIds : []).map(Number).filter(id => Number.isFinite(id) && id !== Number(masterItemId));
+    if (!ids.length) return;
+    if (!confirm(`Alle anderen Artikel dieser Gruppe in „${masterName}“ zusammenführen?\n\nAnzahl zu entfernender Artikel: ${ids.length}\n\nBestände, Rezeptverknüpfungen und Aliase werden übernommen.`)) return;
+
+    try {
+        let latestPreview = null;
+        for (const duplicateId of ids) {
+            const result = await apiFetch(`${API_URL}/admin/duplicates/merge`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    master_item_id: Number(masterItemId),
+                    duplicate_item_id: Number(duplicateId)
+                })
+            });
+            latestPreview = result.preview;
+        }
+        if (latestPreview) renderCleanupPreview(latestPreview);
+        showToast(`${ids.length} Artikel zusammengeführt.`);
+    } catch (error) {
+        console.error(error);
+        setAdminMessage(error.message || "Dubletten-Gruppe konnte nicht vollständig zusammengeführt werden.");
+        await loadInventoryCleanupPreview();
     }
 }
 

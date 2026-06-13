@@ -1,4 +1,4 @@
-const CACHE_NAME = "food-calculator-v11-admin-merge-cleanup";
+const CACHE_NAME = "food-calculator-v12-admin-merge-cleanup-style-restore";
 
 const FILES_TO_CACHE = [
     "/",

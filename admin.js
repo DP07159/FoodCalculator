@@ -1325,7 +1325,6 @@ const ADMIN_STUDIO_TABLES = [
     { key: "recipe_ingredients", label: "Rezept-Zutaten", purpose: "Zutatenzeilen und Verknüpfungen" },
     { key: "inventory_items", label: "Inventarartikel", purpose: "sichtbare Inventarartikel" },
     { key: "inventory_batches", label: "Einheiten", purpose: "Packungs-/Bestandseinheiten" },
-    { key: "inventory_loose_stock", label: "Freie Mengen", purpose: "aggregierte freie Mengen" },
     { key: "recipes", label: "Rezepte", purpose: "Rezept-Stammdaten" }
 ];
 
@@ -1374,7 +1373,6 @@ function getAdminStudioPriorityColumns(tableName, columns) {
         recipe_ingredients: ["id", "recipe_name", "line_index", "raw_text", "amount", "unit", "food_item_id", "linked_food_item"],
         inventory_items: ["id", "name", "food_item_id", "display_name", "standard_unit", "kcal_100g", "source"],
         inventory_batches: ["id", "inventory_item_id", "item_name", "quantity", "unit_amount", "unit", "location", "expiry_date"],
-        inventory_loose_stock: ["id", "inventory_item_id", "item_name", "amount", "unit", "location", "expiry_date"],
         recipes: ["id", "name", "calories", "portions", "meal_types"]
     };
     const desired = priority[tableName] || [];
@@ -1451,7 +1449,6 @@ function renderAdminStudioQualityHints(tableName) {
         recipe_ingredients: ["Hier lassen sich falsche Rezept-Zutat-Verknüpfungen reparieren.", "Unverknüpfte Zeilen sind Kandidaten für Prüfung oder bewusste Neuanlage."],
         inventory_items: ["Inventarartikel sollten auf food_item_id verweisen.", "Artikel mit Bestand sind besonders schützenswert."],
         inventory_batches: ["Packungseinheiten prüfen: Lagerort und Ablaufdatum sind für Bestandsqualität wichtig."],
-        inventory_loose_stock: ["Freie Mengen werden pro Lagerort/Ablaufdatum getrennt geführt."],
         recipes: ["Rezeptdaten sind Grundlage für Sync, Bestand und spätere Kalorienberechnung."]
     };
     const items = hints[tableName] || ["Diese Tabelle dient der Diagnose und Datenprüfung."];

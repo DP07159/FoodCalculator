@@ -97,7 +97,7 @@ function renderAdminSystemResults(status) {
         <section class="admin-result-section">
             <h2>Tabellen</h2>
             ${tables.length ? tables.map(table => `
-                <article class="admin-result-card admin-item-row">
+                <button type="button" class="admin-result-card admin-item-row admin-table-card" data-admin-table="${escapeHtml(table.name)}" title="Tabelle ${escapeHtml(table.name)} öffnen">
                     <div>
                         <div class="admin-result-card-header admin-result-card-header-compact">
                             <div>
@@ -107,7 +107,8 @@ function renderAdminSystemResults(status) {
                             <small>${Number(table.count || 0)} Einträge</small>
                         </div>
                     </div>
-                </article>
+                    <span class="admin-table-open-indicator" aria-hidden="true">Öffnen</span>
+                </button>
             `).join("") : `<p class="admin-empty-state">Keine Tabelleninformationen verfügbar.</p>`}
         </section>
     `;
@@ -585,8 +586,20 @@ async function mergeDuplicateGroupKeeping(masterItemId, duplicateItemIds = []) {
 document.addEventListener("DOMContentLoaded", () => {
     loadAdminSystemStatus();
     loadInventoryCleanupPreview();
+
+    document.addEventListener("click", (event) => {
+        const tableButton = event.target.closest("[data-admin-table]");
+        if (tableButton) {
+            event.preventDefault();
+            const tableName = tableButton.dataset.adminTable;
+            if (tableName) openAdminTableModal(tableName);
+        }
+    });
+
     document.addEventListener("keydown", (event) => {
-        if (event.key === "Escape") closeAdminItemModal();
+        if (event.key !== "Escape") return;
+        closeAdminTableModal();
+        closeAdminItemModal();
     });
 });
 
@@ -742,3 +755,101 @@ async function applyRecipeResync(deleteAllZeroStock = false) {
         setAdminResyncMessage(error.message || "Synchronisierung konnte nicht ausgeführt werden.");
     }
 }
+
+
+function setAdminTableMessage(message, type = "error") {
+    const box = document.getElementById("admin-table-message");
+    if (!box) return;
+    box.textContent = message || "";
+    box.classList.toggle("is-hidden", !message);
+    box.dataset.type = type;
+}
+
+function closeAdminTableModal() {
+    const modal = document.getElementById("admin-table-modal");
+    if (modal) modal.classList.add("is-hidden");
+    document.body.classList.remove("modal-open");
+}
+
+function formatAdminTableCell(value) {
+    if (value === null || value === undefined || value === "") return `<span class="admin-table-empty">—</span>`;
+    if (typeof value === "number") return escapeHtml(Number.isInteger(value) ? String(value) : String(Number(value.toFixed(3))));
+    const text = String(value);
+    if (/^\d{4}-\d{2}-\d{2}T/.test(text) || /^\d{4}-\d{2}-\d{2} /.test(text)) return escapeHtml(formatGermanDateTime(text));
+    return escapeHtml(text);
+}
+
+function getAdminTableDescription(tableName) {
+    const descriptions = {
+        food_aliases: "Alias-Zuordnungen: welche Schreibweisen auf welchen Lebensmittel-Stammsatz zeigen.",
+        food_items: "Lebensmittel-Stammdaten: kanonische Lebensmittel, Aliase und Rezeptverknüpfungen.",
+        recipe_ingredients: "Strukturierte Rezeptzutaten inklusive expliziter Verknüpfung zum Lebensmittel-Stammsatz.",
+        inventory_items: "Inventarartikel inklusive Bestandsübersicht aus Einheiten und freien Mengen."
+    };
+    return descriptions[tableName] || "Direkte Tabellenansicht zur Datenprüfung.";
+}
+
+function renderAdminTablePreview(preview) {
+    const title = document.getElementById("admin-table-title");
+    const subtitle = document.getElementById("admin-table-subtitle");
+    const content = document.getElementById("admin-table-content");
+    if (title) title.textContent = preview.table || "Tabelle";
+    if (subtitle) subtitle.textContent = `${getAdminTableDescription(preview.table)} · ${Number(preview.total_count || 0)} Einträge insgesamt · Anzeige max. ${Number(preview.limit || 0)}`;
+    if (!content) return;
+
+    const columns = Array.isArray(preview.columns) ? preview.columns : [];
+    const rows = Array.isArray(preview.rows) ? preview.rows : [];
+
+    if (!rows.length) {
+        content.innerHTML = `<p class="admin-empty-state">Keine Einträge in dieser Tabelle.</p>`;
+        return;
+    }
+
+    content.innerHTML = `
+        <div class="admin-table-scroll">
+            <table class="admin-data-table">
+                <thead>
+                    <tr>${columns.map(column => `<th>${escapeHtml(column)}</th>`).join("")}</tr>
+                </thead>
+                <tbody>
+                    ${rows.map(row => `
+                        <tr>
+                            ${columns.map(column => `<td>${formatAdminTableCell(row[column])}</td>`).join("")}
+                        </tr>
+                    `).join("")}
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
+async function openAdminTableModal(tableName) {
+    const modal = document.getElementById("admin-table-modal");
+    const content = document.getElementById("admin-table-content");
+    const title = document.getElementById("admin-table-title");
+    const subtitle = document.getElementById("admin-table-subtitle");
+    if (modal) modal.classList.remove("is-hidden");
+    document.body.classList.add("modal-open");
+    if (title) title.textContent = tableName || "Tabelle";
+    if (subtitle) subtitle.textContent = "Wird geladen ...";
+    if (content) content.innerHTML = `<p class="admin-empty-state">Tabellendaten werden geladen ...</p>`;
+    setAdminTableMessage("");
+
+    try {
+        const preview = await apiFetch(`${API_URL}/admin/tables/${encodeURIComponent(tableName)}?limit=250`);
+        renderAdminTablePreview(preview);
+    } catch (error) {
+        console.error(error);
+        setAdminTableMessage(error.message || "Tabelle konnte nicht geladen werden.");
+    }
+}
+
+
+// Explicitly expose handlers used by inline HTML attributes and dynamic admin controls.
+// This keeps the Admin page robust even when functions are referenced from generated markup.
+window.loadAdminSystemStatus = loadAdminSystemStatus;
+window.loadInventoryCleanupPreview = loadInventoryCleanupPreview;
+window.loadRecipeResyncPreview = loadRecipeResyncPreview;
+window.openAdminTableModal = openAdminTableModal;
+window.closeAdminTableModal = closeAdminTableModal;
+window.closeAdminItemModal = closeAdminItemModal;

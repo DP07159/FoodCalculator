@@ -115,6 +115,25 @@
         </main>
     </div>
 
+
+    <div id="admin-table-modal" class="inventory-modal is-hidden" role="dialog" aria-modal="true" aria-labelledby="admin-table-title">
+        <div class="inventory-modal-backdrop" onclick="closeAdminTableModal()"></div>
+        <div class="inventory-modal-dialog admin-table-dialog">
+            <div class="inventory-section-headline">
+                <div>
+                    <p class="recipe-kicker">Systemtabelle</p>
+                    <h2 id="admin-table-title">Tabelle</h2>
+                    <p id="admin-table-subtitle" class="admin-result-note"></p>
+                </div>
+                <button type="button" class="header-icon-button" onclick="closeAdminTableModal()" title="Fenster schließen" aria-label="Fenster schließen">
+                    <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div id="admin-table-message" class="inventory-overlay-message is-hidden" aria-live="polite"></div>
+            <div id="admin-table-content" class="admin-table-content"></div>
+        </div>
+    </div>
+
     <div id="app-toast" class="app-toast is-hidden"></div>
     <script src="navigation.js"></script>
     <script src="admin.js"></script>

@@ -1313,3 +1313,245 @@ window.openAdminTableModal = openAdminTableModal;
 window.closeAdminTableModal = closeAdminTableModal;
 window.closeAdminItemModal = closeAdminItemModal;
 window.closeAdminUtilityModal = closeAdminUtilityModal;
+
+
+/* =========================================================
+   ADMIN STUDIO FULL-WIDTH TABLE EDITOR OVERRIDES
+   Ziel: Tabellen als vollformatige Arbeitsoberfläche nutzen.
+========================================================= */
+const ADMIN_STUDIO_TABLES = [
+    { key: "food_items", label: "Food Items", purpose: "Master-Stammdaten je Lebensmittel" },
+    { key: "food_aliases", label: "Aliase", purpose: "Schreibweisen → Ziel-Lebensmittel" },
+    { key: "recipe_ingredients", label: "Rezept-Zutaten", purpose: "Zutatenzeilen und Verknüpfungen" },
+    { key: "inventory_items", label: "Inventarartikel", purpose: "sichtbare Inventarartikel" },
+    { key: "inventory_batches", label: "Einheiten", purpose: "Packungs-/Bestandseinheiten" },
+    { key: "inventory_loose_stock", label: "Freie Mengen", purpose: "aggregierte freie Mengen" },
+    { key: "recipes", label: "Rezepte", purpose: "Rezept-Stammdaten" }
+];
+
+let adminStudioSearchValue = "";
+let adminStudioHiddenColumns = new Set();
+let adminStudioSort = { column: null, direction: "asc" };
+
+function renderAdminStudioTableNav(activeTable) {
+    const target = document.getElementById("admin-studio-table-nav");
+    if (!target) return;
+    target.innerHTML = ADMIN_STUDIO_TABLES.map(table => `
+        <a class="admin-studio-table-tab ${table.key === activeTable ? "is-active" : ""}" href="adminTable.html?table=${encodeURIComponent(table.key)}" title="${escapeHtml(table.purpose)}">
+            <span>${escapeHtml(table.label)}</span>
+            <small>${escapeHtml(table.key)}</small>
+        </a>
+    `).join("");
+}
+
+function getAdminStudioColumnLabel(column) {
+    const labels = {
+        __select: "Auswahl",
+        id: "ID",
+        display_name: "Anzeigename",
+        name: "Name",
+        canonical_name: "Canonical",
+        effective_canonical_name: "Canonical",
+        alias_name: "Alias",
+        target_food_item: "Ziel-Lebensmittel",
+        food_item_id: "Food-ID",
+        linked_food_item: "Verknüpfter Artikel",
+        raw_text: "Zutatenzeile",
+        recipe_name: "Rezept",
+        source: "Quelle",
+        stock_total: "Bestand",
+        unit: "Einheit",
+        created_at: "Erstellt",
+        updated_at: "Geändert"
+    };
+    return labels[column] || column;
+}
+
+function getAdminStudioPriorityColumns(tableName, columns) {
+    const priority = {
+        food_items: ["__select", "id", "display_name", "canonical_name", "source", "recipe_count", "inventory_count", "alias_count"],
+        food_aliases: ["id", "alias_name", "food_item_id", "target_food_item", "created_at"],
+        recipe_ingredients: ["id", "recipe_name", "line_index", "raw_text", "amount", "unit", "food_item_id", "linked_food_item"],
+        inventory_items: ["id", "name", "food_item_id", "display_name", "standard_unit", "kcal_100g", "source"],
+        inventory_batches: ["id", "inventory_item_id", "item_name", "quantity", "unit_amount", "unit", "location", "expiry_date"],
+        inventory_loose_stock: ["id", "inventory_item_id", "item_name", "amount", "unit", "location", "expiry_date"],
+        recipes: ["id", "name", "calories", "portions", "meal_types"]
+    };
+    const desired = priority[tableName] || [];
+    const available = new Set(columns);
+    return [...desired.filter(col => available.has(col)), ...columns.filter(col => !desired.includes(col))];
+}
+
+function getAdminStudioFilteredRows(preview) {
+    const rows = Array.isArray(preview?.rows) ? [...preview.rows] : [];
+    const needle = adminStudioSearchValue.trim().toLowerCase();
+    let filtered = rows;
+    if (needle) {
+        filtered = rows.filter(row => Object.values(row || {}).some(value => String(value ?? "").toLowerCase().includes(needle)));
+    }
+    if (adminStudioSort.column) {
+        const col = adminStudioSort.column;
+        const dir = adminStudioSort.direction === "desc" ? -1 : 1;
+        filtered.sort((a, b) => {
+            const av = a?.[col];
+            const bv = b?.[col];
+            const an = Number(av);
+            const bn = Number(bv);
+            if (Number.isFinite(an) && Number.isFinite(bn)) return (an - bn) * dir;
+            return String(av ?? "").localeCompare(String(bv ?? ""), "de", { numeric: true, sensitivity: "base" }) * dir;
+        });
+    }
+    return filtered;
+}
+
+function toggleAdminStudioColumn(column) {
+    if (!column || column === "__select") return;
+    if (adminStudioHiddenColumns.has(column)) adminStudioHiddenColumns.delete(column);
+    else adminStudioHiddenColumns.add(column);
+    renderAdminTablePreview(latestAdminTablePreview);
+}
+
+function setAdminStudioSearch(value) {
+    adminStudioSearchValue = value || "";
+    renderAdminTablePreview(latestAdminTablePreview);
+}
+
+function sortAdminStudioTable(column) {
+    if (!column || column === "__select") return;
+    if (adminStudioSort.column === column) {
+        adminStudioSort.direction = adminStudioSort.direction === "asc" ? "desc" : "asc";
+    } else {
+        adminStudioSort = { column, direction: "asc" };
+    }
+    renderAdminTablePreview(latestAdminTablePreview);
+}
+
+function renderAdminStudioColumnControls(columns) {
+    const hideable = columns.filter(column => column !== "__select");
+    if (!hideable.length) return "";
+    return `
+        <details class="admin-studio-column-panel">
+            <summary>Spalten</summary>
+            <div class="admin-studio-column-list">
+                ${hideable.map(column => `
+                    <label>
+                        <input type="checkbox" ${adminStudioHiddenColumns.has(column) ? "" : "checked"} onchange="toggleAdminStudioColumn('${escapeJsString(column)}')">
+                        <span>${escapeHtml(getAdminStudioColumnLabel(column))}</span>
+                    </label>
+                `).join("")}
+            </div>
+        </details>
+    `;
+}
+
+function renderAdminStudioQualityHints(tableName) {
+    const hints = {
+        food_items: ["Mehrere markierte Food Items können in einen Master überführt werden.", "Ziel: reale Zutat = genau ein Stammdatensatz."],
+        food_aliases: ["Aliase sollten nur alternative Schreibweisen sein.", "Einheiten wie cl/ml/Prise gehören nicht in Alias-Namen, sondern in Mengenangaben."],
+        recipe_ingredients: ["Hier lassen sich falsche Rezept-Zutat-Verknüpfungen reparieren.", "Unverknüpfte Zeilen sind Kandidaten für Prüfung oder bewusste Neuanlage."],
+        inventory_items: ["Inventarartikel sollten auf food_item_id verweisen.", "Artikel mit Bestand sind besonders schützenswert."],
+        inventory_batches: ["Packungseinheiten prüfen: Lagerort und Ablaufdatum sind für Bestandsqualität wichtig."],
+        inventory_loose_stock: ["Freie Mengen werden pro Lagerort/Ablaufdatum getrennt geführt."],
+        recipes: ["Rezeptdaten sind Grundlage für Sync, Bestand und spätere Kalorienberechnung."]
+    };
+    const items = hints[tableName] || ["Diese Tabelle dient der Diagnose und Datenprüfung."];
+    return `<div class="admin-studio-hints">${items.map(item => `<span>${escapeHtml(item)}</span>`).join("")}</div>`;
+}
+
+function renderAdminTablePreview(preview) {
+    latestAdminTablePreview = preview;
+    const title = document.getElementById("admin-table-title");
+    const subtitle = document.getElementById("admin-table-subtitle");
+    const content = document.getElementById("admin-table-content");
+    const tableName = preview?.table || getAdminTableNameFromUrl();
+    renderAdminStudioTableNav(tableName);
+    if (title) title.textContent = `Tabelle: ${tableName}`;
+    if (subtitle) subtitle.textContent = `${getAdminTableDescription(tableName)} · ${Number(preview?.total_count || 0)} Einträge insgesamt · Anzeige max. ${Number(preview?.limit || 0)}`;
+    if (!content || !preview) return;
+
+    const baseColumns = Array.isArray(preview.columns) ? preview.columns : [];
+    const columnsWithSelect = tableName === "food_items" ? ["__select", ...baseColumns] : baseColumns;
+    const orderedColumns = getAdminStudioPriorityColumns(tableName, columnsWithSelect);
+    const visibleColumns = orderedColumns.filter(column => !adminStudioHiddenColumns.has(column));
+    const rows = getAdminStudioFilteredRows(preview);
+    const hasActions = tableHasActions(tableName);
+
+    selectedFoodItemConsolidationIds = new Set(selectedFoodItemConsolidationIds || []);
+
+    const foodItemsExtra = tableName === "food_items" ? `
+        <div class="admin-action-row admin-action-row-neutral admin-studio-action-row">
+            <p>Stammdaten konsolidieren: Markiere mehrere Lebensmittel und klicke in der korrekten Zeile auf „Als Master“. Rezept-Verknüpfungen, Inventarbezüge und Aliase werden umgehängt.</p>
+            <span class="admin-pill" id="admin-food-consolidation-count">${selectedFoodItemConsolidationIds.size} ausgewählt</span>
+        </div>
+    ` : "";
+
+    const aliasExtra = tableName === "food_aliases" ? `
+        <div class="admin-action-row admin-action-row-neutral admin-studio-action-row">
+            <p>Alias-Pflege: Aliasnamen prüfen, Ziel-Lebensmittel korrigieren oder neue Schreibweisen anlegen.</p>
+            ${adminActionButton("Neuen Alias anlegen", `data-new-alias-food-id=""`)}
+        </div>
+    ` : "";
+
+    content.innerHTML = `
+        <div class="admin-studio-toolbar">
+            <div class="admin-studio-search-wrap">
+                <input type="search" class="recipe-search-input admin-studio-search" placeholder="In dieser Tabelle suchen ..." value="${escapeHtml(adminStudioSearchValue)}" oninput="setAdminStudioSearch(this.value)">
+            </div>
+            <div class="admin-studio-toolbar-meta">
+                <span class="admin-pill">${rows.length} sichtbar</span>
+                <span class="admin-pill">${Number(preview.total_count || rows.length)} gesamt</span>
+                ${renderAdminStudioColumnControls(orderedColumns)}
+            </div>
+        </div>
+        ${renderAdminStudioQualityHints(tableName)}
+        ${foodItemsExtra}
+        ${aliasExtra}
+        <div class="admin-studio-table-shell">
+            <div class="admin-table-scroll admin-studio-scroll">
+                <table class="admin-data-table admin-studio-data-table">
+                    <thead>
+                        <tr>
+                            ${visibleColumns.map(column => `
+                                <th class="${column === "__select" ? "admin-studio-select-col" : ""}">
+                                    ${column === "__select" ? "" : `<button type="button" class="admin-studio-th-button" onclick="sortAdminStudioTable('${escapeJsString(column)}')">${escapeHtml(getAdminStudioColumnLabel(column))}${adminStudioSort.column === column ? `<span>${adminStudioSort.direction === "asc" ? "↑" : "↓"}</span>` : ""}</button>`}
+                                </th>
+                            `).join("")}
+                            ${hasActions ? `<th class="admin-studio-actions-col">Aktionen</th>` : ""}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rows.length ? rows.map(row => `
+                            <tr>
+                                ${visibleColumns.map(column => `<td class="${column === "__select" ? "admin-studio-select-col" : ""}">${renderAdminTableCell(row, column, tableName)}</td>`).join("")}
+                                ${hasActions ? renderAdminTableRowActions(row, tableName) : ""}
+                            </tr>
+                        `).join("") : `<tr><td colspan="${visibleColumns.length + (hasActions ? 1 : 0)}"><p class="admin-empty-state">Keine passenden Einträge gefunden.</p></td></tr>`}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+    updateFoodConsolidationCount();
+}
+
+async function loadAdminTablePage() {
+    const tableName = getAdminTableNameFromUrl();
+    const content = document.getElementById("admin-table-content");
+    const title = document.getElementById("admin-table-title");
+    const subtitle = document.getElementById("admin-table-subtitle");
+    renderAdminStudioTableNav(tableName);
+    if (title) title.textContent = `Tabelle: ${tableName}`;
+    if (subtitle) subtitle.textContent = "Wird geladen ...";
+    if (content) content.innerHTML = `<p class="admin-empty-state">Tabellendaten werden geladen ...</p>`;
+    setAdminTableMessage("");
+    adminStudioSearchValue = "";
+    adminStudioHiddenColumns = new Set();
+    adminStudioSort = { column: null, direction: "asc" };
+    try {
+        const preview = await apiFetch(`${API_URL}/admin/tables/${encodeURIComponent(tableName)}?limit=1000`);
+        renderAdminTablePreview(preview);
+    } catch (error) {
+        console.error(error);
+        setAdminTableMessage(error.message || "Tabelle konnte nicht geladen werden.");
+    }
+}

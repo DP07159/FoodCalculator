@@ -3,45 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Tabelle · Food Calculator</title>
+    <title>Admin Studio · Food Calculator</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#f5f7fb">
 </head>
-<body data-admin-table-page="true">
-    <header class="app-header">
+<body data-admin-table-page="true" class="admin-studio-body">
+    <header class="app-header admin-studio-app-header">
         <button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen">
             <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
         </button>
-        <div class="app-header-title">Food Calculator</div>
+        <div class="app-header-title">Food Calculator · Admin Studio</div>
         <div id="burger-dropdown" class="burger-dropdown is-hidden"></div>
     </header>
 
-    <div class="container">
-        <main class="page-content admin-page admin-table-page">
-            <header class="page-header admin-header">
+    <main class="admin-studio-page">
+        <section class="admin-studio-hero">
+            <div>
                 <p class="recipe-kicker">Administration</p>
-                <h1 id="admin-table-title">Tabelle</h1>
-                <p id="admin-table-subtitle" class="admin-intro">Wird geladen ...</p>
-            </header>
+                <h1 id="admin-table-title">Tabelleneditor</h1>
+                <p id="admin-table-subtitle" class="admin-intro">Vollformatige Datenprüfung und Stammdatenpflege.</p>
+            </div>
+            <div class="admin-studio-hero-actions">
+                <a class="form-actions-button-like" href="/admin.html">Admin Center</a>
+                <button type="button" class="recipe-toolbar-toggle-button" onclick="loadAdminTablePage()" title="Tabelle aktualisieren" aria-label="Tabelle aktualisieren">
+                    <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5"/><path d="M20 12a8 8 0 1 1-2.3-5.7L20 8"/></svg>
+                </button>
+            </div>
+        </section>
 
-            <section class="section-card admin-card">
-                <div class="admin-card-header">
-                    <div>
-                        <p class="recipe-kicker">Systemtabelle</p>
-                        <h2>Tabelleneditor</h2>
-                        <p>Vollformatige Tabellenansicht für Datenprüfung und Stammdatenpflege.</p>
-                    </div>
-                    <button type="button" class="recipe-toolbar-toggle-button" onclick="loadAdminTablePage()" title="Tabelle aktualisieren" aria-label="Tabelle aktualisieren">
-                        <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5"/><path d="M20 12a8 8 0 1 1-2.3-5.7L20 8"/></svg>
-                    </button>
-                </div>
+        <section class="admin-studio-value-strip" aria-label="Admin-Funktionen mit Mehrwert">
+            <article><strong>Datenqualität</strong><span>Dubletten, Aliase und falsche Verknüpfungen erkennen.</span></article>
+            <article><strong>Stammdaten</strong><span>Ein Lebensmittel = ein Master-Datensatz.</span></article>
+            <article><strong>Verknüpfungen</strong><span>Rezept-Zutaten gezielt mit Food Items koppeln.</span></article>
+            <article><strong>Betrieb</strong><span>Backup, Neuaufbau und Diagnose bleiben im Admin Center.</span></article>
+        </section>
 
-                <div id="admin-table-message" class="inventory-overlay-message is-hidden" aria-live="polite"></div>
-                <div id="admin-table-content" class="admin-table-content"></div>
-            </section>
-        </main>
-    </div>
+        <section class="admin-studio-workbench">
+            <div class="admin-studio-table-nav" id="admin-studio-table-nav" aria-label="Tabellen wechseln"></div>
+            <div id="admin-table-message" class="inventory-overlay-message is-hidden" aria-live="polite"></div>
+            <div id="admin-table-content" class="admin-table-content admin-studio-table-content"></div>
+        </section>
+    </main>
 
     <div id="app-toast" class="app-toast is-hidden"></div>
     <script src="navigation.js"></script>

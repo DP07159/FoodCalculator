@@ -623,10 +623,45 @@ document.addEventListener("DOMContentLoaded", () => {
             closeAdminUtilityModal();
         }
 
+        const editFoodItemButton = event.target.closest("[data-edit-food-item-id]");
+        if (editFoodItemButton) {
+            event.preventDefault();
+            openFoodItemEditor(Number(editFoodItemButton.dataset.editFoodItemId));
+        }
+
+        const deleteFoodItemButton = event.target.closest("[data-delete-food-item-id]");
+        if (deleteFoodItemButton) {
+            event.preventDefault();
+            deleteFoodItem(Number(deleteFoodItemButton.dataset.deleteFoodItemId), deleteFoodItemButton.dataset.foodDisplayName || "");
+        }
+
         const foodDetailButton = event.target.closest("[data-food-detail-id]");
         if (foodDetailButton) {
             event.preventDefault();
             openFoodItemDetail(foodDetailButton.dataset.foodDetailId);
+        }
+
+        const newHealthFactorButton = event.target.closest("[data-new-health-factor]");
+        if (newHealthFactorButton) {
+            event.preventDefault();
+            openHealthFactorEditor();
+        }
+
+        const editHealthFactorButton = event.target.closest("[data-edit-health-factor-id]");
+        if (editHealthFactorButton) {
+            event.preventDefault();
+            openHealthFactorEditor({
+                factorId: Number(editHealthFactorButton.dataset.editHealthFactorId),
+                name: editHealthFactorButton.dataset.factorName || "",
+                category: editHealthFactorButton.dataset.factorCategory || "",
+                description: editHealthFactorButton.dataset.factorDescription || ""
+            });
+        }
+
+        const deleteHealthFactorButton = event.target.closest("[data-delete-health-factor-id]");
+        if (deleteHealthFactorButton) {
+            event.preventDefault();
+            deleteHealthFactor(Number(deleteHealthFactorButton.dataset.deleteHealthFactorId), deleteHealthFactorButton.dataset.factorName || "");
         }
 
         const newAliasButton = event.target.closest("[data-new-alias-food-id]");
@@ -903,7 +938,9 @@ function getAdminTableDescription(tableName) {
         food_aliases: "Alias-Zuordnungen: welche Schreibweisen auf welchen Lebensmittel-Stammsatz zeigen.",
         food_items: "Lebensmittel-Stammdaten: kanonische Lebensmittel, Aliase und Rezeptverknüpfungen.",
         recipe_ingredients: "Strukturierte Rezeptzutaten inklusive expliziter Verknüpfung zum Lebensmittel-Stammsatz.",
-        inventory_items: "Inventarartikel inklusive Bestandsübersicht aus Einheiten und freien Mengen."
+        inventory_items: "Inventarartikel inklusive Bestandsübersicht aus Einheiten und freien Mengen.",
+        health_factors: "Pflege von Diät-/Gesundheitsfaktoren, z.B. Adipositas, Bluthochdruck oder Low Carb.",
+        food_item_health_factors: "Zuordnung von Lebensmitteln zu beliebig vielen Diät-/Gesundheitsfaktoren."
     };
     return descriptions[tableName] || "Direkte Tabellenansicht zur Datenprüfung.";
 }
@@ -935,7 +972,7 @@ function adminActionButton(label, attrs = "", danger = false) {
 
 function renderAdminTableCell(row, column, tableName) {
     if (tableName === "food_items" && column === "__select") {
-        return `<input type="checkbox" class="admin-food-consolidation-checkbox" style="width:18px;min-height:18px;accent-color:var(--color-primary);" data-food-consolidation-id="${Number(row.id)}" aria-label="${escapeHtml(row.display_name || `Lebensmittel #${row.id}`)} auswählen">`;
+        return `<input type="checkbox" class="admin-food-consolidation-checkbox" style="width:18px;min-height:18px;accent-color:var(--color-primary);" data-food-consolidation-id="${Number(row.id)}" ${selectedFoodItemConsolidationIds.has(Number(row.id)) ? "checked" : ""} aria-label="${escapeHtml(row.display_name || `Lebensmittel #${row.id}`)} auswählen">`;
     }
     if (tableName === "food_items" && column === "display_name") {
         return `<button type="button" class="admin-item-name-button" data-food-detail-id="${Number(row.id)}">${formatAdminTableCell(row[column])}</button>`;
@@ -964,9 +1001,11 @@ function renderAdminTableRowActions(row, tableName) {
     if (tableName === "food_items") {
         return `
             <td class="admin-table-actions-cell">
+                ${adminActionButton("Bearbeiten", `data-edit-food-item-id="${Number(row.id)}"`)}
                 ${adminActionButton("Details", `data-food-detail-id="${Number(row.id)}"`)}
                 ${adminActionButton("Alias +", `data-new-alias-food-id="${Number(row.id)}" data-food-display-name="${escapeHtml(row.display_name || "")}"`)}
                 ${adminActionButton("Als Master", `data-consolidate-master-id="${Number(row.id)}"`)}
+                ${adminActionButton("Löschen", `data-delete-food-item-id="${Number(row.id)}" data-food-display-name="${escapeHtml(row.display_name || "")}"`, true)}
             </td>`;
     }
     if (tableName === "recipe_ingredients") {
@@ -975,11 +1014,18 @@ function renderAdminTableRowActions(row, tableName) {
                 ${adminActionButton("Verknüpfen", `data-edit-recipe-ingredient-link="${Number(row.id)}" data-food-item-id="${Number(row.food_item_id || 0)}" data-raw-text="${escapeHtml(row.raw_text || "")}"`)}
             </td>`;
     }
+    if (tableName === "health_factors") {
+        return `
+            <td class="admin-table-actions-cell">
+                ${adminActionButton("Bearbeiten", `data-edit-health-factor-id="${Number(row.id)}" data-factor-name="${escapeHtml(row.name || "")}" data-factor-category="${escapeHtml(row.category || "")}" data-factor-description="${escapeHtml(row.description || "")}"`)}
+                ${adminActionButton("Löschen", `data-delete-health-factor-id="${Number(row.id)}" data-factor-name="${escapeHtml(row.name || "")}"`, true)}
+            </td>`;
+    }
     return `<td></td>`;
 }
 
 function tableHasActions(tableName) {
-    return ["food_aliases", "food_items", "recipe_ingredients"].includes(tableName);
+    return ["food_aliases", "food_items", "recipe_ingredients", "health_factors"].includes(tableName);
 }
 
 function renderAdminTablePreview(preview) {
@@ -1062,7 +1108,7 @@ async function consolidateSelectedFoodItems(masterFoodItemId) {
         });
         adminFoodItemOptionsCache = null;
         selectedFoodItemConsolidationIds = new Set();
-        if (payload.table) renderAdminTablePreview(payload.table);
+        if (payload.table) renderAdminTablePreviewPreservingPosition(payload.table);
         if (payload.system_status) {
             renderAdminSystemSummary(payload.system_status);
             renderAdminSystemResults(payload.system_status);
@@ -1150,10 +1196,181 @@ function openAdminUtilityModal(title, subtitle = "", kicker = "Admin") {
     document.body.classList.add("modal-open");
 }
 
+
+function captureAdminStudioPosition() {
+    const scroll = document.querySelector(".admin-studio-scroll");
+    return {
+        windowX: window.scrollX || 0,
+        windowY: window.scrollY || 0,
+        tableX: scroll ? scroll.scrollLeft : 0,
+        tableY: scroll ? scroll.scrollTop : 0
+    };
+}
+
+function restoreAdminStudioPosition(position) {
+    if (!position) return;
+    requestAnimationFrame(() => {
+        const scroll = document.querySelector(".admin-studio-scroll");
+        if (scroll) {
+            scroll.scrollLeft = position.tableX || 0;
+            scroll.scrollTop = position.tableY || 0;
+        }
+        window.scrollTo(position.windowX || 0, position.windowY || 0);
+    });
+}
+
+function renderAdminTablePreviewPreservingPosition(preview, position = captureAdminStudioPosition()) {
+    renderAdminTablePreview(preview);
+    restoreAdminStudioPosition(position);
+}
+
 async function refreshCurrentAdminTable() {
     if (!latestAdminTablePreview?.table) return;
+    const position = captureAdminStudioPosition();
     const preview = await apiFetch(`${API_URL}/admin/tables/${encodeURIComponent(latestAdminTablePreview.table)}?limit=${Number(latestAdminTablePreview.limit || 250)}`);
-    renderAdminTablePreview(preview);
+    renderAdminTablePreviewPreservingPosition(preview, position);
+}
+
+
+let adminHealthFactorOptionsCache = null;
+
+async function loadAdminHealthFactors() {
+    if (adminHealthFactorOptionsCache) return adminHealthFactorOptionsCache;
+    const payload = await apiFetch(`${API_URL}/admin/health-factors`);
+    adminHealthFactorOptionsCache = Array.isArray(payload.factors) ? payload.factors : [];
+    return adminHealthFactorOptionsCache;
+}
+
+function renderHealthFactorCheckboxes(factors, selectedIds = []) {
+    const selected = new Set((selectedIds || []).map(Number));
+    if (!factors.length) return `<p class="admin-empty-state">Noch keine Faktoren gepflegt. Lege zuerst unter „Diät-/Gesundheit“ Faktoren an.</p>`;
+    return `<div class="admin-factor-checkbox-grid">${factors.map(factor => `
+        <label class="admin-factor-checkbox">
+            <input type="checkbox" value="${Number(factor.id)}" ${selected.has(Number(factor.id)) ? "checked" : ""}>
+            <span><strong>${escapeHtml(factor.name)}</strong>${factor.category ? `<small>${escapeHtml(factor.category)}</small>` : ""}</span>
+        </label>
+    `).join("")}</div>`;
+}
+
+async function openFoodItemEditor(foodItemId) {
+    openAdminUtilityModal("Food Item bearbeiten", "Anzeigename, kcal/100 g und Diät-/Gesundheitsfaktoren pflegen.", "Stammdaten");
+    try {
+        const [detail, factors] = await Promise.all([
+            apiFetch(`${API_URL}/admin/food-items/${Number(foodItemId)}/detail`),
+            loadAdminHealthFactors()
+        ]);
+        const item = detail.item || {};
+        const selectedIds = (detail.health_factors || []).map(f => Number(f.id));
+        const content = document.getElementById("admin-utility-content");
+        content.innerHTML = `
+            <form id="admin-food-item-form" class="inventory-create-form">
+                <div class="form-section">
+                    <label for="admin-food-display-name">Anzeigename</label>
+                    <input type="text" id="admin-food-display-name" value="${escapeHtml(item.display_name || "")}">
+                </div>
+                <div class="form-section">
+                    <label for="admin-food-calories">kcal / 100 g</label>
+                    <input type="number" id="admin-food-calories" min="0" step="0.1" value="${item.calories_per_100g ?? ""}" placeholder="optional">
+                </div>
+                <div class="form-section">
+                    <label>Gut / förderlich für</label>
+                    ${renderHealthFactorCheckboxes(factors, selectedIds)}
+                </div>
+                <div class="form-actions inventory-actions">
+                    <button type="button" class="secondary-button" data-close-admin-utility="true">Abbrechen</button>
+                    <button type="button" id="admin-save-food-item-button">Speichern</button>
+                </div>
+            </form>`;
+        document.getElementById("admin-save-food-item-button").addEventListener("click", async () => {
+            const healthFactorIds = Array.from(content.querySelectorAll(".admin-factor-checkbox input:checked")).map(input => Number(input.value));
+            try {
+                const result = await apiFetch(`${API_URL}/admin/food-items/${Number(foodItemId)}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        display_name: document.getElementById("admin-food-display-name").value.trim(),
+                        calories_per_100g: document.getElementById("admin-food-calories").value,
+                        health_factor_ids: healthFactorIds
+                    })
+                });
+                adminFoodItemOptionsCache = null;
+                if (result.table) renderAdminTablePreviewPreservingPosition(result.table);
+                showToast("Food Item gespeichert.");
+                closeAdminUtilityModal();
+            } catch (error) {
+                setAdminUtilityMessage(error.message || "Food Item konnte nicht gespeichert werden.");
+            }
+        });
+    } catch (error) {
+        setAdminUtilityMessage(error.message || "Food-Item-Dialog konnte nicht geladen werden.");
+    }
+}
+
+async function deleteFoodItem(foodItemId, displayName = "") {
+    if (!confirm(`Food Item wirklich löschen?\n\n${displayName || `Food Item #${foodItemId}`}\n\nArtikel mit Bestand werden vom Backend geschützt. Rezept-Zutaten werden entknüpft.`)) return;
+    try {
+        const result = await apiFetch(`${API_URL}/admin/food-items/${Number(foodItemId)}`, { method: "DELETE" });
+        adminFoodItemOptionsCache = null;
+        if (result.table) renderAdminTablePreviewPreservingPosition(result.table);
+        showToast("Food Item gelöscht.");
+    } catch (error) {
+        setAdminTableMessage(error.message || "Food Item konnte nicht gelöscht werden.");
+    }
+}
+
+async function openHealthFactorEditor({ factorId = null, name = "", category = "", description = "" } = {}) {
+    openAdminUtilityModal(factorId ? "Faktor bearbeiten" : "Faktor anlegen", "Diät, Krankheit oder Gesundheitsziel pflegen.", "Diät-/Gesundheitsfaktor");
+    const content = document.getElementById("admin-utility-content");
+    content.innerHTML = `
+        <form id="admin-health-factor-form" class="inventory-create-form">
+            <div class="form-section">
+                <label for="admin-health-factor-name">Name</label>
+                <input type="text" id="admin-health-factor-name" value="${escapeHtml(name)}" placeholder="z.B. Adipositas, Bluthochdruck, Low Carb">
+            </div>
+            <div class="form-section">
+                <label for="admin-health-factor-category">Kategorie</label>
+                <input type="text" id="admin-health-factor-category" value="${escapeHtml(category)}" placeholder="z.B. Krankheit, Diät, Ernährungsziel">
+            </div>
+            <div class="form-section">
+                <label for="admin-health-factor-description">Beschreibung</label>
+                <textarea id="admin-health-factor-description" rows="2" placeholder="optional">${escapeHtml(description)}</textarea>
+            </div>
+            <div class="form-actions inventory-actions">
+                <button type="button" class="secondary-button" data-close-admin-utility="true">Abbrechen</button>
+                <button type="button" id="admin-save-health-factor-button">Speichern</button>
+            </div>
+        </form>`;
+    document.getElementById("admin-save-health-factor-button").addEventListener("click", async () => {
+        try {
+            const result = await apiFetch(factorId ? `${API_URL}/admin/health-factors/${Number(factorId)}` : `${API_URL}/admin/health-factors`, {
+                method: factorId ? "PUT" : "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name: document.getElementById("admin-health-factor-name").value.trim(),
+                    category: document.getElementById("admin-health-factor-category").value.trim(),
+                    description: document.getElementById("admin-health-factor-description").value.trim()
+                })
+            });
+            adminHealthFactorOptionsCache = null;
+            if (result.table) renderAdminTablePreviewPreservingPosition(result.table);
+            showToast(factorId ? "Faktor gespeichert." : "Faktor angelegt.");
+            closeAdminUtilityModal();
+        } catch (error) {
+            setAdminUtilityMessage(error.message || "Faktor konnte nicht gespeichert werden.");
+        }
+    });
+}
+
+async function deleteHealthFactor(factorId, name = "") {
+    if (!confirm(`Faktor wirklich löschen?\n\n${name || `Faktor #${factorId}`}\n\nZuordnungen zu Food Items werden ebenfalls entfernt.`)) return;
+    try {
+        const result = await apiFetch(`${API_URL}/admin/health-factors/${Number(factorId)}`, { method: "DELETE" });
+        adminHealthFactorOptionsCache = null;
+        if (result.table) renderAdminTablePreviewPreservingPosition(result.table);
+        showToast("Faktor gelöscht.");
+    } catch (error) {
+        setAdminTableMessage(error.message || "Faktor konnte nicht gelöscht werden.");
+    }
 }
 
 async function openAliasEditor({ aliasId = null, aliasName = "", foodItemId = null } = {}) {
@@ -1190,7 +1407,7 @@ async function openAliasEditor({ aliasId = null, aliasName = "", foodItemId = nu
                     body: JSON.stringify(payload)
                 });
                 adminFoodItemOptionsCache = null;
-                if (result.table) renderAdminTablePreview(result.table);
+                if (result.table) renderAdminTablePreviewPreservingPosition(result.table);
                 showToast(aliasId ? "Alias gespeichert." : "Alias angelegt.");
                 closeAdminUtilityModal();
             } catch (error) {
@@ -1207,7 +1424,7 @@ async function deleteFoodAlias(aliasId, aliasName = "") {
     try {
         const result = await apiFetch(`${API_URL}/admin/food-aliases/${aliasId}`, { method: "DELETE" });
         adminFoodItemOptionsCache = null;
-        if (result.table) renderAdminTablePreview(result.table);
+        if (result.table) renderAdminTablePreviewPreservingPosition(result.table);
         showToast("Alias gelöscht.");
     } catch (error) {
         setAdminTableMessage(error.message || "Alias konnte nicht gelöscht werden.");
@@ -1223,10 +1440,19 @@ async function openFoodItemDetail(foodItemId) {
         const aliases = Array.isArray(detail.aliases) ? detail.aliases : [];
         const inventoryItems = Array.isArray(detail.inventory_items) ? detail.inventory_items : [];
         const recipeIngredients = Array.isArray(detail.recipe_ingredients) ? detail.recipe_ingredients : [];
+        const healthFactors = Array.isArray(detail.health_factors) ? detail.health_factors : [];
         content.innerHTML = `
             <div class="recipe-inventory-summary">
                 <a class="recipe-inventory-item-link" href="/inventory.html?item=${encodeURIComponent(inventoryItems[0]?.id || "")}">${escapeHtml(item.display_name || "Lebensmittel")}</a>
                 <span>${escapeHtml(item.canonical_key || "")}</span>
+            </div>
+
+            <h3 class="admin-modal-subheadline">Diät-/Gesundheitsfaktoren</h3>
+            <div class="admin-chip-row">
+                ${healthFactors.length ? healthFactors.map(factor => `<span class="admin-pill">${escapeHtml(factor.name)}${factor.category ? ` · ${escapeHtml(factor.category)}` : ""}</span>`).join("") : `<p class="admin-empty-state">Keine Faktoren zugeordnet.</p>`}
+            </div>
+            <div class="form-actions inventory-actions">
+                ${adminActionButton("Food Item bearbeiten", `data-edit-food-item-id="${Number(item.id)}"`)}
             </div>
 
             <h3 class="admin-modal-subheadline">Aliase</h3>
@@ -1313,6 +1539,9 @@ window.openAdminTableModal = openAdminTableModal;
 window.closeAdminTableModal = closeAdminTableModal;
 window.closeAdminItemModal = closeAdminItemModal;
 window.closeAdminUtilityModal = closeAdminUtilityModal;
+window.openFoodItemEditor = openFoodItemEditor;
+window.deleteFoodItem = deleteFoodItem;
+window.openHealthFactorEditor = openHealthFactorEditor;
 
 
 /* =========================================================
@@ -1325,7 +1554,9 @@ const ADMIN_STUDIO_TABLES = [
     { key: "recipe_ingredients", label: "Rezept-Zutaten", purpose: "Zutatenzeilen und Verknüpfungen" },
     { key: "inventory_items", label: "Inventarartikel", purpose: "sichtbare Inventarartikel" },
     { key: "inventory_batches", label: "Einheiten", purpose: "Packungs-/Bestandseinheiten" },
-    { key: "recipes", label: "Rezepte", purpose: "Rezept-Stammdaten" }
+    { key: "recipes", label: "Rezepte", purpose: "Rezept-Stammdaten" },
+    { key: "health_factors", label: "Diät-/Gesundheit", purpose: "Diäten, Krankheits-/Gesundheitsfaktoren" },
+    { key: "food_item_health_factors", label: "Food ↔ Faktoren", purpose: "Zuordnung Lebensmittel zu Faktoren" }
 ];
 
 let adminStudioSearchValue = "";
@@ -1368,12 +1599,14 @@ function getAdminStudioColumnLabel(column) {
 
 function getAdminStudioPriorityColumns(tableName, columns) {
     const priority = {
-        food_items: ["__select", "id", "display_name", "canonical_name", "source", "recipe_count", "inventory_count", "alias_count"],
+        food_items: ["__select", "id", "display_name", "canonical_key", "calories_per_100g", "health_factors", "recipe_ingredient_count", "inventory_count", "alias_count"],
         food_aliases: ["id", "alias_name", "food_item_id", "target_food_item", "created_at"],
         recipe_ingredients: ["id", "recipe_name", "line_index", "raw_text", "amount", "unit", "food_item_id", "linked_food_item"],
         inventory_items: ["id", "name", "food_item_id", "display_name", "standard_unit", "kcal_100g", "source"],
         inventory_batches: ["id", "inventory_item_id", "item_name", "quantity", "unit_amount", "unit", "location", "expiry_date"],
-        recipes: ["id", "name", "calories", "portions", "meal_types"]
+        recipes: ["id", "name", "calories", "portions", "meal_types"],
+        health_factors: ["id", "name", "category", "description", "food_item_count", "updated_at"],
+        food_item_health_factors: ["id", "food_item_id", "food_item", "health_factor_id", "health_factor", "category", "notes"]
     };
     const desired = priority[tableName] || [];
     const available = new Set(columns);
@@ -1449,7 +1682,9 @@ function renderAdminStudioQualityHints(tableName) {
         recipe_ingredients: ["Hier lassen sich falsche Rezept-Zutat-Verknüpfungen reparieren.", "Unverknüpfte Zeilen sind Kandidaten für Prüfung oder bewusste Neuanlage."],
         inventory_items: ["Inventarartikel sollten auf food_item_id verweisen.", "Artikel mit Bestand sind besonders schützenswert."],
         inventory_batches: ["Packungseinheiten prüfen: Lagerort und Ablaufdatum sind für Bestandsqualität wichtig."],
-        recipes: ["Rezeptdaten sind Grundlage für Sync, Bestand und spätere Kalorienberechnung."]
+        recipes: ["Rezeptdaten sind Grundlage für Sync, Bestand und spätere Kalorienberechnung."],
+        health_factors: ["Faktoren zentral pflegen: Diäten, Krankheiten, Ernährungsziele.", "Food Items können einem oder mehreren Faktoren zugeordnet werden."],
+        food_item_health_factors: ["Diese Zuordnung erlaubt spätere Rezept- und Lebensmittel-Empfehlungen nach Gesundheits-/Diätziel."]
     };
     const items = hints[tableName] || ["Diese Tabelle dient der Diagnose und Datenprüfung."];
     return `<div class="admin-studio-hints">${items.map(item => `<span>${escapeHtml(item)}</span>`).join("")}</div>`;
@@ -1489,6 +1724,13 @@ function renderAdminTablePreview(preview) {
         </div>
     ` : "";
 
+    const healthExtra = tableName === "health_factors" ? `
+        <div class="admin-action-row admin-action-row-neutral admin-studio-action-row">
+            <p>Faktoren zentral pflegen. Diese können anschließend bei Food Items mehrfach ausgewählt werden.</p>
+            ${adminActionButton("Neuen Faktor anlegen", `data-new-health-factor="true"`)}
+        </div>
+    ` : "";
+
     content.innerHTML = `
         <div class="admin-studio-toolbar">
             <div class="admin-studio-search-wrap">
@@ -1503,6 +1745,7 @@ function renderAdminTablePreview(preview) {
         ${renderAdminStudioQualityHints(tableName)}
         ${foodItemsExtra}
         ${aliasExtra}
+        ${healthExtra}
         <div class="admin-studio-table-shell">
             <div class="admin-table-scroll admin-studio-scroll">
                 <table class="admin-data-table admin-studio-data-table">

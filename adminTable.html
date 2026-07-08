@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Tabelle · Food Calculator</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#f5f7fb">
+</head>
+<body data-admin-table-page="true">
+    <header class="app-header">
+        <button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen">
+            <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+        <div class="app-header-title">Food Calculator</div>
+        <div id="burger-dropdown" class="burger-dropdown is-hidden"></div>
+    </header>
+
+    <div class="container">
+        <main class="page-content admin-page admin-table-page">
+            <header class="page-header admin-header">
+                <p class="recipe-kicker">Administration</p>
+                <h1 id="admin-table-title">Tabelle</h1>
+                <p id="admin-table-subtitle" class="admin-intro">Wird geladen ...</p>
+            </header>
+
+            <section class="section-card admin-card">
+                <div class="admin-card-header">
+                    <div>
+                        <p class="recipe-kicker">Systemtabelle</p>
+                        <h2>Tabelleneditor</h2>
+                        <p>Vollformatige Tabellenansicht für Datenprüfung und Stammdatenpflege.</p>
+                    </div>
+                    <button type="button" class="recipe-toolbar-toggle-button" onclick="loadAdminTablePage()" title="Tabelle aktualisieren" aria-label="Tabelle aktualisieren">
+                        <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5"/><path d="M20 12a8 8 0 1 1-2.3-5.7L20 8"/></svg>
+                    </button>
+                </div>
+
+                <div id="admin-table-message" class="inventory-overlay-message is-hidden" aria-live="polite"></div>
+                <div id="admin-table-content" class="admin-table-content"></div>
+            </section>
+        </main>
+    </div>
+
+    <div id="app-toast" class="app-toast is-hidden"></div>
+    <script src="navigation.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>

@@ -584,15 +584,19 @@ async function mergeDuplicateGroupKeeping(masterItemId, duplicateItemIds = []) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    loadAdminSystemStatus();
-    loadInventoryCleanupPreview();
+    if (document.body?.dataset?.adminTablePage === "true") {
+        loadAdminTablePage();
+    } else {
+        loadAdminSystemStatus();
+        loadInventoryCleanupPreview();
+    }
 
     document.addEventListener("click", (event) => {
         const tableButton = event.target.closest("[data-admin-table]");
         if (tableButton) {
             event.preventDefault();
             const tableName = tableButton.dataset.adminTable;
-            if (tableName) openAdminTableModal(tableName);
+            if (tableName) openAdminTableInNewTab(tableName);
         }
 
 
@@ -812,6 +816,35 @@ async function applyRecipeResync(deleteAllZeroStock = false) {
 }
 
 
+
+function openAdminTableInNewTab(tableName) {
+    const url = `adminTable.html?table=${encodeURIComponent(tableName)}`;
+    window.open(url, "_blank", "noopener");
+}
+
+function getAdminTableNameFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("table") || "food_items";
+}
+
+async function loadAdminTablePage() {
+    const tableName = getAdminTableNameFromUrl();
+    const content = document.getElementById("admin-table-content");
+    const title = document.getElementById("admin-table-title");
+    const subtitle = document.getElementById("admin-table-subtitle");
+    if (title) title.textContent = tableName || "Tabelle";
+    if (subtitle) subtitle.textContent = "Wird geladen ...";
+    if (content) content.innerHTML = `<p class="admin-empty-state">Tabellendaten werden geladen ...</p>`;
+    setAdminTableMessage("");
+
+    try {
+        const preview = await apiFetch(`${API_URL}/admin/tables/${encodeURIComponent(tableName)}?limit=1000`);
+        renderAdminTablePreview(preview);
+    } catch (error) {
+        console.error(error);
+        setAdminTableMessage(error.message || "Tabelle konnte nicht geladen werden.");
+    }
+}
 
 function ensureAdminTableModal() {
     let modal = document.getElementById("admin-table-modal");

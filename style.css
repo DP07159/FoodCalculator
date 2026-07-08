@@ -3455,3 +3455,29 @@ body.modal-open .app-header {
         max-height: calc(100dvh - 180px);
     }
 }
+
+/* =========================================================
+   ADMIN TABELLENANSICHT: VOLLFOLMATIGE SEITE IM NEUEN TAB
+========================================================= */
+.admin-table-page {
+    max-width: none;
+}
+
+.admin-table-page .page-header,
+.admin-table-page .admin-card {
+    max-width: none;
+}
+
+.admin-table-page .admin-table-content {
+    width: 100%;
+}
+
+.admin-table-page .admin-table-scroll {
+    max-width: 100%;
+    max-height: none;
+    overflow: auto;
+}
+
+.admin-table-page .admin-data-table {
+    min-width: 980px;
+}

@@ -1,4 +1,4 @@
-const CACHE_NAME = "food-calculator-v16-food-consolidation-admin-editor";
+const CACHE_NAME = "food-calculator-v17-admin-table-page";
 
 const FILES_TO_CACHE = [
     "/",
@@ -13,6 +13,7 @@ const FILES_TO_CACHE = [
     "/recipeCreate.html",
     "/recipeCreate.js",
     "/admin.html",
+    "/adminTable.html",
     "/admin.js",
     "/inventory.html",
     "/inventory.js",

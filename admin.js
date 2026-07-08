@@ -592,6 +592,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     document.addEventListener("click", (event) => {
+        const resyncSummary = event.target.closest("[data-resync-tab]");
+        if (resyncSummary) {
+            activeRecipeResyncTab = resyncSummary.dataset.resyncTab || "targets";
+            renderRecipeResyncPreview(latestRecipeResyncPreview);
+            return;
+        }
+
         const tableButton = event.target.closest("[data-admin-table]");
         if (tableButton) {
             event.preventDefault();
@@ -698,6 +705,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 let latestRecipeResyncPreview = null;
+let activeRecipeResyncTab = "targets";
 
 function setAdminResyncMessage(message, type = "error") {
     const box = document.getElementById("admin-resync-message");
@@ -712,17 +720,18 @@ function renderRecipeResyncSummary(preview) {
     if (!target) return;
     const counts = preview?.counts || {};
     const cards = [
-        ["Rezepte", counts.recipes ?? 0],
-        ["Erkannte Zutaten", counts.parsed_ingredients ?? 0],
-        ["Neu anzulegen", counts.create_new ?? 0],
-        ["Auto-Altlasten löschbar", counts.delete_candidates ?? 0],
-        ["Großer Neuaufbau: löschbar", counts.full_rebuild_delete_candidates ?? counts.delete_candidates ?? 0]
+        { key: "recipes", label: "Rezepte", count: counts.recipes ?? 0 },
+        { key: "parsed", label: "Erkannte Zutaten", count: counts.parsed_ingredients ?? 0 },
+        { key: "targets", label: "Zielartikel", count: (preview?.target_items || []).length || counts.parsed_ingredients || 0 },
+        { key: "create", label: "Neu anzulegen", count: counts.create_new ?? 0 },
+        { key: "auto-delete", label: "Auto-Altlasten löschbar", count: counts.delete_candidates ?? 0 },
+        { key: "full-delete", label: "Großer Neuaufbau: löschbar", count: counts.full_rebuild_delete_candidates ?? counts.delete_candidates ?? 0 }
     ];
-    target.innerHTML = cards.map(([label, count]) => `
-        <div class="admin-summary-card">
-            <span>${escapeHtml(label)}</span>
-            <strong>${Number(count) || 0}</strong>
-        </div>
+    target.innerHTML = cards.map(card => `
+        <button type="button" class="admin-summary-card ${activeRecipeResyncTab === card.key ? "is-active" : ""}" data-resync-tab="${escapeHtml(card.key)}">
+            <span>${escapeHtml(card.label)}</span>
+            <strong>${Number(card.count) || 0}</strong>
+        </button>
     `).join("");
 }
 
@@ -773,8 +782,88 @@ function renderRecipeResyncDeleteCandidates(items = [], modeLabel = "aus Rezept-
     `).join("") + (items.length > 80 ? `<p class="admin-result-note">Weitere ${items.length - 80} Löschkandidaten werden nach Ausführung ebenfalls verarbeitet.</p>` : "");
 }
 
+function renderRecipeResyncRecipes(preview) {
+    const recipes = Array.isArray(preview?.recipes) ? preview.recipes : [];
+    if (!recipes.length) {
+        const count = Number(preview?.counts?.recipes || 0);
+        return `<p class="admin-empty-state">${count ? `${count} Rezepte werden berücksichtigt. Eine Einzelliste liefert der Backend-Endpunkt aktuell nicht mit.` : "Keine Rezepte gefunden."}</p>`;
+    }
+    return recipes.slice(0, 120).map(recipe => `
+        <article class="admin-result-card admin-item-row">
+            <div>
+                <div class="admin-result-card-header admin-result-card-header-compact">
+                    <div>
+                        <span class="admin-pill">Rezept</span>
+                        <h3>${escapeHtml(recipe.name || `Rezept #${recipe.id}`)}</h3>
+                    </div>
+                    <small>ID ${Number(recipe.id) || ""}</small>
+                </div>
+            </div>
+        </article>
+    `).join("") + (recipes.length > 120 ? `<p class="admin-result-note">Weitere ${recipes.length - 120} Rezepte werden ebenfalls berücksichtigt.</p>` : "");
+}
+
+function renderRecipeResyncParsedIngredients(preview) {
+    const items = Array.isArray(preview?.target_items) ? preview.target_items : [];
+    const occurrences = [];
+    items.forEach(item => {
+        (Array.isArray(item.occurrences) ? item.occurrences : []).forEach(occurrence => {
+            occurrences.push({ item, occurrence });
+        });
+    });
+    if (!occurrences.length) {
+        const count = Number(preview?.counts?.parsed_ingredients || 0);
+        return `<p class="admin-empty-state">${count ? `${count} Zutaten wurden erkannt. Detail-Vorkommen sind in dieser Vorschau nicht vollständig enthalten.` : "Keine erkannten Zutaten gefunden."}</p>`;
+    }
+    return occurrences.slice(0, 120).map(({ item, occurrence }) => `
+        <article class="admin-result-card admin-item-row">
+            <div>
+                <div class="admin-result-card-header admin-result-card-header-compact">
+                    <div>
+                        <span class="admin-pill">erkannte Zutat</span>
+                        <h3>${escapeHtml(occurrence.raw_text || item.display_name || "")}</h3>
+                    </div>
+                    <small>${escapeHtml(occurrence.recipe_name || "")}</small>
+                </div>
+                <div class="admin-item-meta">
+                    <span class="inventory-summary-chip">Ziel: ${escapeHtml(item.display_name || "")}</span>
+                    ${item.action ? `<span class="inventory-summary-chip">${escapeHtml(item.action === "create_new" ? "neu anzulegen" : "verknüpfen")}</span>` : ""}
+                </div>
+            </div>
+        </article>
+    `).join("") + (occurrences.length > 120 ? `<p class="admin-result-note">Weitere ${occurrences.length - 120} erkannte Zutaten werden ebenfalls verarbeitet.</p>` : "");
+}
+
+function renderRecipeResyncCreateItems(preview) {
+    const items = (preview?.target_items || []).filter(item => item.action === "create_new" || !item.existing_item);
+    if (!items.length) return `<p class="admin-empty-state">Keine neuen Artikel anzulegen.</p>`;
+    return renderRecipeResyncTargetItems(items);
+}
+
+function renderRecipeResyncActiveSection(preview) {
+    if (activeRecipeResyncTab === "recipes") {
+        return `<section class="admin-result-section"><h2>Rezepte</h2>${renderRecipeResyncRecipes(preview)}</section>`;
+    }
+    if (activeRecipeResyncTab === "parsed") {
+        return `<section class="admin-result-section"><h2>Erkannte Zutaten</h2>${renderRecipeResyncParsedIngredients(preview)}</section>`;
+    }
+    if (activeRecipeResyncTab === "create") {
+        return `<section class="admin-result-section"><h2>Neu anzulegende Artikel</h2>${renderRecipeResyncCreateItems(preview)}</section>`;
+    }
+    if (activeRecipeResyncTab === "auto-delete") {
+        return `<section class="admin-result-section"><h2>Löschbare Auto-Altlasten</h2>${renderRecipeResyncDeleteCandidates(preview.delete_candidates || [], "aus Rezept-Parse")}</section>`;
+    }
+    if (activeRecipeResyncTab === "full-delete") {
+        return `<section class="admin-result-section"><h2>Großer Neuaufbau: löschbare Bestand-0-Artikel</h2><p class="admin-result-note">Diese Liste ist breiter: Sie umfasst alle aktuell nicht als Zielartikel verwendeten Artikel mit Bestand 0. Bitte nur ausführen, wenn du genau diesen vollständigen Neuaufbau möchtest.</p>${renderRecipeResyncDeleteCandidates(preview.full_rebuild_delete_candidates || preview.delete_candidates || [], "Bestand 0")}</section>`;
+    }
+    return `<section class="admin-result-section"><h2>Zielartikel</h2>${renderRecipeResyncTargetItems(preview.target_items || [])}</section>`;
+}
+
 function renderRecipeResyncPreview(preview) {
     latestRecipeResyncPreview = preview;
+    if (preview && !["recipes", "parsed", "targets", "create", "auto-delete", "full-delete"].includes(activeRecipeResyncTab)) {
+        activeRecipeResyncTab = "targets";
+    }
     renderRecipeResyncSummary(preview);
     const target = document.getElementById("admin-resync-results");
     if (!target) return;
@@ -785,7 +874,7 @@ function renderRecipeResyncPreview(preview) {
     target.innerHTML = `
         <section class="admin-result-section">
             <h2>Vorschau</h2>
-            <p class="admin-result-note">Artikel mit Bestand bleiben immer geschützt. Du kannst entweder nur Auto-Altlasten entfernen oder den großen Neuaufbau für alle nicht verwendeten Bestand-0-Artikel starten.</p>
+            <p class="admin-result-note">Artikel mit Bestand bleiben immer geschützt. Klicke oben auf eine Kachel, um die jeweilige Detailübersicht einzublenden.</p>
             <div class="admin-action-row admin-action-row-neutral">
                 <p>Standard: Rezept-Zutaten neu aufbauen und nur bestandslose automatisch erzeugte Parse-Altlasten löschen.</p>
                 <button type="button" class="form-actions-button-like" onclick="applyRecipeResync(false)">Standard-Synchronisierung ausführen</button>
@@ -795,19 +884,7 @@ function renderRecipeResyncPreview(preview) {
                 <button type="button" class="form-actions-button-like" onclick="applyRecipeResync(true)">Großen Neuaufbau ausführen</button>
             </div>
         </section>
-        <section class="admin-result-section">
-            <h2>Zielartikel</h2>
-            ${renderRecipeResyncTargetItems(preview.target_items || [])}
-        </section>
-        <section class="admin-result-section">
-            <h2>Löschbare Auto-Altlasten</h2>
-            ${renderRecipeResyncDeleteCandidates(preview.delete_candidates || [], "aus Rezept-Parse")}
-        </section>
-        <section class="admin-result-section">
-            <h2>Großer Neuaufbau: löschbare Bestand-0-Artikel</h2>
-            <p class="admin-result-note">Diese Liste ist breiter: Sie umfasst alle aktuell nicht als Zielartikel verwendeten Artikel mit Bestand 0. Bitte nur ausführen, wenn du genau diesen vollständigen Neuaufbau möchtest.</p>
-            ${renderRecipeResyncDeleteCandidates(preview.full_rebuild_delete_candidates || preview.delete_candidates || [], "Bestand 0")}
-        </section>
+        ${renderRecipeResyncActiveSection(preview)}
     `;
 }
 

@@ -1,4 +1,4 @@
-const CACHE_NAME = "food-calculator-v20-admin-health-table-fix";
+const CACHE_NAME = "food-calculator-v21-admin-resync-tabs";
 
 const FILES_TO_CACHE = [
     "/",

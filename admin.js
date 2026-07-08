@@ -812,6 +812,37 @@ async function applyRecipeResync(deleteAllZeroStock = false) {
 }
 
 
+
+function ensureAdminTableModal() {
+    let modal = document.getElementById("admin-table-modal");
+    if (modal) return modal;
+
+    modal = document.createElement("div");
+    modal.id = "admin-table-modal";
+    modal.className = "inventory-modal is-hidden";
+    modal.setAttribute("role", "dialog");
+    modal.setAttribute("aria-modal", "true");
+    modal.setAttribute("aria-labelledby", "admin-table-title");
+    modal.innerHTML = `
+        <div class="inventory-modal-backdrop" onclick="closeAdminTableModal()"></div>
+        <div class="inventory-modal-dialog admin-table-dialog">
+            <div class="inventory-section-headline">
+                <div>
+                    <p class="recipe-kicker">Systemtabelle</p>
+                    <h2 id="admin-table-title">Tabelle</h2>
+                    <p id="admin-table-subtitle" class="admin-result-note"></p>
+                </div>
+                <button type="button" class="header-icon-button" onclick="closeAdminTableModal()" title="Fenster schließen" aria-label="Fenster schließen">
+                    <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div id="admin-table-message" class="inventory-overlay-message is-hidden" aria-live="polite"></div>
+            <div id="admin-table-content" class="admin-table-content"></div>
+        </div>`;
+    document.body.appendChild(modal);
+    return modal;
+}
+
 function setAdminTableMessage(message, type = "error") {
     const box = document.getElementById("admin-table-message");
     if (!box) return;
@@ -936,7 +967,7 @@ function renderAdminTablePreview(preview) {
 
     const foodItemsExtra = preview.table === "food_items" ? `
         <div class="admin-action-row admin-action-row-neutral">
-            <p>Stammdaten konsolidieren: Wähle mehrere Lebensmittel aus und klicke beim richtigen Stammsatz auf „Als Master“. Rezept-Zutaten, Inventarbezüge und Aliase werden auf diesen Master umgehängt.</p>
+            <p>Stammdaten konsolidieren: Wähle zwei oder mehr Lebensmittel aus. Klicke anschließend in der Zeile des korrekten Artikels auf „Als Master“. Alle ausgewählten anderen Stammsätze werden in diesen Artikel überführt; Rezept-Zutaten, Inventarbezüge und Aliase werden umgehängt.</p>
             <span class="admin-pill" id="admin-food-consolidation-count">0 ausgewählt</span>
         </div>
     ` : "";
@@ -1011,7 +1042,7 @@ async function consolidateSelectedFoodItems(masterFoodItemId) {
 }
 
 async function openAdminTableModal(tableName) {
-    const modal = document.getElementById("admin-table-modal");
+    const modal = ensureAdminTableModal();
     const content = document.getElementById("admin-table-content");
     const title = document.getElementById("admin-table-title");
     const subtitle = document.getElementById("admin-table-subtitle");

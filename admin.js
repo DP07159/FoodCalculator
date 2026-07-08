@@ -594,12 +594,50 @@ document.addEventListener("DOMContentLoaded", () => {
             const tableName = tableButton.dataset.adminTable;
             if (tableName) openAdminTableModal(tableName);
         }
+
+
+        const closeUtility = event.target.closest("[data-close-admin-utility]");
+        if (closeUtility) {
+            event.preventDefault();
+            closeAdminUtilityModal();
+        }
+
+        const foodDetailButton = event.target.closest("[data-food-detail-id]");
+        if (foodDetailButton) {
+            event.preventDefault();
+            openFoodItemDetail(foodDetailButton.dataset.foodDetailId);
+        }
+
+        const newAliasButton = event.target.closest("[data-new-alias-food-id]");
+        if (newAliasButton) {
+            event.preventDefault();
+            openAliasEditor({ foodItemId: newAliasButton.dataset.newAliasFoodId || null });
+        }
+
+        const editAliasButton = event.target.closest("[data-edit-alias-id]");
+        if (editAliasButton) {
+            event.preventDefault();
+            openAliasEditor({ aliasId: Number(editAliasButton.dataset.editAliasId), aliasName: editAliasButton.dataset.aliasName || "", foodItemId: Number(editAliasButton.dataset.foodItemId || 0) });
+        }
+
+        const deleteAliasButton = event.target.closest("[data-delete-alias-id]");
+        if (deleteAliasButton) {
+            event.preventDefault();
+            deleteFoodAlias(Number(deleteAliasButton.dataset.deleteAliasId), deleteAliasButton.dataset.aliasName || "");
+        }
+
+        const editIngredientLinkButton = event.target.closest("[data-edit-recipe-ingredient-link]");
+        if (editIngredientLinkButton) {
+            event.preventDefault();
+            openRecipeIngredientLinkEditor({ ingredientId: Number(editIngredientLinkButton.dataset.editRecipeIngredientLink), foodItemId: Number(editIngredientLinkButton.dataset.foodItemId || 0) || null, rawText: editIngredientLinkButton.dataset.rawText || "" });
+        }
     });
 
     document.addEventListener("keydown", (event) => {
         if (event.key !== "Escape") return;
         closeAdminTableModal();
         closeAdminItemModal();
+        closeAdminUtilityModal();
     });
 });
 
@@ -789,7 +827,77 @@ function getAdminTableDescription(tableName) {
     return descriptions[tableName] || "Direkte Tabellenansicht zur Datenprüfung.";
 }
 
+let latestAdminTablePreview = null;
+let adminFoodItemOptionsCache = null;
+
+async function loadAdminFoodItemOptions() {
+    if (adminFoodItemOptionsCache) return adminFoodItemOptionsCache;
+    const payload = await apiFetch(`${API_URL}/admin/food-items`);
+    adminFoodItemOptionsCache = Array.isArray(payload.items) ? payload.items : [];
+    return adminFoodItemOptionsCache;
+}
+
+function renderFoodItemSelectOptions(items, selectedId = null, includeEmpty = false) {
+    const selected = Number(selectedId);
+    const empty = includeEmpty ? `<option value="">Keine Verknüpfung</option>` : "";
+    return empty + items.map(item => `
+        <option value="${Number(item.id)}" ${Number(item.id) === selected ? "selected" : ""}>
+            ${escapeHtml(item.display_name || `Lebensmittel #${item.id}`)}${item.alias_count ? ` · ${Number(item.alias_count)} Aliase` : ""}
+        </option>
+    `).join("");
+}
+
+function adminActionButton(label, attrs = "", danger = false) {
+    return `<button type="button" class="form-actions-button-like ${danger ? "toolbar-delete-button" : ""}" ${attrs}>${escapeHtml(label)}</button>`;
+}
+
+function renderAdminTableCell(row, column, tableName) {
+    if (tableName === "food_items" && column === "display_name") {
+        return `<button type="button" class="admin-item-name-button" data-food-detail-id="${Number(row.id)}">${formatAdminTableCell(row[column])}</button>`;
+    }
+    if (tableName === "food_aliases" && column === "target_food_item") {
+        return row.food_item_id
+            ? `<button type="button" class="admin-item-name-button" data-food-detail-id="${Number(row.food_item_id)}">${formatAdminTableCell(row[column])}</button>`
+            : formatAdminTableCell(row[column]);
+    }
+    if (tableName === "recipe_ingredients" && column === "linked_food_item") {
+        return row.food_item_id
+            ? `<button type="button" class="admin-item-name-button" data-food-detail-id="${Number(row.food_item_id)}">${formatAdminTableCell(row[column])}</button>`
+            : formatAdminTableCell(row[column]);
+    }
+    return formatAdminTableCell(row[column]);
+}
+
+function renderAdminTableRowActions(row, tableName) {
+    if (tableName === "food_aliases") {
+        return `
+            <td class="admin-table-actions-cell">
+                ${adminActionButton("Bearbeiten", `data-edit-alias-id="${Number(row.id)}" data-alias-name="${escapeHtml(row.alias_name || "")}" data-food-item-id="${Number(row.food_item_id || 0)}"`)}
+                ${adminActionButton("Löschen", `data-delete-alias-id="${Number(row.id)}" data-alias-name="${escapeHtml(row.alias_name || "")}"`, true)}
+            </td>`;
+    }
+    if (tableName === "food_items") {
+        return `
+            <td class="admin-table-actions-cell">
+                ${adminActionButton("Details", `data-food-detail-id="${Number(row.id)}"`)}
+                ${adminActionButton("Alias +", `data-new-alias-food-id="${Number(row.id)}" data-food-display-name="${escapeHtml(row.display_name || "")}"`)}
+            </td>`;
+    }
+    if (tableName === "recipe_ingredients") {
+        return `
+            <td class="admin-table-actions-cell">
+                ${adminActionButton("Verknüpfen", `data-edit-recipe-ingredient-link="${Number(row.id)}" data-food-item-id="${Number(row.food_item_id || 0)}" data-raw-text="${escapeHtml(row.raw_text || "")}"`)}
+            </td>`;
+    }
+    return `<td></td>`;
+}
+
+function tableHasActions(tableName) {
+    return ["food_aliases", "food_items", "recipe_ingredients"].includes(tableName);
+}
+
 function renderAdminTablePreview(preview) {
+    latestAdminTablePreview = preview;
     const title = document.getElementById("admin-table-title");
     const subtitle = document.getElementById("admin-table-subtitle");
     const content = document.getElementById("admin-table-content");
@@ -799,22 +907,32 @@ function renderAdminTablePreview(preview) {
 
     const columns = Array.isArray(preview.columns) ? preview.columns : [];
     const rows = Array.isArray(preview.rows) ? preview.rows : [];
+    const hasActions = tableHasActions(preview.table);
+
+    const extra = preview.table === "food_aliases" ? `
+        <div class="admin-action-row admin-action-row-neutral">
+            <p>Alias direkt verwalten: bestehende Schreibweisen ändern, Ziel-Lebensmittel wechseln oder neue Aliase anlegen.</p>
+            ${adminActionButton("Neuen Alias anlegen", `data-new-alias-food-id=""`)}
+        </div>
+    ` : "";
 
     if (!rows.length) {
-        content.innerHTML = `<p class="admin-empty-state">Keine Einträge in dieser Tabelle.</p>`;
+        content.innerHTML = `${extra}<p class="admin-empty-state">Keine Einträge in dieser Tabelle.</p>`;
         return;
     }
 
     content.innerHTML = `
+        ${extra}
         <div class="admin-table-scroll">
             <table class="admin-data-table">
                 <thead>
-                    <tr>${columns.map(column => `<th>${escapeHtml(column)}</th>`).join("")}</tr>
+                    <tr>${columns.map(column => `<th>${escapeHtml(column)}</th>`).join("")}${hasActions ? "<th>Aktion</th>" : ""}</tr>
                 </thead>
                 <tbody>
                     ${rows.map(row => `
                         <tr>
-                            ${columns.map(column => `<td>${formatAdminTableCell(row[column])}</td>`).join("")}
+                            ${columns.map(column => `<td>${renderAdminTableCell(row, column, preview.table)}</td>`).join("")}
+                            ${hasActions ? renderAdminTableRowActions(row, preview.table) : ""}
                         </tr>
                     `).join("")}
                 </tbody>
@@ -845,6 +963,214 @@ async function openAdminTableModal(tableName) {
 }
 
 
+
+function ensureAdminUtilityModal() {
+    let modal = document.getElementById("admin-utility-modal");
+    if (modal) return modal;
+    modal = document.createElement("div");
+    modal.id = "admin-utility-modal";
+    modal.className = "inventory-modal is-hidden";
+    modal.setAttribute("role", "dialog");
+    modal.setAttribute("aria-modal", "true");
+    modal.innerHTML = `
+        <div class="inventory-modal-backdrop" data-close-admin-utility="true"></div>
+        <div class="inventory-modal-dialog admin-item-dialog">
+            <div class="inventory-section-headline">
+                <div>
+                    <p id="admin-utility-kicker" class="recipe-kicker">Admin</p>
+                    <h2 id="admin-utility-title">Bearbeiten</h2>
+                    <p id="admin-utility-subtitle" class="admin-result-note"></p>
+                </div>
+                <button type="button" class="header-icon-button" data-close-admin-utility="true" title="Fenster schließen" aria-label="Fenster schließen">
+                    <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div id="admin-utility-message" class="inventory-overlay-message is-hidden" aria-live="polite"></div>
+            <div id="admin-utility-content" class="admin-item-modal-content"></div>
+        </div>`;
+    document.body.appendChild(modal);
+    return modal;
+}
+
+function closeAdminUtilityModal() {
+    const modal = document.getElementById("admin-utility-modal");
+    if (modal) modal.classList.add("is-hidden");
+    document.body.classList.remove("modal-open");
+}
+
+function setAdminUtilityMessage(message, type = "error") {
+    const box = document.getElementById("admin-utility-message");
+    if (!box) return;
+    box.textContent = message || "";
+    box.classList.toggle("is-hidden", !message);
+    box.dataset.type = type;
+}
+
+function openAdminUtilityModal(title, subtitle = "", kicker = "Admin") {
+    const modal = ensureAdminUtilityModal();
+    document.getElementById("admin-utility-title").textContent = title;
+    document.getElementById("admin-utility-subtitle").textContent = subtitle;
+    document.getElementById("admin-utility-kicker").textContent = kicker;
+    document.getElementById("admin-utility-content").innerHTML = `<p class="admin-empty-state">Wird geladen ...</p>`;
+    setAdminUtilityMessage("");
+    modal.classList.remove("is-hidden");
+    document.body.classList.add("modal-open");
+}
+
+async function refreshCurrentAdminTable() {
+    if (!latestAdminTablePreview?.table) return;
+    const preview = await apiFetch(`${API_URL}/admin/tables/${encodeURIComponent(latestAdminTablePreview.table)}?limit=${Number(latestAdminTablePreview.limit || 250)}`);
+    renderAdminTablePreview(preview);
+}
+
+async function openAliasEditor({ aliasId = null, aliasName = "", foodItemId = null } = {}) {
+    openAdminUtilityModal(aliasId ? "Alias bearbeiten" : "Alias anlegen", "Lege fest, welche Schreibweise auf welchen Lebensmittel-Stammsatz zeigt.", "Lebensmittel-Alias");
+    try {
+        const items = await loadAdminFoodItemOptions();
+        const content = document.getElementById("admin-utility-content");
+        content.innerHTML = `
+            <form id="admin-alias-form" class="inventory-create-form">
+                <div class="form-section">
+                    <label for="admin-alias-name">Alias / Schreibweise</label>
+                    <input type="text" id="admin-alias-name" value="${escapeHtml(aliasName)}" placeholder="z.B. Paprika rot">
+                </div>
+                <div class="form-section">
+                    <label for="admin-alias-food-item">Ziel-Lebensmittel</label>
+                    <select id="admin-alias-food-item">
+                        ${renderFoodItemSelectOptions(items, foodItemId, true)}
+                    </select>
+                </div>
+                <div class="form-actions inventory-actions">
+                    <button type="button" class="secondary-button" data-close-admin-utility="true">Abbrechen</button>
+                    <button type="button" id="admin-save-alias-button">Speichern</button>
+                </div>
+            </form>`;
+        document.getElementById("admin-save-alias-button").addEventListener("click", async () => {
+            const payload = {
+                alias_name: document.getElementById("admin-alias-name").value.trim(),
+                food_item_id: Number(document.getElementById("admin-alias-food-item").value)
+            };
+            try {
+                const result = await apiFetch(aliasId ? `${API_URL}/admin/food-aliases/${aliasId}` : `${API_URL}/admin/food-aliases`, {
+                    method: aliasId ? "PUT" : "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                adminFoodItemOptionsCache = null;
+                if (result.table) renderAdminTablePreview(result.table);
+                showToast(aliasId ? "Alias gespeichert." : "Alias angelegt.");
+                closeAdminUtilityModal();
+            } catch (error) {
+                setAdminUtilityMessage(error.message || "Alias konnte nicht gespeichert werden.");
+            }
+        });
+    } catch (error) {
+        setAdminUtilityMessage(error.message || "Alias-Dialog konnte nicht geladen werden.");
+    }
+}
+
+async function deleteFoodAlias(aliasId, aliasName = "") {
+    if (!confirm(`Alias wirklich löschen?\n\n${aliasName || `Alias #${aliasId}`}`)) return;
+    try {
+        const result = await apiFetch(`${API_URL}/admin/food-aliases/${aliasId}`, { method: "DELETE" });
+        adminFoodItemOptionsCache = null;
+        if (result.table) renderAdminTablePreview(result.table);
+        showToast("Alias gelöscht.");
+    } catch (error) {
+        setAdminTableMessage(error.message || "Alias konnte nicht gelöscht werden.");
+    }
+}
+
+async function openFoodItemDetail(foodItemId) {
+    openAdminUtilityModal("Lebensmittel-Details", "Aliase, Inventarartikel und Rezeptverknüpfungen prüfen.", "Stammdaten");
+    try {
+        const detail = await apiFetch(`${API_URL}/admin/food-items/${Number(foodItemId)}/detail`);
+        const content = document.getElementById("admin-utility-content");
+        const item = detail.item || {};
+        const aliases = Array.isArray(detail.aliases) ? detail.aliases : [];
+        const inventoryItems = Array.isArray(detail.inventory_items) ? detail.inventory_items : [];
+        const recipeIngredients = Array.isArray(detail.recipe_ingredients) ? detail.recipe_ingredients : [];
+        content.innerHTML = `
+            <div class="recipe-inventory-summary">
+                <a class="recipe-inventory-item-link" href="/inventory.html?item=${encodeURIComponent(inventoryItems[0]?.id || "")}">${escapeHtml(item.display_name || "Lebensmittel")}</a>
+                <span>${escapeHtml(item.canonical_key || "")}</span>
+            </div>
+
+            <h3 class="admin-modal-subheadline">Aliase</h3>
+            <div class="admin-chip-row">
+                ${aliases.length ? aliases.map(alias => `<span class="admin-pill">${escapeHtml(alias.alias_name)}</span>`).join("") : `<p class="admin-empty-state">Keine Aliase vorhanden.</p>`}
+            </div>
+            <div class="form-actions inventory-actions">
+                ${adminActionButton("Alias hinzufügen", `data-new-alias-food-id="${Number(item.id)}" data-food-display-name="${escapeHtml(item.display_name || "")}"`)}
+            </div>
+
+            <h3 class="admin-modal-subheadline">Inventarartikel</h3>
+            ${inventoryItems.length ? inventoryItems.map(inv => `
+                <div class="admin-result-card admin-item-row">
+                    <div>
+                        <strong>${escapeHtml(inv.name)}</strong>
+                        <div class="admin-item-meta"><span class="admin-pill">Bestand: ${formatAdminTableCell(inv.total_stock)}</span><span class="admin-pill">Quelle: ${escapeHtml(inv.source || "")}</span></div>
+                    </div>
+                    <a class="form-actions-button-like" href="/inventory.html?item=${Number(inv.id)}">Im Inventar öffnen</a>
+                </div>
+            `).join("") : `<p class="admin-empty-state">Kein Inventarartikel verknüpft.</p>`}
+
+            <h3 class="admin-modal-subheadline">Rezept-Zutaten</h3>
+            ${recipeIngredients.length ? recipeIngredients.map(ri => `
+                <div class="admin-result-card">
+                    <div class="admin-result-card-header">
+                        <div><h3>${escapeHtml(ri.recipe_name || "Unbenanntes Rezept")}</h3><p class="admin-result-note">${escapeHtml(ri.raw_text || "")}</p></div>
+                        ${adminActionButton("Verknüpfung ändern", `data-edit-recipe-ingredient-link="${Number(ri.id)}" data-food-item-id="${Number(item.id)}" data-raw-text="${escapeHtml(ri.raw_text || "")}"`)}
+                    </div>
+                </div>
+            `).join("") : `<p class="admin-empty-state">Keine Rezept-Zutaten verknüpft.</p>`}
+        `;
+    } catch (error) {
+        setAdminUtilityMessage(error.message || "Lebensmittel-Details konnten nicht geladen werden.");
+    }
+}
+
+async function openRecipeIngredientLinkEditor({ ingredientId, foodItemId = null, rawText = "" }) {
+    openAdminUtilityModal("Zutaten-Verknüpfung bearbeiten", rawText || "Wähle den korrekten Lebensmittel-Stammsatz für diese Rezeptzutat.", "Rezept-Zutat");
+    try {
+        const items = await loadAdminFoodItemOptions();
+        const content = document.getElementById("admin-utility-content");
+        content.innerHTML = `
+            <form id="admin-recipe-link-form" class="inventory-create-form">
+                <div class="inventory-position-summary"><strong>${escapeHtml(rawText || `Zutat #${ingredientId}`)}</strong><span>Nur die Verknüpfung wird geändert; der Rezepttext bleibt unverändert.</span></div>
+                <div class="form-section">
+                    <label for="admin-recipe-link-food-item">Verknüpftes Lebensmittel</label>
+                    <select id="admin-recipe-link-food-item">
+                        ${renderFoodItemSelectOptions(items, foodItemId, true)}
+                    </select>
+                </div>
+                <div class="form-actions inventory-actions">
+                    <button type="button" class="secondary-button" data-close-admin-utility="true">Abbrechen</button>
+                    <button type="button" id="admin-unlink-ingredient-button" class="secondary-button">Verknüpfung lösen</button>
+                    <button type="button" id="admin-save-ingredient-link-button">Speichern</button>
+                </div>
+            </form>`;
+        async function saveLink(value) {
+            try {
+                await apiFetch(`${API_URL}/admin/recipe-ingredients/${Number(ingredientId)}/link`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ food_item_id: value })
+                });
+                showToast("Rezept-Zutat aktualisiert.");
+                closeAdminUtilityModal();
+                await refreshCurrentAdminTable();
+            } catch (error) {
+                setAdminUtilityMessage(error.message || "Verknüpfung konnte nicht gespeichert werden.");
+            }
+        }
+        document.getElementById("admin-save-ingredient-link-button").addEventListener("click", () => saveLink(Number(document.getElementById("admin-recipe-link-food-item").value)));
+        document.getElementById("admin-unlink-ingredient-button").addEventListener("click", () => saveLink(null));
+    } catch (error) {
+        setAdminUtilityMessage(error.message || "Verknüpfungsdialog konnte nicht geladen werden.");
+    }
+}
+
 // Explicitly expose handlers used by inline HTML attributes and dynamic admin controls.
 // This keeps the Admin page robust even when functions are referenced from generated markup.
 window.loadAdminSystemStatus = loadAdminSystemStatus;
@@ -853,3 +1179,4 @@ window.loadRecipeResyncPreview = loadRecipeResyncPreview;
 window.openAdminTableModal = openAdminTableModal;
 window.closeAdminTableModal = closeAdminTableModal;
 window.closeAdminItemModal = closeAdminItemModal;
+window.closeAdminUtilityModal = closeAdminUtilityModal;

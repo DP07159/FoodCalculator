@@ -3961,3 +3961,23 @@ body.modal-open .app-header {
         min-width: 220px;
     }
 }
+
+
+/* Admin Resync Review Controls */
+.admin-resync-actions {
+    align-items: stretch;
+    flex-wrap: wrap;
+    min-width: min(520px, 100%);
+}
+
+.admin-inline-select {
+    min-width: min(280px, 100%);
+    flex: 1 1 280px;
+}
+
+@media (max-width: 900px) {
+    .admin-resync-actions {
+        width: 100%;
+        min-width: 0;
+    }
+}

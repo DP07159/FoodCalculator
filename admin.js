@@ -715,6 +715,77 @@ function setAdminResyncMessage(message, type = "error") {
     box.dataset.type = type;
 }
 
+function renderInventoryOptionSelect(selectedId = "", selectId = "") {
+    const options = Array.isArray(latestRecipeResyncPreview?.inventory_options) ? latestRecipeResyncPreview.inventory_options : [];
+    return `
+        <select id="${escapeHtml(selectId)}" class="inventory-filter-select admin-inline-select">
+            <option value="">Mit vorhandenem Artikel verknüpfen ...</option>
+            ${options.map(option => `
+                <option value="${Number(option.id)}" ${Number(selectedId) === Number(option.id) ? "selected" : ""}>
+                    ${escapeHtml(option.name || `Artikel #${option.id}`)}${Number(option.stock_total || 0) > 0 ? " · Bestand" : ""}
+                </option>
+            `).join("")}
+        </select>
+    `;
+}
+
+function findRecipeResyncOverride(type, { canonicalKey = "", inventoryItemId = null } = {}) {
+    const rows = Array.isArray(latestRecipeResyncPreview?.overrides) ? latestRecipeResyncPreview.overrides : [];
+    return rows.find(row => {
+        if (String(row.override_type || "") !== type) return false;
+        if (type === "create") return String(row.canonical_key || "") === String(canonicalKey || "");
+        return Number(row.inventory_item_id || 0) === Number(inventoryItemId || 0);
+    }) || null;
+}
+
+async function saveRecipeResyncOverride(payload) {
+    setAdminResyncMessage("");
+    try {
+        const result = await apiFetch(`${API_URL}/admin/recipe-resync-overrides`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+        renderRecipeResyncPreview(result.preview);
+    } catch (error) {
+        setAdminResyncMessage(error.message || "Auswahl konnte nicht gespeichert werden.");
+    }
+}
+
+function linkRecipeResyncCreateCandidate(canonicalKey) {
+    const select = document.getElementById(`resync-create-link-${cssEscapeValue(canonicalKey)}`);
+    const targetId = Number(select?.value || 0);
+    if (!targetId) return setAdminResyncMessage("Bitte zuerst einen Zielartikel auswählen.");
+    saveRecipeResyncOverride({ override_type: "create", canonical_key: canonicalKey, action: "link_existing", target_inventory_item_id: targetId });
+}
+
+function ignoreRecipeResyncCreateCandidate(canonicalKey) {
+    saveRecipeResyncOverride({ override_type: "create", canonical_key: canonicalKey, action: "ignore" });
+}
+
+function clearRecipeResyncCreateCandidate(canonicalKey) {
+    saveRecipeResyncOverride({ override_type: "create", canonical_key: canonicalKey, action: "clear" });
+}
+
+function linkRecipeResyncDeleteCandidate(itemId) {
+    const select = document.getElementById(`resync-delete-link-${Number(itemId)}`);
+    const targetId = Number(select?.value || 0);
+    if (!targetId) return setAdminResyncMessage("Bitte zuerst einen Zielartikel auswählen.");
+    saveRecipeResyncOverride({ override_type: "delete", inventory_item_id: Number(itemId), action: "link_existing", target_inventory_item_id: targetId });
+}
+
+function ignoreRecipeResyncDeleteCandidate(itemId) {
+    saveRecipeResyncOverride({ override_type: "delete", inventory_item_id: Number(itemId), action: "ignore" });
+}
+
+function clearRecipeResyncDeleteCandidate(itemId) {
+    saveRecipeResyncOverride({ override_type: "delete", inventory_item_id: Number(itemId), action: "clear" });
+}
+
+function cssEscapeValue(value) {
+    return String(value || "").replace(/[^a-zA-Z0-9_-]/g, "_");
+}
+
 function renderRecipeResyncSummary(preview) {
     const target = document.getElementById("admin-resync-summary");
     if (!target) return;
@@ -737,14 +808,19 @@ function renderRecipeResyncSummary(preview) {
 
 function renderRecipeResyncTargetItems(items = []) {
     if (!items.length) return `<p class="admin-empty-state">Keine Rezept-Zutaten erkannt.</p>`;
-    return items.slice(0, 80).map(item => {
+    return items.slice(0, 120).map(item => {
         const occurrenceCount = Array.isArray(item.occurrences) ? item.occurrences.length : 0;
+        const safeKey = cssEscapeValue(item.canonical_key || item.display_name || "");
+        const override = findRecipeResyncOverride("create", { canonicalKey: item.canonical_key });
+        const selectedId = item.existing_item?.id || override?.target_inventory_item_id || "";
+        const isCreateCandidate = item.action === "create_new" || !item.existing_item || item.action === "ignore";
+        const label = item.action === "ignore" ? "ignoriert" : item.action === "create_new" ? "wird neu angelegt" : "wird verknüpft";
         return `
             <article class="admin-result-card admin-item-row">
                 <div>
                     <div class="admin-result-card-header admin-result-card-header-compact">
                         <div>
-                            <span class="admin-pill">${item.action === "create_new" ? "wird neu angelegt" : "wird verknüpft"}</span>
+                            <span class="admin-pill">${escapeHtml(label)}</span>
                             <h3>${escapeHtml(item.display_name)}</h3>
                         </div>
                         <small>${escapeHtml(item.canonical_key || "")}</small>
@@ -753,21 +829,33 @@ function renderRecipeResyncTargetItems(items = []) {
                         <span class="inventory-summary-chip">${occurrenceCount} Rezept-Vorkommen</span>
                         ${item.existing_item ? `<span class="inventory-summary-chip">Ziel: ${escapeHtml(item.existing_item.name)}</span>` : ""}
                         ${item.will_rename_existing ? `<span class="inventory-summary-chip">Altlast wird umbenannt</span>` : ""}
+                        ${override ? `<span class="inventory-summary-chip">Admin-Entscheidung: ${escapeHtml(override.action)}</span>` : ""}
                     </div>
                 </div>
+                ${isCreateCandidate ? `
+                    <div class="admin-row-actions admin-resync-actions">
+                        ${renderInventoryOptionSelect(selectedId, `resync-create-link-${safeKey}`)}
+                        <button type="button" class="form-actions-button-like" onclick="linkRecipeResyncCreateCandidate('${escapeHtml(String(item.canonical_key || "")).replace(/'/g, "&#39;")}')">Verknüpfen</button>
+                        <button type="button" class="form-actions-button-like" onclick="ignoreRecipeResyncCreateCandidate('${escapeHtml(String(item.canonical_key || "")).replace(/'/g, "&#39;")}')">Ignorieren</button>
+                        ${override ? `<button type="button" class="form-actions-button-like" onclick="clearRecipeResyncCreateCandidate('${escapeHtml(String(item.canonical_key || "")).replace(/'/g, "&#39;")}')">Zurücksetzen</button>` : ""}
+                    </div>
+                ` : ""}
             </article>
         `;
-    }).join("") + (items.length > 80 ? `<p class="admin-result-note">Weitere ${items.length - 80} Einträge werden nach Ausführung ebenfalls verarbeitet.</p>` : "");
+    }).join("") + (items.length > 120 ? `<p class="admin-result-note">Weitere ${items.length - 120} Einträge werden nach Ausführung ebenfalls verarbeitet.</p>` : "");
 }
 
 function renderRecipeResyncDeleteCandidates(items = [], modeLabel = "aus Rezept-Parse") {
     if (!items.length) return `<p class="admin-empty-state">Keine bestandslosen Altlasten zum Löschen gefunden.</p>`;
-    return items.slice(0, 80).map(item => `
+    return items.slice(0, 120).map(item => {
+        const override = findRecipeResyncOverride("delete", { inventoryItemId: item.id });
+        const selectedId = override?.target_inventory_item_id || "";
+        return `
         <article class="admin-result-card admin-item-row">
             <div>
                 <div class="admin-result-card-header admin-result-card-header-compact">
                     <div>
-                        <span class="admin-pill">wird gelöscht</span>
+                        <span class="admin-pill">${override?.action === "ignore" ? "ignoriert" : override?.action === "link_existing" ? "wird verknüpft + entfernt" : "wird gelöscht"}</span>
                         <h3>${escapeHtml(item.name)}</h3>
                     </div>
                     <small>${escapeHtml(item.canonical_name || item.effective_canonical_name || "")}</small>
@@ -776,10 +864,17 @@ function renderRecipeResyncDeleteCandidates(items = [], modeLabel = "aus Rezept-
                     <span class="inventory-summary-chip inventory-summary-empty">Bestand 0</span>
                     <span class="inventory-summary-chip">${escapeHtml(modeLabel)}</span>
                     ${item.source ? `<span class="inventory-summary-chip">Quelle: ${escapeHtml(formatSourceLabel(item.source))}</span>` : ""}
+                    ${override ? `<span class="inventory-summary-chip">Admin-Entscheidung: ${escapeHtml(override.action)}</span>` : ""}
                 </div>
             </div>
+            <div class="admin-row-actions admin-resync-actions">
+                ${renderInventoryOptionSelect(selectedId, `resync-delete-link-${Number(item.id)}`)}
+                <button type="button" class="form-actions-button-like" onclick="linkRecipeResyncDeleteCandidate(${Number(item.id)})">Verknüpfen</button>
+                <button type="button" class="form-actions-button-like" onclick="ignoreRecipeResyncDeleteCandidate(${Number(item.id)})">Ignorieren</button>
+                ${override ? `<button type="button" class="form-actions-button-like" onclick="clearRecipeResyncDeleteCandidate(${Number(item.id)})">Zurücksetzen</button>` : ""}
+            </div>
         </article>
-    `).join("") + (items.length > 80 ? `<p class="admin-result-note">Weitere ${items.length - 80} Löschkandidaten werden nach Ausführung ebenfalls verarbeitet.</p>` : "");
+    `}).join("") + (items.length > 120 ? `<p class="admin-result-note">Weitere ${items.length - 120} Löschkandidaten werden nach Ausführung ebenfalls verarbeitet.</p>` : "");
 }
 
 function renderRecipeResyncRecipes(preview) {

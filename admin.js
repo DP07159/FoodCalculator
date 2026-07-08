@@ -596,6 +596,23 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
 
+
+        const consolidationCheckbox = event.target.closest("[data-food-consolidation-id]");
+        if (consolidationCheckbox) {
+            const id = Number(consolidationCheckbox.dataset.foodConsolidationId);
+            if (Number.isFinite(id)) {
+                if (consolidationCheckbox.checked) selectedFoodItemConsolidationIds.add(id);
+                else selectedFoodItemConsolidationIds.delete(id);
+                updateFoodConsolidationCount();
+            }
+        }
+
+        const consolidateMasterButton = event.target.closest("[data-consolidate-master-id]");
+        if (consolidateMasterButton) {
+            event.preventDefault();
+            consolidateSelectedFoodItems(Number(consolidateMasterButton.dataset.consolidateMasterId));
+        }
+
         const closeUtility = event.target.closest("[data-close-admin-utility]");
         if (closeUtility) {
             event.preventDefault();
@@ -829,6 +846,7 @@ function getAdminTableDescription(tableName) {
 
 let latestAdminTablePreview = null;
 let adminFoodItemOptionsCache = null;
+let selectedFoodItemConsolidationIds = new Set();
 
 async function loadAdminFoodItemOptions() {
     if (adminFoodItemOptionsCache) return adminFoodItemOptionsCache;
@@ -852,6 +870,9 @@ function adminActionButton(label, attrs = "", danger = false) {
 }
 
 function renderAdminTableCell(row, column, tableName) {
+    if (tableName === "food_items" && column === "__select") {
+        return `<input type="checkbox" class="admin-food-consolidation-checkbox" style="width:18px;min-height:18px;accent-color:var(--color-primary);" data-food-consolidation-id="${Number(row.id)}" aria-label="${escapeHtml(row.display_name || `Lebensmittel #${row.id}`)} auswählen">`;
+    }
     if (tableName === "food_items" && column === "display_name") {
         return `<button type="button" class="admin-item-name-button" data-food-detail-id="${Number(row.id)}">${formatAdminTableCell(row[column])}</button>`;
     }
@@ -881,6 +902,7 @@ function renderAdminTableRowActions(row, tableName) {
             <td class="admin-table-actions-cell">
                 ${adminActionButton("Details", `data-food-detail-id="${Number(row.id)}"`)}
                 ${adminActionButton("Alias +", `data-new-alias-food-id="${Number(row.id)}" data-food-display-name="${escapeHtml(row.display_name || "")}"`)}
+                ${adminActionButton("Als Master", `data-consolidate-master-id="${Number(row.id)}"`)}
             </td>`;
     }
     if (tableName === "recipe_ingredients") {
@@ -905,9 +927,19 @@ function renderAdminTablePreview(preview) {
     if (subtitle) subtitle.textContent = `${getAdminTableDescription(preview.table)} · ${Number(preview.total_count || 0)} Einträge insgesamt · Anzeige max. ${Number(preview.limit || 0)}`;
     if (!content) return;
 
-    const columns = Array.isArray(preview.columns) ? preview.columns : [];
+    const baseColumns = Array.isArray(preview.columns) ? preview.columns : [];
     const rows = Array.isArray(preview.rows) ? preview.rows : [];
+    const columns = preview.table === "food_items" ? ["__select", ...baseColumns] : baseColumns;
     const hasActions = tableHasActions(preview.table);
+
+    selectedFoodItemConsolidationIds = new Set();
+
+    const foodItemsExtra = preview.table === "food_items" ? `
+        <div class="admin-action-row admin-action-row-neutral">
+            <p>Stammdaten konsolidieren: Wähle mehrere Lebensmittel aus und klicke beim richtigen Stammsatz auf „Als Master“. Rezept-Zutaten, Inventarbezüge und Aliase werden auf diesen Master umgehängt.</p>
+            <span class="admin-pill" id="admin-food-consolidation-count">0 ausgewählt</span>
+        </div>
+    ` : "";
 
     const extra = preview.table === "food_aliases" ? `
         <div class="admin-action-row admin-action-row-neutral">
@@ -917,11 +949,12 @@ function renderAdminTablePreview(preview) {
     ` : "";
 
     if (!rows.length) {
-        content.innerHTML = `${extra}<p class="admin-empty-state">Keine Einträge in dieser Tabelle.</p>`;
+        content.innerHTML = `${foodItemsExtra}${extra}<p class="admin-empty-state">Keine Einträge in dieser Tabelle.</p>`;
         return;
     }
 
     content.innerHTML = `
+        ${foodItemsExtra}
         ${extra}
         <div class="admin-table-scroll">
             <table class="admin-data-table">
@@ -939,6 +972,42 @@ function renderAdminTablePreview(preview) {
             </table>
         </div>
     `;
+}
+
+
+function updateFoodConsolidationCount() {
+    const counter = document.getElementById("admin-food-consolidation-count");
+    if (counter) counter.textContent = `${selectedFoodItemConsolidationIds.size} ausgewählt`;
+}
+
+async function consolidateSelectedFoodItems(masterFoodItemId) {
+    const masterId = Number(masterFoodItemId);
+    const duplicateIds = Array.from(selectedFoodItemConsolidationIds).map(Number).filter(id => Number.isFinite(id) && id !== masterId);
+    if (!Number.isFinite(masterId)) return;
+    if (!duplicateIds.length) {
+        setAdminTableMessage("Bitte wähle mindestens einen weiteren Stammsatz aus, der in diesen Master überführt werden soll.");
+        return;
+    }
+    const masterRow = (latestAdminTablePreview?.rows || []).find(row => Number(row.id) === masterId);
+    if (!confirm(`„${masterRow?.display_name || `Lebensmittel #${masterId}`}“ als Master behalten und ${duplicateIds.length} Stammsätze konsolidieren?\n\nDabei werden Rezept-Verknüpfungen, Inventarbezüge und Aliase auf den Master umgehängt. Die Dubletten-Stammsätze werden danach entfernt.`)) return;
+    try {
+        const payload = await apiFetch(`${API_URL}/admin/food-items/consolidate`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ master_food_item_id: masterId, duplicate_food_item_ids: duplicateIds })
+        });
+        adminFoodItemOptionsCache = null;
+        selectedFoodItemConsolidationIds = new Set();
+        if (payload.table) renderAdminTablePreview(payload.table);
+        if (payload.system_status) {
+            renderAdminSystemSummary(payload.system_status);
+            renderAdminSystemResults(payload.system_status);
+        }
+        showToast(`${payload.result?.merged?.length || duplicateIds.length} Stammsätze konsolidiert.`);
+    } catch (error) {
+        console.error(error);
+        setAdminTableMessage(error.message || "Stammdaten konnten nicht konsolidiert werden.");
+    }
 }
 
 async function openAdminTableModal(tableName) {

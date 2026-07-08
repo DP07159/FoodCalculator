@@ -42,6 +42,91 @@ async function apiFetch(url, options = {}) {
     return payload;
 }
 
+
+function setAdminSystemMessage(message, type = "error") {
+    const box = document.getElementById("admin-system-message");
+    if (!box) return;
+    box.textContent = message || "";
+    box.classList.toggle("is-hidden", !message);
+    box.dataset.type = type;
+}
+
+function formatGermanDateTime(value) {
+    if (!value) return "";
+    try {
+        return new Date(value).toLocaleString("de-DE");
+    } catch {
+        return String(value);
+    }
+}
+
+function renderAdminSystemSummary(status) {
+    const target = document.getElementById("admin-system-summary");
+    if (!target) return;
+    const c = status?.counts || {};
+    const cards = [
+        ["Rezepte", c.recipes],
+        ["Rezept-Zutaten", c.recipe_ingredients],
+        ["verknüpft", c.linked_recipe_ingredients],
+        ["unverknüpft", c.unlinked_recipe_ingredients],
+        ["Inventarartikel", c.inventory_items],
+        ["mit Bestand", c.inventory_items_with_stock],
+        ["Stammdaten", c.food_items],
+        ["Aliase", c.food_aliases]
+    ];
+    target.innerHTML = cards.map(([label, count]) => `
+        <div class="admin-summary-card">
+            <span>${escapeHtml(label)}</span>
+            <strong>${Number(count || 0)}</strong>
+        </div>
+    `).join("");
+}
+
+function renderAdminSystemResults(status) {
+    const target = document.getElementById("admin-system-results");
+    if (!target) return;
+    const tables = Array.isArray(status?.tables) ? status.tables : [];
+    target.innerHTML = `
+        <section class="admin-result-section">
+            <h2>Datenbank</h2>
+            <article class="admin-result-card">
+                <p class="admin-result-note">Letzte Aktualisierung: ${escapeHtml(formatGermanDateTime(status?.generated_at))}</p>
+                <p class="admin-result-note">Pfad: ${escapeHtml(status?.database_path || "unbekannt")}</p>
+            </article>
+        </section>
+        <section class="admin-result-section">
+            <h2>Tabellen</h2>
+            ${tables.length ? tables.map(table => `
+                <article class="admin-result-card admin-item-row">
+                    <div>
+                        <div class="admin-result-card-header admin-result-card-header-compact">
+                            <div>
+                                <span class="admin-pill">Tabelle</span>
+                                <h3>${escapeHtml(table.name)}</h3>
+                            </div>
+                            <small>${Number(table.count || 0)} Einträge</small>
+                        </div>
+                    </div>
+                </article>
+            `).join("") : `<p class="admin-empty-state">Keine Tabelleninformationen verfügbar.</p>`}
+        </section>
+    `;
+}
+
+async function loadAdminSystemStatus() {
+    setAdminSystemMessage("");
+    const target = document.getElementById("admin-system-results");
+    if (target) target.innerHTML = `<p class="admin-empty-state">Systemstatus wird geladen ...</p>`;
+    try {
+        const status = await apiFetch(`${API_URL}/admin/system-status`);
+        renderAdminSystemSummary(status);
+        renderAdminSystemResults(status);
+    } catch (error) {
+        console.error(error);
+        setAdminSystemMessage(error.message || "Systemstatus konnte nicht geladen werden.");
+    }
+}
+
 function escapeHtml(value) {
     return String(value ?? "")
         .replace(/&/g, "&amp;")
@@ -498,6 +583,7 @@ async function mergeDuplicateGroupKeeping(masterItemId, duplicateItemIds = []) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+    loadAdminSystemStatus();
     loadInventoryCleanupPreview();
     document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") closeAdminItemModal();

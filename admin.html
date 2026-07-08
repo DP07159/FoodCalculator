@@ -21,14 +21,67 @@
         <main class="page-content admin-page">
             <header class="page-header admin-header">
                 <p class="recipe-kicker">Administration</p>
-                <h1>Admin</h1>
-                <p class="admin-intro">Hier bündeln wir administrative Funktionen. Aktuell verfügbar: eine sichere Vorschau zur Inventar-Bereinigung.</p>
+                <h1>System Center</h1>
+                <p class="admin-intro">Zentrale Werkstatt für Datenqualität, Datenpflege, Datensicherung und Systemstatus.</p>
             </header>
 
-            <section class="section-card admin-card">
+            <section class="admin-hub-grid" aria-label="Admin-Bereiche">
+                <a class="admin-hub-card" href="#admin-data-quality">
+                    <span>Datenqualität</span>
+                    <strong>Dubletten & Altlasten</strong>
+                    <small>Lebensmittel prüfen, zusammenführen und bereinigen.</small>
+                </a>
+                <a class="admin-hub-card" href="#admin-data-maintenance">
+                    <span>Datenpflege</span>
+                    <strong>Rezept-Zutaten</strong>
+                    <small>Parser neu ausführen und Verknüpfungen reparieren.</small>
+                </a>
+                <a class="admin-hub-card" href="#admin-backup">
+                    <span>Datensicherung</span>
+                    <strong>Backup</strong>
+                    <small>Aktuellen Datenbestand als JSON sichern.</small>
+                </a>
+                <a class="admin-hub-card" href="#admin-system-status">
+                    <span>System</span>
+                    <strong>Status</strong>
+                    <small>Tabellen, Verknüpfungen und Datenbankkennzahlen.</small>
+                </a>
+            </section>
+
+            <section id="admin-system-status" class="section-card admin-card">
                 <div class="admin-card-header">
                     <div>
-                        <p class="recipe-kicker">Inventar</p>
+                        <p class="recipe-kicker">System</p>
+                        <h2>Status</h2>
+                        <p>Zeigt zentrale Kennzahlen zu Rezepten, Inventar, Stammdaten, Aliasen und Verknüpfungen.</p>
+                    </div>
+                    <button type="button" class="recipe-toolbar-toggle-button" onclick="loadAdminSystemStatus()" title="Status aktualisieren" aria-label="Status aktualisieren">
+                        <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5"/><path d="M20 12a8 8 0 1 1-2.3-5.7L20 8"/></svg>
+                    </button>
+                </div>
+                <div id="admin-system-message" class="inventory-overlay-message is-hidden" aria-live="polite"></div>
+                <div id="admin-system-summary" class="admin-summary-grid"></div>
+                <div id="admin-system-results" class="admin-results"></div>
+            </section>
+
+            <section id="admin-backup" class="section-card admin-card">
+                <div class="admin-card-header">
+                    <div>
+                        <p class="recipe-kicker">Datensicherung</p>
+                        <h2>Backup</h2>
+                        <p>Exportiert den aktuellen Datenbestand als JSON-Datei. Restore/Import kann später ergänzt werden.</p>
+                    </div>
+                    <a class="recipe-toolbar-toggle-button" href="https://foodcalculator-server.onrender.com/admin/backup/export" title="Backup herunterladen" aria-label="Backup herunterladen">
+                        <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+                    </a>
+                </div>
+                <p class="admin-result-note">Das Backup enthält Tabelleninhalte wie Rezepte, Wochenpläne, Inventar, Lebensmittel-Stammdaten, Aliase und Rezept-Zutaten-Verknüpfungen.</p>
+            </section>
+
+            <section id="admin-data-quality" class="section-card admin-card">
+                <div class="admin-card-header">
+                    <div>
+                        <p class="recipe-kicker">Datenqualität</p>
                         <h2>Inventar-Bereinigung</h2>
                         <p>Analysiert mögliche Dubletten und automatisch erzeugte, verwaiste Rezept-Zutaten. Es wird zunächst nichts gelöscht.</p>
                     </div>
@@ -42,10 +95,10 @@
                 <div id="admin-cleanup-results" class="admin-results"></div>
             </section>
 
-            <section class="section-card admin-card">
+            <section id="admin-data-maintenance" class="section-card admin-card">
                 <div class="admin-card-header">
                     <div>
-                        <p class="recipe-kicker">Rezepte</p>
+                        <p class="recipe-kicker">Datenpflege</p>
                         <h2>Rezept-Zutaten neu aufbauen</h2>
                         <p>Parst alle Rezeptzutaten nach den aktuellen Regeln neu. Artikel mit Bestand bleiben geschützt; bestandslose Parse-Altlasten können entfernt werden.</p>
                     </div>

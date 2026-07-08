@@ -1569,6 +1569,7 @@ const ADMIN_STUDIO_TABLES = [
 ];
 
 let adminStudioSearchValue = "";
+let adminStudioSearchTimer = null;
 let adminStudioHiddenColumns = new Set();
 let adminStudioSort = { column: null, direction: "asc" };
 
@@ -1653,7 +1654,29 @@ function toggleAdminStudioColumn(column) {
 
 function setAdminStudioSearch(value) {
     adminStudioSearchValue = value || "";
-    renderAdminTablePreview(latestAdminTablePreview);
+    if (adminStudioSearchTimer) {
+        clearTimeout(adminStudioSearchTimer);
+    }
+    adminStudioSearchTimer = setTimeout(() => {
+        const active = document.activeElement;
+        const wasSearchFocused = active && active.classList && active.classList.contains("admin-studio-search");
+        const selectionStart = wasSearchFocused ? active.selectionStart : null;
+        const selectionEnd = wasSearchFocused ? active.selectionEnd : null;
+        renderAdminTablePreview(latestAdminTablePreview);
+        if (wasSearchFocused) {
+            const input = document.querySelector(".admin-studio-search");
+            if (input) {
+                input.focus({ preventScroll: true });
+                const safeStart = Number.isFinite(selectionStart) ? selectionStart : input.value.length;
+                const safeEnd = Number.isFinite(selectionEnd) ? selectionEnd : safeStart;
+                try {
+                    input.setSelectionRange(safeStart, safeEnd);
+                } catch (error) {
+                    // Some input types may not support selection ranges in older browsers.
+                }
+            }
+        }
+    }, 140);
 }
 
 function sortAdminStudioTable(column) {
@@ -1743,7 +1766,7 @@ function renderAdminTablePreview(preview) {
     content.innerHTML = `
         <div class="admin-studio-toolbar">
             <div class="admin-studio-search-wrap">
-                <input type="search" class="recipe-search-input admin-studio-search" placeholder="In dieser Tabelle suchen ..." value="${escapeHtml(adminStudioSearchValue)}" oninput="setAdminStudioSearch(this.value)">
+                <input type="search" class="recipe-search-input admin-studio-search" placeholder="In dieser Tabelle suchen ..." value="${escapeHtml(adminStudioSearchValue)}" autocomplete="off" spellcheck="false" oninput="setAdminStudioSearch(this.value)">
             </div>
             <div class="admin-studio-toolbar-meta">
                 <span class="admin-pill">${rows.length} sichtbar</span>

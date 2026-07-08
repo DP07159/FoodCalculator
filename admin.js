@@ -987,6 +987,9 @@ function renderAdminTableCell(row, column, tableName) {
             ? `<button type="button" class="admin-item-name-button" data-food-detail-id="${Number(row.food_item_id)}">${formatAdminTableCell(row[column])}</button>`
             : formatAdminTableCell(row[column]);
     }
+    if (tableName === "health_factors" && column === "name") {
+        return `<button type="button" class="admin-item-name-button" data-edit-health-factor-id="${Number(row.id)}" data-factor-name="${escapeHtml(row.name || "")}" data-factor-category="${escapeHtml(row.category || "")}" data-factor-description="${escapeHtml(row.description || "")}">${formatAdminTableCell(row[column])}</button>`;
+    }
     return formatAdminTableCell(row[column]);
 }
 
@@ -1091,6 +1094,7 @@ function updateFoodConsolidationCount() {
 }
 
 async function consolidateSelectedFoodItems(masterFoodItemId) {
+    const positionBeforeAction = captureAdminStudioPosition();
     const masterId = Number(masterFoodItemId);
     const duplicateIds = Array.from(selectedFoodItemConsolidationIds).map(Number).filter(id => Number.isFinite(id) && id !== masterId);
     if (!Number.isFinite(masterId)) return;
@@ -1108,7 +1112,7 @@ async function consolidateSelectedFoodItems(masterFoodItemId) {
         });
         adminFoodItemOptionsCache = null;
         selectedFoodItemConsolidationIds = new Set();
-        if (payload.table) renderAdminTablePreviewPreservingPosition(payload.table);
+        if (payload.table) renderAdminTablePreviewPreservingPosition(payload.table, positionBeforeAction);
         if (payload.system_status) {
             renderAdminSystemSummary(payload.system_status);
             renderAdminSystemResults(payload.system_status);
@@ -1209,13 +1213,18 @@ function captureAdminStudioPosition() {
 
 function restoreAdminStudioPosition(position) {
     if (!position) return;
-    requestAnimationFrame(() => {
+    const apply = () => {
         const scroll = document.querySelector(".admin-studio-scroll");
         if (scroll) {
             scroll.scrollLeft = position.tableX || 0;
             scroll.scrollTop = position.tableY || 0;
         }
         window.scrollTo(position.windowX || 0, position.windowY || 0);
+    };
+    requestAnimationFrame(() => {
+        apply();
+        setTimeout(apply, 60);
+        setTimeout(apply, 220);
     });
 }
 
@@ -1761,7 +1770,7 @@ function renderAdminTablePreview(preview) {
                     </thead>
                     <tbody>
                         ${rows.length ? rows.map(row => `
-                            <tr>
+                            <tr data-admin-row-id="${Number(row.id) || ""}" data-admin-row-table="${escapeHtml(tableName)}">
                                 ${visibleColumns.map(column => `<td class="${column === "__select" ? "admin-studio-select-col" : ""}">${renderAdminTableCell(row, column, tableName)}</td>`).join("")}
                                 ${hasActions ? renderAdminTableRowActions(row, tableName) : ""}
                             </tr>

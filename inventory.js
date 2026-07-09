@@ -992,7 +992,10 @@ async function openRecipesForInventoryItem(itemId) {
     document.body.classList.add("modal-open");
 
     try {
-        const payload = await apiFetch(`${API_URL}/recipes/by-ingredient/${encodeURIComponent(item.name)}`);
+        const recipesEndpoint = item.food_item_id
+            ? `${API_URL}/recipes/by-food-item/${encodeURIComponent(item.food_item_id)}`
+            : `${API_URL}/recipes/by-ingredient/${encodeURIComponent(item.name)}`;
+        const payload = await apiFetch(recipesEndpoint);
         const recipes = Array.isArray(payload.recipes) ? payload.recipes : [];
         if (!recipes.length) {
             content.innerHTML = `<p class="recipe-empty-state">Keine Rezepte mit ${escapeHtml(item.name)} gefunden.</p>`;

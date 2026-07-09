@@ -1,4 +1,4 @@
-const CACHE_NAME = "food-calculator-v22-display-name-source";
+const CACHE_NAME = "food-calculator-v23-stable-fooditem-crosslinks";
 
 const FILES_TO_CACHE = [
     "/",

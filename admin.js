@@ -795,8 +795,7 @@ function renderRecipeResyncSummary(preview) {
         { key: "parsed", label: "Erkannte Zutaten", count: counts.parsed_ingredients ?? 0 },
         { key: "targets", label: "Zielartikel", count: (preview?.target_items || []).length || counts.parsed_ingredients || 0 },
         { key: "create", label: "Neu anzulegen", count: counts.create_new ?? 0 },
-        { key: "auto-delete", label: "Auto-Altlasten löschbar", count: counts.delete_candidates ?? 0 },
-        { key: "full-delete", label: "Großer Neuaufbau: löschbar", count: counts.full_rebuild_delete_candidates ?? counts.delete_candidates ?? 0 }
+        { key: "auto-delete", label: "Auto-Altlasten erkannt", count: counts.delete_candidates ?? 0 }
     ];
     target.innerHTML = cards.map(card => `
         <button type="button" class="admin-summary-card ${activeRecipeResyncTab === card.key ? "is-active" : ""}" data-resync-tab="${escapeHtml(card.key)}">
@@ -948,15 +947,12 @@ function renderRecipeResyncActiveSection(preview) {
     if (activeRecipeResyncTab === "auto-delete") {
         return `<section class="admin-result-section"><h2>Löschbare Auto-Altlasten</h2>${renderRecipeResyncDeleteCandidates(preview.delete_candidates || [], "aus Rezept-Parse")}</section>`;
     }
-    if (activeRecipeResyncTab === "full-delete") {
-        return `<section class="admin-result-section"><h2>Großer Neuaufbau: löschbare Bestand-0-Artikel</h2><p class="admin-result-note">Diese Liste ist breiter: Sie umfasst alle aktuell nicht als Zielartikel verwendeten Artikel mit Bestand 0. Bitte nur ausführen, wenn du genau diesen vollständigen Neuaufbau möchtest.</p>${renderRecipeResyncDeleteCandidates(preview.full_rebuild_delete_candidates || preview.delete_candidates || [], "Bestand 0")}</section>`;
-    }
     return `<section class="admin-result-section"><h2>Zielartikel</h2>${renderRecipeResyncTargetItems(preview.target_items || [])}</section>`;
 }
 
 function renderRecipeResyncPreview(preview) {
     latestRecipeResyncPreview = preview;
-    if (preview && !["recipes", "parsed", "targets", "create", "auto-delete", "full-delete"].includes(activeRecipeResyncTab)) {
+    if (preview && !["recipes", "parsed", "targets", "create", "auto-delete"].includes(activeRecipeResyncTab)) {
         activeRecipeResyncTab = "targets";
     }
     renderRecipeResyncSummary(preview);
@@ -969,15 +965,7 @@ function renderRecipeResyncPreview(preview) {
     target.innerHTML = `
         <section class="admin-result-section">
             <h2>Vorschau</h2>
-            <p class="admin-result-note">Artikel mit Bestand bleiben immer geschützt. Klicke oben auf eine Kachel, um die jeweilige Detailübersicht einzublenden.</p>
-            <div class="admin-action-row admin-action-row-neutral">
-                <p>Standard: Rezept-Zutaten neu aufbauen und nur bestandslose automatisch erzeugte Parse-Altlasten löschen.</p>
-                <button type="button" class="form-actions-button-like" onclick="applyRecipeResync(false)">Standard-Synchronisierung ausführen</button>
-            </div>
-            <div class="admin-action-row">
-                <p>Großer Neuaufbau: Rezept-Zutaten neu aufbauen und alle nicht verwendeten Artikel mit Bestand 0 löschen. Artikel mit Bestand bleiben geschützt.</p>
-                <button type="button" class="form-actions-button-like" onclick="applyRecipeResync(true)">Großen Neuaufbau ausführen</button>
-            </div>
+            <p class="admin-result-note">Die Vorschau dient nur noch zur Analyse. Die früheren Aktionen „Standard-Synchronisierung ausführen“ und „Großen Neuaufbau ausführen“ wurden entfernt, damit keine Zuordnungen oder Leerbestände versehentlich verändert werden.</p>
         </section>
         ${renderRecipeResyncActiveSection(preview)}
     `;
@@ -997,30 +985,10 @@ async function loadRecipeResyncPreview() {
     }
 }
 
-async function applyRecipeResync(deleteAllZeroStock = false) {
-    const standardDeleteCount = Number(latestRecipeResyncPreview?.counts?.delete_candidates || 0);
-    const fullDeleteCount = Number(latestRecipeResyncPreview?.counts?.full_rebuild_delete_candidates || standardDeleteCount);
-    const deleteCount = deleteAllZeroStock ? fullDeleteCount : standardDeleteCount;
-    const createCount = Number(latestRecipeResyncPreview?.counts?.create_new || 0);
-    const headline = deleteAllZeroStock ? "Großen Neuaufbau wirklich ausführen?" : "Rezept-Zutaten wirklich neu aufbauen?";
-    const detail = deleteAllZeroStock
-        ? "Alle nicht verwendeten Artikel mit Bestand 0 werden gelöscht. Artikel mit Bestand bleiben geschützt."
-        : "Nur bestandslose automatisch erzeugte Parse-Altlasten werden gelöscht. Artikel mit Bestand bleiben geschützt.";
-    if (!confirm(`${headline}\n\nNeu anzulegen: ${createCount}\nZu löschen: ${deleteCount}\n\n${detail}`)) return;
-    try {
-        const result = await apiFetch(`${API_URL}/admin/recipe-resync-apply`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ delete_all_zero_stock: Boolean(deleteAllZeroStock) })
-        });
-        renderRecipeResyncPreview(result.preview);
-        if (result.cleanup_preview) renderCleanupPreview(result.cleanup_preview);
-        showToast(`Synchronisierung abgeschlossen: ${result.result?.linked_ingredients || 0} Zutaten verknüpft.`);
-    } catch (error) {
-        console.error(error);
-        setAdminResyncMessage(error.message || "Synchronisierung konnte nicht ausgeführt werden.");
-    }
+async function applyRecipeResync() {
+    setAdminResyncMessage("Die Ausführung der Rezept-Zutaten-Synchronisierung wurde deaktiviert. Die Vorschau bleibt als Analysehilfe erhalten.");
 }
+
 
 
 

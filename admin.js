@@ -965,7 +965,7 @@ function renderRecipeResyncPreview(preview) {
     target.innerHTML = `
         <section class="admin-result-section">
             <h2>Vorschau</h2>
-            <p class="admin-result-note">Die Vorschau dient nur noch zur Analyse. Die früheren Aktionen „Standard-Synchronisierung ausführen“ und „Großen Neuaufbau ausführen“ wurden entfernt, damit keine Zuordnungen oder Leerbestände versehentlich verändert werden.</p>
+            <p class="admin-result-note">Die Vorschau dient nur noch zur Analyse. Es werden keine automatischen Änderungen an Rezept-Zutaten-Verknüpfungen oder Leerbeständen ausgeführt.</p>
         </section>
         ${renderRecipeResyncActiveSection(preview)}
     `;
@@ -984,11 +984,6 @@ async function loadRecipeResyncPreview() {
         setAdminResyncMessage(error.message || "Vorschau konnte nicht erstellt werden.");
     }
 }
-
-async function applyRecipeResync() {
-    setAdminResyncMessage("Die Ausführung der Rezept-Zutaten-Synchronisierung wurde deaktiviert. Die Vorschau bleibt als Analysehilfe erhalten.");
-}
-
 
 
 

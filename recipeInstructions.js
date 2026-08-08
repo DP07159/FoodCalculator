@@ -505,14 +505,14 @@ function renderRecipeInstructions() {
     const ingredientsList = document.getElementById("display-recipe-ingredients");
     const ingredientLines = (currentRecipe.ingredients || "").split("\n");
     const stockEntries = Array.isArray(recipeStockCheck?.ingredients) ? recipeStockCheck.ingredients : [];
-    let stockIndex = 0;
-
+    
     ingredientsList.innerHTML = ingredientLines
-        .map(line => {
+        .map((line, lineIndex) => {
             if (!line.trim()) return `<li class="empty-line">&nbsp;</li>`;
 
-            const entry = stockEntries[stockIndex] || null;
-            stockIndex += 1;
+            const entry = stockEntries.find(
+                item => Number(item.line_index) === Number(lineIndex)
+            ) || null;
 
             const status = entry?.status || "unknown";
             const label = entry?.label || "Nicht prüfbar";

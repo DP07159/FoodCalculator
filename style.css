@@ -3998,3 +3998,18 @@ body.modal-open .app-header {
 .auth-shell-user-name { font-size: .84rem; font-weight: 800; white-space: nowrap; }
 .auth-shell-logout { min-height: 34px; padding: 6px 10px; }
 @media (max-width: 640px) { .auth-shell-user-name { display: none; } }
+
+
+/* Platform Shell 1B – Workspace context */
+.auth-shell-workspace-name {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: var(--color-surface-soft, #f5f7fb);
+    color: var(--color-text-muted, #667085);
+    font-size: 0.78rem;
+    font-weight: 800;
+    white-space: nowrap;
+}

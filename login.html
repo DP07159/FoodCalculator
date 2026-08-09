@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anmelden · Food Calculator</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#f5f7fb">
+</head>
+<body class="login-page">
+    <main class="login-shell">
+        <section class="login-card">
+            <div class="login-brand">Food Calculator</div>
+            <p class="recipe-kicker">Plattform</p>
+            <h1>Anmelden</h1>
+            <p class="login-intro">Melde dich an, um deinen persönlichen Workspace zu öffnen.</p>
+
+            <form id="login-form" class="login-form">
+                <label>
+                    <span>E-Mail</span>
+                    <input id="login-email" type="email" autocomplete="username" required>
+                </label>
+                <label>
+                    <span>Passwort</span>
+                    <input id="login-password" type="password" autocomplete="current-password" minlength="12" required>
+                </label>
+                <button id="login-submit" type="submit">Anmelden</button>
+                <p id="login-message" class="login-message is-hidden" role="alert"></p>
+            </form>
+        </section>
+    </main>
+
+    <script src="platform.js"></script>
+    <script src="login.js"></script>
+</body>
+</html>

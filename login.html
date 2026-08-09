@@ -12,26 +12,17 @@
     <main class="login-shell">
         <section class="login-card">
             <div class="login-brand">Food Calculator</div>
-            <p class="recipe-kicker">Plattform</p>
             <h1>Anmelden</h1>
-            <p class="login-intro">Melde dich an, um deinen persönlichen Workspace zu öffnen.</p>
-
+            <p class="login-intro">Melde dich an, um den Food Calculator zu öffnen.</p>
             <form id="login-form" class="login-form">
-                <label>
-                    <span>E-Mail</span>
-                    <input id="login-email" type="email" autocomplete="username" required>
-                </label>
-                <label>
-                    <span>Passwort</span>
-                    <input id="login-password" type="password" autocomplete="current-password" minlength="12" required>
-                </label>
+                <label><span>E-Mail</span><input id="login-email" type="email" autocomplete="username" required></label>
+                <label><span>Passwort</span><input id="login-password" type="password" autocomplete="current-password" minlength="12" required></label>
                 <button id="login-submit" type="submit">Anmelden</button>
                 <p id="login-message" class="login-message is-hidden" role="alert"></p>
             </form>
         </section>
     </main>
-
-    <script src="platform.js"></script>
+    <script src="auth-shell.js"></script>
     <script src="login.js"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 const APP_NAVIGATION_LINKS = [
     { label: "Startseite", href: "/index.html" },
-    { label: "Inventar", href: "/inventory.html", privilege: "inventory.view" },
+    { label: "Inventar", href: "/inventory.html" },
     { label: "Neues Rezept", href: "/recipeCreate.html" },
     { label: "Rezeptbuch", href: "/index.html#recipe-book" },
     { label: "Wochenplan", href: "/index.html#meal-plan" },
@@ -11,22 +11,9 @@ function renderBurgerMenu() {
     const burgerDropdown = document.getElementById("burger-dropdown");
     if (!burgerDropdown) return;
 
-    const links = APP_NAVIGATION_LINKS.filter(link =>
-        !link.privilege ||
-        !window.PlatformShell ||
-        PlatformShell.hasPermission(link.privilege)
-    );
-
-    burgerDropdown.innerHTML = `
-        <div id="platform-context" class="platform-context"></div>
-        <div class="platform-nav-links">
-            ${links.map(link => `<a href="${link.href}">${link.label}</a>`).join("")}
-        </div>
-    `;
-
-    PlatformShell?.initializeContext?.().then(() => {
-        PlatformShell.renderPlatformContext?.();
-    }).catch(() => {});
+    burgerDropdown.innerHTML = APP_NAVIGATION_LINKS
+        .map(link => `<a href="${link.href}">${link.label}</a>`)
+        .join("");
 }
 
 function initBurgerMenu() {
@@ -43,7 +30,6 @@ function initBurgerMenu() {
     burgerButton.addEventListener("click", (event) => {
         event.stopPropagation();
         burgerDropdown.classList.toggle("is-hidden");
-        PlatformShell?.applyPermissionState?.(burgerDropdown);
     });
 
     burgerDropdown.addEventListener("click", (event) => {
@@ -63,9 +49,6 @@ function initBurgerMenu() {
             burgerDropdown.classList.add("is-hidden");
         }
     });
-
-    document.addEventListener("platform:ready", renderBurgerMenu);
-    document.addEventListener("platform:workspace-changed", renderBurgerMenu);
 }
 
 if (document.readyState === "loading") {

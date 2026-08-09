@@ -905,10 +905,10 @@ function renderPackageRows(item) {
                     <span class="inventory-expiry inventory-position-expiry ${status.className}">${escapeHtml(status.label)}</span>
                 </div>
                 <div class="inventory-stock-row-actions">
-                    <button type="button" class="inventory-mini-button" data-privilege="inventory.stock.consume" ${Number(profile.count) <= 0 ? "disabled" : ""} onclick="adjustPackageProfile(${item.id}, '${escapeHtml(profile.key)}', 'remove')" title="Einheit reduzieren" aria-label="Einheit reduzieren">${ICONS.minus}</button>
-                    <button type="button" class="inventory-mini-button" data-privilege="inventory.stock.receive" onclick="openInventoryPositionModal(${item.id}, 'package', 'add', '${escapeHtml(profile.key)}')" title="Einheit erhöhen" aria-label="Einheit erhöhen">${ICONS.plus}</button>
-                    <button type="button" class="inventory-mini-button" data-privilege="inventory.stock.correct" onclick="openInventoryPositionModal(${item.id}, 'package', 'meta', '${escapeHtml(profile.key)}')" title="Position bearbeiten" aria-label="Position bearbeiten">${ICONS.edit}</button>
-                    <button type="button" class="inventory-mini-button inventory-mini-button-danger" data-privilege="inventory.stock.correct" onclick="deletePackageProfile(${item.id}, '${escapeHtml(profile.key)}')" title="Position löschen" aria-label="Position löschen">${ICONS.trash}</button>
+                    <button type="button" class="inventory-mini-button" ${Number(profile.count) <= 0 ? "disabled" : ""} onclick="adjustPackageProfile(${item.id}, '${escapeHtml(profile.key)}', 'remove')" title="Einheit reduzieren" aria-label="Einheit reduzieren">${ICONS.minus}</button>
+                    <button type="button" class="inventory-mini-button" onclick="openInventoryPositionModal(${item.id}, 'package', 'add', '${escapeHtml(profile.key)}')" title="Einheit erhöhen" aria-label="Einheit erhöhen">${ICONS.plus}</button>
+                    <button type="button" class="inventory-mini-button" onclick="openInventoryPositionModal(${item.id}, 'package', 'meta', '${escapeHtml(profile.key)}')" title="Position bearbeiten" aria-label="Position bearbeiten">${ICONS.edit}</button>
+                    <button type="button" class="inventory-mini-button inventory-mini-button-danger" onclick="deletePackageProfile(${item.id}, '${escapeHtml(profile.key)}')" title="Position löschen" aria-label="Position löschen">${ICONS.trash}</button>
                 </div>
             </div>
         `;
@@ -934,10 +934,10 @@ function renderLooseRows(item) {
                 </div>
                 <div class="inventory-stock-row-actions inventory-stock-row-actions-wide">
                     <input id="${inputId}" type="number" min="0" step="0.1" placeholder="Menge">
-                    <button type="button" class="inventory-mini-button" data-privilege="inventory.stock.consume" ${Number(profile.amount) <= 0 ? "disabled" : ""} onclick="adjustLooseAmount(${item.id}, '${escapeHtml(profile.key)}', 'remove')" title="Menge reduzieren" aria-label="Menge reduzieren">${ICONS.minus}</button>
-                    <button type="button" class="inventory-mini-button" data-privilege="inventory.stock.receive" onclick="openInventoryPositionModal(${item.id}, 'loose', 'add', '${escapeHtml(profile.key)}')" title="Menge erhöhen" aria-label="Menge erhöhen">${ICONS.plus}</button>
-                    <button type="button" class="inventory-mini-button" data-privilege="inventory.stock.correct" onclick="openInventoryPositionModal(${item.id}, 'loose', 'meta', '${escapeHtml(profile.key)}')" title="Position bearbeiten" aria-label="Position bearbeiten">${ICONS.edit}</button>
-                    <button type="button" class="inventory-mini-button inventory-mini-button-danger" data-privilege="inventory.stock.correct" onclick="deleteLooseProfile(${item.id}, '${escapeHtml(profile.key)}')" title="Position löschen" aria-label="Position löschen">${ICONS.trash}</button>
+                    <button type="button" class="inventory-mini-button" ${Number(profile.amount) <= 0 ? "disabled" : ""} onclick="adjustLooseAmount(${item.id}, '${escapeHtml(profile.key)}', 'remove')" title="Menge reduzieren" aria-label="Menge reduzieren">${ICONS.minus}</button>
+                    <button type="button" class="inventory-mini-button" onclick="openInventoryPositionModal(${item.id}, 'loose', 'add', '${escapeHtml(profile.key)}')" title="Menge erhöhen" aria-label="Menge erhöhen">${ICONS.plus}</button>
+                    <button type="button" class="inventory-mini-button" onclick="openInventoryPositionModal(${item.id}, 'loose', 'meta', '${escapeHtml(profile.key)}')" title="Position bearbeiten" aria-label="Position bearbeiten">${ICONS.edit}</button>
+                    <button type="button" class="inventory-mini-button inventory-mini-button-danger" onclick="deleteLooseProfile(${item.id}, '${escapeHtml(profile.key)}')" title="Position löschen" aria-label="Position löschen">${ICONS.trash}</button>
                 </div>
             </div>
         `;
@@ -1055,9 +1055,9 @@ function renderInventoryList() {
                     </div>
                     <div class="recipe-icons inventory-icons">
                         <button type="button" onclick="openRecipesForInventoryItem(${item.id})" title="Rezepte mit diesem Lebensmittel" aria-label="Rezepte mit diesem Lebensmittel">${ICONS.book}</button>
-                        <button type="button" data-privilege="inventory.stock.receive" onclick="toggleInventoryControls(${item.id})" title="Bestand anpassen" aria-label="Bestand anpassen">${ICONS.plusMinus}</button>
-                        <button type="button" data-privilege="inventory.item.edit" onclick="editInventoryItem(${item.id})" title="Bearbeiten" aria-label="Bearbeiten">${ICONS.edit}</button>
-                        <button type="button" class="toolbar-delete-button" data-privilege="inventory.item.delete" onclick="deleteInventoryItem(${item.id})" title="Löschen" aria-label="Löschen">${ICONS.trash}</button>
+                        <button type="button" onclick="toggleInventoryControls(${item.id})" title="Bestand anpassen" aria-label="Bestand anpassen">${ICONS.plusMinus}</button>
+                        <button type="button" onclick="editInventoryItem(${item.id})" title="Bearbeiten" aria-label="Bearbeiten">${ICONS.edit}</button>
+                        <button type="button" class="toolbar-delete-button" onclick="deleteInventoryItem(${item.id})" title="Löschen" aria-label="Löschen">${ICONS.trash}</button>
                     </div>
                 </div>
 
@@ -1066,7 +1066,7 @@ function renderInventoryList() {
                         <div class="inventory-stock-section">
                             <div class="inventory-stock-panel-header">
                                 <h4>Einheiten</h4>
-                                <button type="button" class="inventory-mini-button" data-privilege="inventory.stock.receive" onclick="openInventoryPositionModal(${item.id}, 'package', 'add-new', '__new__')" title="Neue Einheit hinzufügen" aria-label="Neue Einheit hinzufügen">${ICONS.plus}</button>
+                                <button type="button" class="inventory-mini-button" onclick="openInventoryPositionModal(${item.id}, 'package', 'add-new', '__new__')" title="Neue Einheit hinzufügen" aria-label="Neue Einheit hinzufügen">${ICONS.plus}</button>
                             </div>
                             ${renderPackageRows(item)}
                         </div>
@@ -1074,7 +1074,7 @@ function renderInventoryList() {
                         <div class="inventory-stock-section">
                             <div class="inventory-stock-panel-header">
                                 <h4>Freie Mengen</h4>
-                                <button type="button" class="inventory-mini-button" data-privilege="inventory.stock.receive" onclick="openInventoryPositionModal(${item.id}, 'loose', 'add-new', '__new__')" title="Neue freie Menge hinzufügen" aria-label="Neue freie Menge hinzufügen">${ICONS.plus}</button>
+                                <button type="button" class="inventory-mini-button" onclick="openInventoryPositionModal(${item.id}, 'loose', 'add-new', '__new__')" title="Neue freie Menge hinzufügen" aria-label="Neue freie Menge hinzufügen">${ICONS.plus}</button>
                             </div>
                             ${renderLooseRows(item)}
                         </div>
@@ -1149,27 +1149,3 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 });
-
-
-document.addEventListener("platform:ready", () => {
-    PlatformShell?.applyPermissionState?.();
-});
-
-document.addEventListener("platform:workspace-changed", () => {
-    PlatformShell?.applyPermissionState?.();
-    loadInventory();
-});
-
-const inventoryPermissionObserver = new MutationObserver(() => {
-    PlatformShell?.applyPermissionState?.(document);
-});
-
-if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", () => {
-        const list = document.getElementById("inventory-list");
-        if (list) inventoryPermissionObserver.observe(list, { childList: true, subtree: true });
-    });
-} else {
-    const list = document.getElementById("inventory-list");
-    if (list) inventoryPermissionObserver.observe(list, { childList: true, subtree: true });
-}

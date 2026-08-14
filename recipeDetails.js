@@ -41,7 +41,7 @@ function initAutoResize() {
 }
 
 async function apiFetch(url, options = {}) {
-    const response = await fetch(url, options);
+    const response = await AuthShell.request(url, options);
     const payload = await response.json().catch(() => null);
     if (!response.ok) throw new Error(payload?.error || "Serverfehler");
     return payload;

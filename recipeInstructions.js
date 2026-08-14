@@ -56,7 +56,7 @@ async function toggleCurrentRecipeFavorite() {
     const newValue = isFavoriteRecipe(currentRecipe) ? 0 : 1;
 
     try {
-        const response = await fetch(`${API_URL}/recipes/${currentRecipe.id}/favorite`, {
+        const response = await AuthShell.request(`${API_URL}/recipes/${currentRecipe.id}/favorite`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ is_favorite: newValue })
@@ -72,7 +72,7 @@ async function toggleCurrentRecipeFavorite() {
 }
 
 async function apiFetch(url) {
-    const response = await fetch(url);
+    const response = await AuthShell.request(url);
     const payload = await response.json().catch(() => null);
     if (!response.ok) throw new Error(payload?.error || "Serverfehler");
     return payload;

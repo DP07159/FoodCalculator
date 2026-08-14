@@ -38,7 +38,11 @@ const AuthShell = (() => {
             headers.set("X-Workspace-Id", workspaceId);
         }
 
-        return fetch(`${AUTH_API_URL}${path}`, {
+        const targetUrl = /^https?:\/\//i.test(String(path || ""))
+            ? String(path)
+            : `${AUTH_API_URL}${path}`;
+
+        return fetch(targetUrl, {
             ...options,
             headers
         });
@@ -70,6 +74,18 @@ const AuthShell = (() => {
         }
 
         return workspaces;
+    }
+
+    async function switchWorkspace(publicId) {
+        const selected = workspaces.find(item => item.public_id === publicId);
+
+        if (!selected) {
+            throw new Error("Workspace wurde nicht gefunden.");
+        }
+
+        currentWorkspace = selected;
+        localStorage.setItem(WORKSPACE_KEY, selected.public_id);
+        return selected;
     }
 
     async function login(email, password) {
@@ -123,15 +139,38 @@ const AuthShell = (() => {
         const wrapper = document.createElement("div");
         wrapper.id = "auth-shell-user";
         wrapper.className = "auth-shell-user";
+        const workspaceControl = workspaces.length > 1
+            ? `<select class="auth-shell-workspace-select" aria-label="Workspace auswählen">
+                ${workspaces.map(workspace => `
+                    <option value="${workspace.public_id}" ${workspace.public_id === currentWorkspace?.public_id ? "selected" : ""}>
+                        ${workspace.name}
+                    </option>
+                `).join("")}
+               </select>`
+            : `<span class="auth-shell-workspace-name"></span>`;
+
         wrapper.innerHTML = `
             <span class="auth-shell-user-name"></span>
-            <span class="auth-shell-workspace-name"></span>
+            ${workspaceControl}
             <button type="button" class="auth-shell-logout">Abmelden</button>
         `;
+
         wrapper.querySelector(".auth-shell-user-name").textContent =
             currentUser.display_name || currentUser.email || "Benutzer";
-        wrapper.querySelector(".auth-shell-workspace-name").textContent =
-            currentWorkspace?.name || "Kein Workspace";
+
+        const workspaceName = wrapper.querySelector(".auth-shell-workspace-name");
+        if (workspaceName) {
+            workspaceName.textContent = currentWorkspace?.name || "Kein Workspace";
+        }
+
+        const workspaceSelect = wrapper.querySelector(".auth-shell-workspace-select");
+        if (workspaceSelect) {
+            workspaceSelect.addEventListener("change", async event => {
+                await switchWorkspace(event.target.value);
+                window.location.reload();
+            });
+        }
+
         wrapper.querySelector(".auth-shell-logout").addEventListener("click", logout);
         header.appendChild(wrapper);
     }
@@ -185,6 +224,7 @@ const AuthShell = (() => {
         me,
         guard,
         request,
+        switchWorkspace,
         getToken,
         getUser,
         getWorkspace,

@@ -4013,3 +4013,17 @@ body.modal-open .app-header {
     font-weight: 800;
     white-space: nowrap;
 }
+
+
+/* Sprint 5A – Workspace switcher */
+.auth-shell-workspace-select {
+    min-height: 32px;
+    max-width: 220px;
+    padding: 5px 28px 5px 9px;
+    border-radius: 999px;
+    border: 1px solid var(--color-border-soft, #e4e8ef);
+    background: var(--color-surface-soft, #f5f7fb);
+    color: inherit;
+    font-size: 0.78rem;
+    font-weight: 800;
+}

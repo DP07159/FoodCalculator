@@ -586,10 +586,30 @@ window.shareWeeklyShoppingList = async function() {
 };
 
 document.addEventListener("DOMContentLoaded", async () => {
-    await Promise.all([loadMealPlans(), loadRecipes()]);
+    try {
+        const authenticated = await AuthShell.guard();
 
-    document.getElementById("recipe-search")?.addEventListener("input", populateRecipeList);
-    document.getElementById("recipe-sort")?.addEventListener("change", populateRecipeList);
+        if (!authenticated) {
+            return;
+        }
+
+        await Promise.all([
+            loadMealPlans(),
+            loadRecipes()
+        ]);
+
+        document.getElementById("recipe-search")
+            ?.addEventListener("input", populateRecipeList);
+
+        document.getElementById("recipe-sort")
+            ?.addEventListener("change", populateRecipeList);
+    } catch (error) {
+        console.error("App-Initialisierung fehlgeschlagen:", error);
+        showToast(
+            error?.message ||
+            "Die Daten konnten nicht geladen werden."
+        );
+    }
 });
 
 if ("serviceWorker" in navigator) {

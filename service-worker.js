@@ -1,4 +1,4 @@
-const CACHE_NAME = "food-calculator-sprint-5a1-multi-workspace-recipes";
+const CACHE_NAME = "food-calculator-auth-workspace-bootstrap-fix";
 
 const FILES_TO_CACHE = [
     "/",

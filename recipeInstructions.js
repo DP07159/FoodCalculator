@@ -495,6 +495,286 @@ async function openIngredientInventoryOverlay(ingredientName, itemId = null) {
     }
 }
 
+
+let recipeWorkspaceOptions = [];
+let recipeWorkspaceSaveTimer = null;
+let recipeWorkspaceSaving = false;
+let recipeWorkspacePendingSave = false;
+let recipeWorkspaceRedirectId = "";
+
+function escapeWorkspaceHtml(value) {
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+function getRecipeWorkspaceOverlay() {
+    return document.getElementById("recipe-workspace-overlay");
+}
+
+function closeRecipeWorkspaceOverlay() {
+    const overlay = getRecipeWorkspaceOverlay();
+    if (!overlay) return;
+    overlay.classList.add("is-hidden");
+    overlay.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("modal-open");
+}
+
+function renderRecipeWorkspaceOptions() {
+    const list = document.getElementById("recipe-workspace-list");
+    const search = document.getElementById("recipe-workspace-search");
+    if (!list) return;
+
+    const query = String(search?.value || "").trim().toLowerCase();
+
+    const filtered = recipeWorkspaceOptions
+        .filter(workspace =>
+            !query ||
+            workspace.name.toLowerCase().includes(query) ||
+            workspace.workspace_type.toLowerCase().includes(query)
+        )
+        .sort((a, b) => {
+            if (a.is_assigned !== b.is_assigned) {
+                return a.is_assigned ? -1 : 1;
+            }
+            return a.name.localeCompare(b.name, "de");
+        });
+
+    if (!filtered.length) {
+        list.innerHTML = `<p class="recipe-empty-state">Kein Workspace gefunden.</p>`;
+        return;
+    }
+
+    list.innerHTML = filtered.map(workspace => `
+        <label class="recipe-workspace-option">
+            <span class="recipe-workspace-option-main">
+                <span class="recipe-workspace-option-icon">
+                    ${workspace.workspace_type === "personal" ? "⌂" : "👥"}
+                </span>
+                <span>
+                    <strong>${escapeWorkspaceHtml(workspace.name)}</strong>
+                    <small>${workspace.workspace_type === "personal" ? "Persönlicher Workspace" : "Gemeinsamer Workspace"}</small>
+                </span>
+            </span>
+            <input
+                type="checkbox"
+                class="recipe-workspace-checkbox"
+                data-workspace-id="${escapeWorkspaceHtml(workspace.public_id)}"
+                value="${escapeWorkspaceHtml(workspace.public_id)}"
+                ${workspace.is_assigned ? "checked" : ""}
+                aria-label="${escapeWorkspaceHtml(workspace.name)} zuordnen"
+            >
+            <span class="recipe-workspace-checkmark" aria-hidden="true">✓</span>
+        </label>
+    `).join("");
+}
+
+async function openRecipeWorkspaceOverlay() {
+    if (!currentRecipe?.id) return;
+
+    const overlay = getRecipeWorkspaceOverlay();
+    const list = document.getElementById("recipe-workspace-list");
+    const search = document.getElementById("recipe-workspace-search");
+
+    if (!overlay || !list) return;
+
+    list.innerHTML = `<p class="recipe-empty-state">Workspaces werden geladen ...</p>`;
+    if (search) search.value = "";
+
+    overlay.classList.remove("is-hidden");
+    overlay.setAttribute("aria-hidden", "false");
+    document.body.classList.add("modal-open");
+
+    try {
+        const payload = await apiFetch(
+            `${API_URL}/recipes/${currentRecipe.id}/workspace-assignments`
+        );
+
+        recipeWorkspaceOptions = Array.isArray(payload?.workspaces)
+            ? payload.workspaces
+            : [];
+
+        renderRecipeWorkspaceOptions();
+        search?.focus();
+    } catch (error) {
+        console.error(error);
+        closeRecipeWorkspaceOverlay();
+        showToast(error.message || "Workspace-Zuordnungen konnten nicht geladen werden.");
+    }
+}
+
+function setRecipeWorkspaceSaveState(message, isError = false) {
+    const target = document.getElementById("recipe-workspace-save-state");
+    if (!target) return;
+
+    target.textContent = message || "";
+    target.classList.toggle("is-error", isError);
+}
+
+function getSelectedRecipeWorkspaceIds() {
+    return Array.from(
+        document.querySelectorAll(".recipe-workspace-checkbox:checked")
+    ).map(input => input.value);
+}
+
+async function persistRecipeWorkspaceAssignments() {
+    if (!currentRecipe?.id) return true;
+
+    if (recipeWorkspaceSaving) {
+        recipeWorkspacePendingSave = true;
+        return false;
+    }
+
+    const selectedIds = getSelectedRecipeWorkspaceIds();
+
+    if (!selectedIds.length) {
+        setRecipeWorkspaceSaveState(
+            "Mindestens ein Workspace muss ausgewählt bleiben.",
+            true
+        );
+        return false;
+    }
+
+    recipeWorkspaceSaving = true;
+    recipeWorkspacePendingSave = false;
+    setRecipeWorkspaceSaveState("Wird gespeichert …");
+
+    try {
+        const payload = await apiFetch(
+            `${API_URL}/recipes/${currentRecipe.id}/workspace-assignments`,
+            {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    workspace_public_ids: selectedIds
+                })
+            }
+        );
+
+        recipeWorkspaceOptions = Array.isArray(payload?.workspaces)
+            ? payload.workspaces
+            : recipeWorkspaceOptions;
+
+        const nextWorkspace = recipeWorkspaceOptions
+            .find(workspace => workspace.is_assigned);
+
+        recipeWorkspaceRedirectId =
+            payload?.current_workspace_still_assigned === false
+                ? (nextWorkspace?.public_id || "")
+                : "";
+
+        setRecipeWorkspaceSaveState("Gespeichert");
+        return true;
+    } catch (error) {
+        console.error(error);
+        setRecipeWorkspaceSaveState(
+            error.message || "Speichern fehlgeschlagen.",
+            true
+        );
+        showToast(
+            error.message ||
+            "Workspace-Zuordnungen konnten nicht gespeichert werden."
+        );
+        return false;
+    } finally {
+        recipeWorkspaceSaving = false;
+
+        if (recipeWorkspacePendingSave) {
+            recipeWorkspacePendingSave = false;
+            window.setTimeout(
+                persistRecipeWorkspaceAssignments,
+                0
+            );
+        }
+    }
+}
+
+function scheduleRecipeWorkspaceAssignmentSave() {
+    window.clearTimeout(recipeWorkspaceSaveTimer);
+    setRecipeWorkspaceSaveState("Änderung wird gespeichert …");
+
+    recipeWorkspaceSaveTimer = window.setTimeout(
+        persistRecipeWorkspaceAssignments,
+        180
+    );
+}
+
+async function finishRecipeWorkspaceAssignments() {
+    window.clearTimeout(recipeWorkspaceSaveTimer);
+
+    if (recipeWorkspaceSaving) {
+        recipeWorkspacePendingSave = true;
+
+        while (recipeWorkspaceSaving || recipeWorkspacePendingSave) {
+            await new Promise(resolve => window.setTimeout(resolve, 60));
+        }
+    } else {
+        await persistRecipeWorkspaceAssignments();
+    }
+
+    closeRecipeWorkspaceOverlay();
+
+    if (recipeWorkspaceRedirectId) {
+        const redirectId = recipeWorkspaceRedirectId;
+        recipeWorkspaceRedirectId = "";
+        await AuthShell.switchWorkspace(redirectId);
+        window.location.replace(
+            `/recipeInstructions.html?id=${currentRecipe.id}`
+        );
+    }
+}
+
+
+function setupRecipeWorkspaceOverlay() {
+    document.getElementById("workspace-assignments-button")
+        ?.addEventListener("click", openRecipeWorkspaceOverlay);
+
+    document.getElementById("recipe-workspace-close")
+        ?.addEventListener("click", closeRecipeWorkspaceOverlay);
+
+    document.getElementById("recipe-workspace-done")
+        ?.addEventListener("click", finishRecipeWorkspaceAssignments);
+
+    document.getElementById("recipe-workspace-search")
+        ?.addEventListener("input", renderRecipeWorkspaceOptions);
+
+    document.getElementById("recipe-workspace-list")
+        ?.addEventListener("change", event => {
+            const checkbox = event.target.closest(".recipe-workspace-checkbox");
+            if (!checkbox) return;
+
+            const selectedIds = getSelectedRecipeWorkspaceIds();
+
+            if (!selectedIds.length) {
+                checkbox.checked = true;
+                setRecipeWorkspaceSaveState(
+                    "Mindestens ein Workspace muss ausgewählt bleiben.",
+                    true
+                );
+                return;
+            }
+
+            const option = recipeWorkspaceOptions.find(
+                workspace => workspace.public_id === checkbox.value
+            );
+
+            if (option) {
+                option.is_assigned = checkbox.checked;
+            }
+
+            scheduleRecipeWorkspaceAssignmentSave();
+        });
+
+    getRecipeWorkspaceOverlay()?.addEventListener("click", event => {
+        if (event.target === getRecipeWorkspaceOverlay()) {
+            finishRecipeWorkspaceAssignments();
+        }
+    });
+}
+
 function renderRecipeInstructions() {
     if (!currentRecipe) return;
 
@@ -547,6 +827,16 @@ function renderRecipeInstructions() {
 
     updatePortionButtons();
     updateFavoriteButton();
+
+    const workspaceButton =
+        document.getElementById("workspace-assignments-button");
+
+    if (workspaceButton) {
+        workspaceButton.classList.toggle(
+            "is-hidden",
+            currentRecipe.can_manage_workspace_assignments !== true
+        );
+    }
 }
 
 function updatePortionButtons() {
@@ -614,7 +904,15 @@ function setupButtons() {
     });
     document.getElementById("decrease-portions-button")?.addEventListener("click", () => adjustDisplayedPortions(-1));
     document.getElementById("increase-portions-button")?.addEventListener("click", () => adjustDisplayedPortions(1));
-    document.addEventListener("keydown", event => { if (event.key === "Escape") closeIngredientInventoryModal(); });
+    setupRecipeWorkspaceOverlay();
+    document.addEventListener("keydown", event => {
+        if (event.key === "Escape") {
+            closeIngredientInventoryModal();
+            if (!getRecipeWorkspaceOverlay()?.classList.contains("is-hidden")) {
+                finishRecipeWorkspaceAssignments();
+            }
+        }
+    });
 }
 
 window.onload = function () {

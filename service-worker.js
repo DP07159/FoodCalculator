@@ -1,4 +1,4 @@
-const CACHE_NAME = "food-calculator-workspace-assignment-put-fix";
+const CACHE_NAME = "food-calculator-sprint-6e-user-access-admin";
 
 const FILES_TO_CACHE = [
     "/",
@@ -16,6 +16,8 @@ const FILES_TO_CACHE = [
     "/recipeCreate.html",
     "/recipeCreate.js",
     "/admin.html",
+    "/adminUsers.html",
+    "/adminUsers.js",
     "/adminTable.html",
     "/admin.js",
     "/inventory.html",

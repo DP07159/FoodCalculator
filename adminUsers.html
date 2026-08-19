@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="de" class="auth-pending">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Benutzer & Zugriff · Food Calculator</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#f5f7fb">
+</head>
+<body>
+    <header class="app-header">
+        <button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen">
+            <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+        <div class="app-header-title">Food Calculator</div>
+        <div id="burger-dropdown" class="burger-dropdown is-hidden"></div>
+    </header>
+
+    <div class="container">
+        <main class="page-content access-admin-page">
+            <header class="page-header admin-header">
+                <p class="recipe-kicker">Administration</p>
+                <div class="access-admin-title-row">
+                    <div>
+                        <h1>Benutzer & Zugriff</h1>
+                        <p class="admin-intro">
+                            Accounts, Workspace-Mitgliedschaften, Module, Rollen und Capabilities zentral verwalten.
+                        </p>
+                    </div>
+                    <a href="/admin.html" class="access-admin-back-link">System Center</a>
+                </div>
+            </header>
+
+            <div id="access-admin-denied" class="section-card access-admin-denied is-hidden">
+                <p class="recipe-kicker">Zugriff</p>
+                <h2>Platform-Admin erforderlich</h2>
+                <p id="access-admin-denied-message">
+                    Diese Oberfläche ist ausschließlich für Platform-Administratoren verfügbar.
+                </p>
+            </div>
+
+            <section id="access-admin-shell" class="access-admin-shell">
+                <aside class="section-card access-user-panel">
+                    <div class="access-panel-head">
+                        <div>
+                            <p class="recipe-kicker">Accounts</p>
+                            <h2>Benutzer</h2>
+                        </div>
+                        <span id="access-user-count" class="access-count-badge">0</span>
+                    </div>
+
+                    <div class="access-user-filters">
+                        <input
+                            id="access-user-search"
+                            type="search"
+                            placeholder="Name oder E-Mail suchen …"
+                            autocomplete="off"
+                        >
+                        <select id="access-user-status-filter" aria-label="Nach Status filtern">
+                            <option value="">Alle Status</option>
+                            <option value="active">Aktiv</option>
+                            <option value="pending">Ausstehend</option>
+                            <option value="suspended">Deaktiviert</option>
+                        </select>
+                    </div>
+
+                    <div id="access-user-message" class="inventory-overlay-message is-hidden" aria-live="polite"></div>
+                    <div id="access-user-list" class="access-user-list">
+                        <p class="admin-empty-state">Benutzer werden geladen …</p>
+                    </div>
+                </aside>
+
+                <section class="section-card access-user-detail-panel">
+                    <div id="access-user-detail-empty" class="access-user-detail-empty">
+                        <div class="access-user-detail-empty-icon">
+                            <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <circle cx="12" cy="8" r="4"/>
+                                <path d="M4 21a8 8 0 0 1 16 0"/>
+                            </svg>
+                        </div>
+                        <h2>Benutzer auswählen</h2>
+                        <p>Wähle links einen Account, um Status, Workspaces und Zugriffsrechte zu verwalten.</p>
+                    </div>
+
+                    <div id="access-user-detail" class="is-hidden"></div>
+                </section>
+            </section>
+        </main>
+    </div>
+
+    <div id="app-toast" class="app-toast is-hidden"></div>
+
+    <script src="auth-shell.js"></script>
+    <script src="navigation.js"></script>
+    <script src="adminUsers.js"></script>
+</body>
+</html>

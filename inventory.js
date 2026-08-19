@@ -118,7 +118,7 @@ function escapeHtml(value) {
 }
 
 async function apiFetch(url, options = {}) {
-    const response = await fetch(url, options);
+    const response = await AuthShell.request(url, options);
     let payload = null;
     try { payload = await response.json(); } catch { payload = null; }
     if (!response.ok) throw new Error(payload?.error || "Serverfehler");
@@ -1118,6 +1118,9 @@ function openInventoryItemFromUrl() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
+    const authenticated = await AuthShell.guard();
+    if (!authenticated) return;
+
     await loadInventory();
     openInventoryItemFromUrl();
     updateInventoryStockType();

@@ -1,4 +1,4 @@
-const CACHE_NAME = "food-calculator-sprint-6e-user-access-admin";
+const CACHE_NAME = "food-calculator-sprint-6e-inventory-auth-workspace-fix";
 
 const FILES_TO_CACHE = [
     "/",

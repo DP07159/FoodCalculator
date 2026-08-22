@@ -4949,3 +4949,23 @@ input:focus, select:focus, textarea:focus { border-color: #66764A; }
     .intent-action, .intent-action:nth-child(odd), .intent-action:nth-last-child(-n+2) { border-right: 0; border-bottom: 1px solid var(--color-border-soft); }
     .intent-action:last-child { border-bottom: 0; }
 }
+
+
+/* Platform Shell Sprint 2 – autonomous capability modules */
+.module-container { max-width: 1280px; padding-top: 32px; }
+.module-content { max-width: none; }
+.module-page-header { max-width: 760px; margin: 0 0 28px; }
+.module-page-header h1 { margin-bottom: 8px; font-family: var(--font-family-editorial); font-size: clamp(32px, 4vw, 44px); font-weight: 500; line-height: 1.08; }
+.module-intro { margin: 0; color: var(--color-text-muted); font-size: 15px; line-height: 1.6; }
+.module-page #meal-plan,
+.module-page .recipe-book-box { margin-top: 0; }
+.module-page .section-card { background: var(--color-surface); }
+.module-page .recipe-book-box > #recipe-book,
+.module-page #meal-plan { width: 100%; }
+@media (max-width: 720px) {
+  .module-container { padding-top: 20px; }
+  .module-page-header { margin-bottom: 20px; }
+}
+
+.platform-nav-links a.is-current, .platform-nav-links a[aria-current="page"] { background: var(--color-primary-soft); color: var(--color-primary-text); }
+.module-page .meal-plan-title-group > h2, .module-page .recipe-book-topbar > h2 { font-size: 18px; font-family: var(--font-family-base); font-weight: 600; }

@@ -593,10 +593,14 @@ document.addEventListener("DOMContentLoaded", async () => {
             return;
         }
 
-        await Promise.all([
-            loadMealPlans(),
-            loadRecipes()
-        ]);
+        const hasMealPlanModule = Boolean(document.getElementById("meal-table") || document.getElementById("plan-list"));
+        const hasRecipeModule = Boolean(document.getElementById("recipe-list"));
+
+        const initialLoads = [];
+        if (hasMealPlanModule) initialLoads.push(loadMealPlans());
+        // Meal Planning needs recipe choices as well; recipe-only pages obviously need recipes too.
+        if (hasMealPlanModule || hasRecipeModule) initialLoads.push(loadRecipes());
+        await Promise.all(initialLoads);
 
         document.getElementById("recipe-search")
             ?.addEventListener("input", populateRecipeList);

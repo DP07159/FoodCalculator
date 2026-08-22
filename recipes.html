@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="de" class="auth-pending">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rezepte · Food Moment Platform</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#F8F7F3">
+</head>
+<body class="module-page recipes-module">
+    <header class="app-header platform-header">
+        <button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen">
+            <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+        <a class="app-header-title platform-wordmark" href="/index.html">Food Moment</a>
+        <div id="burger-dropdown" class="burger-dropdown is-hidden"></div>
+    </header>
+    <div class="container module-container">
+        <main class="page-content module-content">
+            <header class="page-header module-page-header">
+                <p class="recipe-kicker">Rezepte</p>
+                <h1>Rezeptbuch</h1>
+                <p class="module-intro">Finde, verwalte und öffne Rezepte unabhängig vom aktuellen Food-Moment-Kontext.</p>
+            </header>
+            <section class="recipe-book-box section-card">
+                <div id="recipe-book">
+                    <div class="recipe-book-topbar">
+                        <h2>Rezeptbuch</h2>
+                        <button type="button" class="recipe-toolbar-toggle-button" onclick="toggleRecipeToolbar()" title="Rezept hinzufügen" aria-label="Rezept hinzufügen"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+                    </div>
+
+                    <div id="recipe-add-panel" class="recipe-add-panel is-hidden">
+                        <div class="recipe-book-toolbar">
+                            <div class="recipe-checkboxes recipe-toolbar-checkboxes">
+                                <label><input type="checkbox" value="breakfast"> Frühstück</label>
+                                <label><input type="checkbox" value="lunch"> Mittagessen</label>
+                                <label><input type="checkbox" value="dinner"> Abendessen</label>
+                                <label><input type="checkbox" value="snack"> Snack</label>
+                            </div>
+                            <input type="text" id="recipe-name" class="recipe-toolbar-name" placeholder="Rezeptname">
+                            <input type="text" id="recipe-calories" class="recipe-toolbar-calories" placeholder="Kalorien" inputmode="numeric" pattern="[0-9]*">
+                            <input type="number" id="recipe-portions" class="recipe-toolbar-portions" placeholder="Portionen" min="1" step="1">
+                            <button type="button" class="recipe-toolbar-save-button" onclick="addRecipe()" title="Rezept speichern" aria-label="Rezept speichern"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h12l2 2v14H5z"/><path d="M8 4v6h8V4"/><path d="M8 20v-6h8v6"/></svg></button>
+                        </div>
+                    </div>
+
+                    <div class="recipe-book-controls">
+                        <input type="text" id="recipe-search" class="recipe-search-input" placeholder="Rezepte durchsuchen ...">
+                        <select id="recipe-sort" class="recipe-sort-select">
+                            <option value="name-asc">Name A–Z</option>
+                            <option value="name-desc">Name Z–A</option>
+                            <option value="favorites">Favoriten</option>
+                            <option value="breakfast">Nur Frühstück</option>
+                            <option value="lunch">Nur Mittagessen</option>
+                            <option value="dinner">Nur Abendessen</option>
+                            <option value="snack">Nur Snack</option>
+                        </select>
+                    </div>
+
+                    <ul id="recipe-list"></ul>
+                </div>
+            </section>
+        </main>
+    </div>
+    <div id="app-toast" class="app-toast is-hidden"></div>
+    <script src="auth-shell.js"></script>
+    <script src="navigation.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,11 +1,12 @@
-const CACHE_NAME = "food-moment-platform-v27-foundation-sprint1";
+const CACHE_NAME = "food-moment-platform-v28-platform-shell-sprint2";
 
 const FILES_TO_CACHE = [
     "/",
     "/index.html",
     "/style.css",
     "/home.js",
-    "/tools.html",
+    "/recipes.html",
+    "/mealPlan.html",
     "/script.js",
     "/auth-shell.js",
     "/platform.js",

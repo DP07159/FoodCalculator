@@ -1,7 +1,7 @@
 const APP_NAVIGATION_LINKS = [
     { label: "Home", href: "/index.html", capability: "home" },
-    { label: "Wochenplan", href: "/tools.html#meal-plan", capability: "meal_plan" },
-    { label: "Rezepte", href: "/tools.html#recipe-book", capability: "recipes" },
+    { label: "Wochenplan", href: "/mealPlan.html", capability: "meal_plan" },
+    { label: "Rezepte", href: "/recipes.html", capability: "recipes" },
     { label: "Inventar", href: "/inventory.html", capability: "inventory", privilege: "inventory.view" },
     { label: "Rezept anlegen", href: "/recipeCreate.html", capability: "recipes" },
     { label: "Administration", href: "/admin.html", capability: "admin", role: "platform_admin" }
@@ -43,7 +43,12 @@ function renderBurgerMenu() {
             <small>${escapeNavigationHtml(user?.display_name || user?.email || "")}</small>
         </div>
         <div class="platform-nav-links">
-            ${links.map(link => `<a href="${link.href}">${link.label}</a>`).join("")}
+            ${links.map(link => {
+                const currentPath = window.location.pathname || "/index.html";
+                const linkPath = link.href.split("#")[0];
+                const isCurrent = currentPath === linkPath || (currentPath === "/" && linkPath === "/index.html");
+                return `<a href="${link.href}"${isCurrent ? ' aria-current="page" class="is-current"' : ""}>${link.label}</a>`;
+            }).join("")}
         </div>
         <div class="platform-menu-footer">
             <button type="button" id="navigation-logout">Abmelden</button>

@@ -1,97 +1,11 @@
 <!DOCTYPE html>
-<html lang="de" class="auth-pending">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Planung & Rezepte · Food Moment Platform</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#F8F7F3">
-</head>
+<html lang="de">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Weiterleitung · Food Moment Platform</title></head>
 <body>
-    <header class="app-header">
-        <button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen">
-            <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-        </button>
-
-        <a class="app-header-title platform-wordmark" href="/index.html">Food Moment</a>
-
-        <div id="burger-dropdown" class="burger-dropdown is-hidden"></div>
-    </header>
-
-    <div class="container">
-        <main class="page-content">
-            <section id="meal-plan" class="section-card">
-                <div class="meal-plan-topbar">
-                    <div class="meal-plan-title-group">
-                        <h2>Wochenplan</h2>
-                        <select id="plan-list" class="toolbar-plan-select"></select>
-                        <p id="current-plan-name">Aktueller Wochenplan: keiner</p>
-                    </div>
-
-                    <div class="meal-plan-current-actions">
-                        <button type="button" class="toolbar-icon-button toolbar-shopping-button" onclick="shareWeeklyShoppingList()" title="Einkaufsliste teilen" aria-label="Einkaufsliste teilen"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6h15l-1.5 8.5H8L6 3H3"/><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/></svg></button>
-                        <button type="button" class="toolbar-icon-button toolbar-update-button" onclick="updateMealPlan()" title="Plan aktualisieren" aria-label="Plan aktualisieren"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5"/><path d="M20 12a8 8 0 1 1-2.3-5.7L20 8"/></svg></button>
-                        <button type="button" class="toolbar-icon-button toolbar-delete-button" onclick="deleteMealPlan()" title="Plan löschen" aria-label="Plan löschen"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 14h10l1-14"/><path d="M9 7V4h6v3"/></svg></button>
-                        <button type="button" class="toolbar-icon-button toolbar-toggle-save-button" onclick="togglePlanSaveToolbar()" title="Neuen Plan anlegen" aria-label="Neuen Plan anlegen"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
-                    </div>
-                </div>
-
-                <div id="plan-save-panel" class="plan-save-panel is-hidden">
-                    <div class="meal-plan-save-inline">
-                        <input type="text" id="plan-name" class="toolbar-plan-name" placeholder="Neuen Plan speichern als">
-                        <button type="button" class="toolbar-icon-button toolbar-save-button" onclick="saveMealPlan()" title="Neuen Plan speichern" aria-label="Neuen Plan speichern"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h12l2 2v14H5z"/><path d="M8 4v6h8V4"/><path d="M8 20v-6h8v6"/></svg></button>
-                    </div>
-                </div>
-
-                <div class="weekly-plan-board" id="meal-table"></div>
-                <div id="day-detail-panel" class="day-detail-panel"></div>
-            </section>
-
-            <section class="recipe-book-box section-card">
-                <div id="recipe-book">
-                    <div class="recipe-book-topbar">
-                        <h2>Rezeptbuch</h2>
-                        <button type="button" class="recipe-toolbar-toggle-button" onclick="toggleRecipeToolbar()" title="Rezept hinzufügen" aria-label="Rezept hinzufügen"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
-                    </div>
-
-                    <div id="recipe-add-panel" class="recipe-add-panel is-hidden">
-                        <div class="recipe-book-toolbar">
-                            <div class="recipe-checkboxes recipe-toolbar-checkboxes">
-                                <label><input type="checkbox" value="breakfast"> Frühstück</label>
-                                <label><input type="checkbox" value="lunch"> Mittagessen</label>
-                                <label><input type="checkbox" value="dinner"> Abendessen</label>
-                                <label><input type="checkbox" value="snack"> Snack</label>
-                            </div>
-                            <input type="text" id="recipe-name" class="recipe-toolbar-name" placeholder="Rezeptname">
-                            <input type="text" id="recipe-calories" class="recipe-toolbar-calories" placeholder="Kalorien" inputmode="numeric" pattern="[0-9]*">
-                            <input type="number" id="recipe-portions" class="recipe-toolbar-portions" placeholder="Portionen" min="1" step="1">
-                            <button type="button" class="recipe-toolbar-save-button" onclick="addRecipe()" title="Rezept speichern" aria-label="Rezept speichern"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h12l2 2v14H5z"/><path d="M8 4v6h8V4"/><path d="M8 20v-6h8v6"/></svg></button>
-                        </div>
-                    </div>
-
-                    <div class="recipe-book-controls">
-                        <input type="text" id="recipe-search" class="recipe-search-input" placeholder="Rezepte durchsuchen ...">
-                        <select id="recipe-sort" class="recipe-sort-select">
-                            <option value="name-asc">Name A–Z</option>
-                            <option value="name-desc">Name Z–A</option>
-                            <option value="favorites">Favoriten</option>
-                            <option value="breakfast">Nur Frühstück</option>
-                            <option value="lunch">Nur Mittagessen</option>
-                            <option value="dinner">Nur Abendessen</option>
-                            <option value="snack">Nur Snack</option>
-                        </select>
-                    </div>
-
-                    <ul id="recipe-list"></ul>
-                </div>
-            </section>
-        </main>
-    </div>
-
-    <div id="app-toast" class="app-toast is-hidden"></div>
-    <script src="auth-shell.js"></script>
-    <script src="navigation.js"></script>
-    <script src="script.js"></script>
+<script>
+  const target = location.hash === '#meal-plan' ? '/mealPlan.html' : '/recipes.html';
+  location.replace(target);
+</script>
+<noscript><p><a href="/recipes.html">Zu den Rezepten</a> · <a href="/mealPlan.html">Zum Wochenplan</a></p></noscript>
 </body>
 </html>

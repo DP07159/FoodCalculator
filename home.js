@@ -8,8 +8,8 @@ function resolveIntent(text) {
     const value = String(text || "").trim().toLocaleLowerCase("de");
     if (!value) return null;
     if (/(inventar|vorrat|lager|kühlschrank|kuehlschrank|vorhanden)/.test(value)) return "/inventory.html";
-    if (/(woche|wochenplan|planen|montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag)/.test(value)) return "/tools.html#meal-plan";
-    if (/(rezept|kochen|essen|gericht|dinner|mittag|frühstück|fruehstueck)/.test(value)) return "/tools.html#recipe-book";
+    if (/(woche|wochenplan|planen|montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag)/.test(value)) return "/mealPlan.html";
+    if (/(rezept|kochen|essen|gericht|dinner|mittag|frühstück|fruehstueck)/.test(value)) return "/recipes.html";
     return null;
 }
 

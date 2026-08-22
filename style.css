@@ -5081,3 +5081,152 @@ input:focus, select:focus, textarea:focus { border-color: #66764A; }
     .inventory-module .inventory-list-card { padding: 16px; }
     .inventory-module .inventory-filter-controls { gap: 8px; }
 }
+
+/* ========================================================================== 
+   Module UI Sprint 4 · calmer work surfaces and explicit action hierarchy
+   ========================================================================== */
+.module-workspace {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+.module-workspace .module-toolbar,
+.module-workspace .meal-plan-topbar {
+    align-items: flex-end;
+    margin-bottom: 20px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--color-border);
+}
+.module-toolbar-copy {
+    max-width: 620px;
+    margin: 4px 0 0;
+    color: var(--color-text-muted);
+    font-size: 13px;
+    line-height: 1.5;
+}
+.control-label {
+    display: block;
+    margin-bottom: 7px;
+    color: var(--color-text-secondary, #62645E);
+    font-size: 13px;
+    font-weight: 600;
+}
+.module-meta {
+    margin: 7px 0 0;
+    color: var(--color-text-muted);
+    font-size: 12px;
+}
+.primary-action-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: auto;
+    min-width: 0;
+    min-height: 42px;
+    padding: 9px 14px;
+    border: 1px solid var(--color-primary);
+    border-radius: 8px;
+    background: var(--color-primary);
+    color: #fff;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.primary-action-button .fc-icon { width: 18px; height: 18px; }
+.primary-action-button:hover { background: var(--accent-700, #384326); color: #fff; }
+
+/* Recipes: filters are controls, the list is the content. */
+.recipes-workspace .recipe-book-controls {
+    display: grid;
+    grid-template-columns: minmax(240px, 1fr) minmax(180px, 240px);
+    gap: 12px;
+    margin: 0;
+    padding: 0 0 18px;
+    border-bottom: 1px solid var(--color-border-soft);
+}
+.recipes-workspace .recipe-add-panel {
+    margin: 0 0 20px;
+    padding: 18px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-surface-subtle, #F1F0EB);
+}
+.recipes-workspace #recipe-list li {
+    padding: 17px 2px;
+    border-bottom-color: var(--color-border-soft);
+}
+.recipes-workspace .meal-tag,
+.recipes-workspace .recipe-calories-badge {
+    background: transparent;
+    border-color: var(--color-border);
+    color: var(--color-text-secondary, #62645E);
+    font-weight: 600;
+}
+
+/* Meal planning: board is the working surface, not another card. */
+.meal-plan-workspace .meal-plan-title-group { max-width: 420px; }
+.meal-plan-workspace .toolbar-plan-select { max-width: 420px; background: var(--color-surface); }
+.meal-plan-workspace .meal-plan-current-actions { justify-content: flex-end; }
+.meal-plan-workspace .weekly-plan-board { margin-top: 8px; }
+.meal-plan-workspace .plan-day-header {
+    background: transparent;
+    border-color: var(--color-border);
+    border-radius: 8px;
+}
+.meal-plan-workspace .plan-day-header.is-active { background: var(--color-primary-soft); border-color: var(--color-primary-border); }
+.meal-plan-workspace .day-detail-card {
+    margin-top: 28px;
+    padding: 22px 0 0;
+    border: 0;
+    border-top: 1px solid var(--color-border);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+.meal-plan-workspace .day-detail-meal-card {
+    border-radius: 8px;
+    background: var(--color-surface);
+    border-color: var(--color-border);
+}
+
+/* Inventory: one continuous work surface; item groups remain functional units. */
+.inventory-module .inventory-list-card { padding: 0; }
+.inventory-workspace .inventory-list-topbar { margin-bottom: 0; }
+.inventory-workspace .inventory-filter-controls {
+    display: grid;
+    grid-template-columns: minmax(240px, 1.4fr) repeat(3, minmax(150px, .7fr));
+    gap: 10px;
+    margin: 0;
+    padding: 16px 0 18px;
+    border-bottom: 1px solid var(--color-border-soft);
+}
+.inventory-workspace .inventory-list-detailed { margin-top: 10px; }
+.inventory-workspace .inventory-item-card-detailed {
+    border-radius: 8px;
+    border-color: var(--color-border);
+    box-shadow: none;
+}
+.inventory-workspace .inventory-stock-panel,
+.inventory-workspace .inventory-add-unit-panel {
+    border-radius: 8px;
+    box-shadow: none;
+}
+
+@media (max-width: 900px) {
+    .inventory-workspace .inventory-filter-controls { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 720px) {
+    .module-workspace .module-toolbar,
+    .module-workspace .meal-plan-topbar { align-items: stretch; }
+    .module-toolbar { flex-direction: column; }
+    .primary-action-button { width: 100%; }
+    .meal-plan-workspace .meal-plan-current-actions { display: grid; grid-template-columns: repeat(3, 42px) minmax(130px, 1fr); }
+    .meal-plan-workspace .primary-action-button { width: 100%; }
+    .recipes-workspace .recipe-book-controls,
+    .inventory-workspace .inventory-filter-controls { grid-template-columns: 1fr; }
+    .recipes-workspace .recipe-add-panel { padding: 14px; }
+}

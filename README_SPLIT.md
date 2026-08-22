@@ -1,5 +1,5 @@
-# Food Moment Platform – Frontend Sprint 3
-Frontend-Anteil des Responsive-Shell-Sprint-3-Stands.
+# Food Moment Platform – Frontend Sprint 4
+Frontend-Anteil des Module-UI-Sprint-4-Stands.
 Enthält HTML, CSS, Browser-JavaScript, Manifest und Service Worker.
-Neu in Sprint 3: Desktop-Sidebar, Mobile Bottom Navigation und Inventar-Angleichung an die Modul-Shell.
+Neu in Sprint 4: ruhigere Modul-Arbeitsflächen, weniger Card-Landschaft, explizite Primary Actions und vereinheitlichte Filter/Toolbars für Wochenplan, Rezepte und Inventar.
 Server/API, Datenbank und Migrationen befinden sich im separaten Server-ZIP.

@@ -25,11 +25,14 @@
                 <p class="module-intro">Sieh, was im Workspace vorhanden ist, wo es liegt und was als Nächstes Aufmerksamkeit braucht.</p>
             </header>
 
-            <section class="section-card inventory-list-card">
-                <div class="recipe-book-topbar inventory-list-topbar">
-                    <h2>Bestand</h2>
-                    <button type="button" class="recipe-toolbar-toggle-button" onclick="toggleInventoryAddPanel()" title="Lebensmittel hinzufügen" aria-label="Lebensmittel hinzufügen">
-                        <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            <section class="module-workspace inventory-list-card inventory-workspace">
+                <div class="recipe-book-topbar inventory-list-topbar module-toolbar">
+                    <div>
+                        <h2>Bestand</h2>
+                        <p class="module-toolbar-copy">Suche, filtere und pflege die aktuell vorhandenen Lebensmittel.</p>
+                    </div>
+                    <button type="button" class="primary-action-button recipe-toolbar-toggle-button" onclick="toggleInventoryAddPanel()">
+                        <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Lebensmittel hinzufügen</span>
                     </button>
                 </div>
 

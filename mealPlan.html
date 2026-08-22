@@ -23,19 +23,19 @@
                 <h1>Wochenplan</h1>
                 <p class="module-intro">Plane deine Woche als eigenständiges Werkzeug – oder später im Kontext eines Food Moments.</p>
             </header>
-            <section id="meal-plan" class="section-card">
+            <section id="meal-plan" class="module-workspace meal-plan-workspace">
                 <div class="meal-plan-topbar">
                     <div class="meal-plan-title-group">
-                        <h2>Wochenplan</h2>
+                        <label class="control-label" for="plan-list">Plan auswählen</label>
                         <select id="plan-list" class="toolbar-plan-select"></select>
-                        <p id="current-plan-name">Aktueller Wochenplan: keiner</p>
+                        <p id="current-plan-name" class="module-meta">Aktueller Wochenplan: keiner</p>
                     </div>
 
                     <div class="meal-plan-current-actions">
                         <button type="button" class="toolbar-icon-button toolbar-shopping-button" onclick="shareWeeklyShoppingList()" title="Einkaufsliste teilen" aria-label="Einkaufsliste teilen"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6h15l-1.5 8.5H8L6 3H3"/><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/></svg></button>
                         <button type="button" class="toolbar-icon-button toolbar-update-button" onclick="updateMealPlan()" title="Plan aktualisieren" aria-label="Plan aktualisieren"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5"/><path d="M20 12a8 8 0 1 1-2.3-5.7L20 8"/></svg></button>
                         <button type="button" class="toolbar-icon-button toolbar-delete-button" onclick="deleteMealPlan()" title="Plan löschen" aria-label="Plan löschen"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 14h10l1-14"/><path d="M9 7V4h6v3"/></svg></button>
-                        <button type="button" class="toolbar-icon-button toolbar-toggle-save-button" onclick="togglePlanSaveToolbar()" title="Neuen Plan anlegen" aria-label="Neuen Plan anlegen"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+                        <button type="button" class="primary-action-button toolbar-toggle-save-button" onclick="togglePlanSaveToolbar()"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Neuer Plan</span></button>
                     </div>
                 </div>
 

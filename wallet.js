@@ -1,20 +1,25 @@
 const API_URL = "https://foodcalculator-server.onrender.com";
-const DAYS = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
-const MEALS = [
-    ["breakfast", "Frühstück"], ["lunch", "Mittagessen"], ["dinner", "Abendessen"], ["snack", "Snack"]
+const WORKSPACE_ID = "personal";
+const WEEK_DAYS = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
+const MEAL_ROWS = [
+    { key: "breakfast", label: "Frühstück" },
+    { key: "lunch", label: "Mittagessen" },
+    { key: "dinner", label: "Abendessen" },
+    { key: "snack", label: "Snack" }
 ];
+
 let walletItems = [];
 let mealPlans = [];
-let activeWalletItemId = null;
+let pendingPlanWalletItemId = null;
 
 function showToast(message) {
     const toast = document.getElementById("app-toast");
-    if (!toast) return alert(message);
+    if (!toast) return;
     toast.textContent = message;
     toast.classList.remove("is-hidden");
     toast.classList.add("is-visible");
-    clearTimeout(showToast.timer);
-    showToast.timer = setTimeout(() => {
+    clearTimeout(showToast.timeoutId);
+    showToast.timeoutId = setTimeout(() => {
         toast.classList.remove("is-visible");
         toast.classList.add("is-hidden");
     }, 2600);
@@ -23,123 +28,179 @@ function showToast(message) {
 async function apiFetch(url, options = {}) {
     const response = await fetch(url, options);
     let payload = null;
-    try { payload = await response.json(); } catch {}
+    try { payload = await response.json(); } catch { payload = null; }
     if (!response.ok) throw new Error(payload?.error || "Serverfehler");
     return payload;
 }
 
 function platformLabel(platform) {
-    return ({ instagram: "Instagram", tiktok: "TikTok", pinterest: "Pinterest", youtube: "YouTube", website: "Website", manual: "Notiz" })[platform] || platform;
+    return ({ instagram: "Instagram", tiktok: "TikTok", pinterest: "Pinterest", youtube: "YouTube", website: "Web" })[platform] || "Web";
 }
 
 function escapeHtml(value = "") {
-    return String(value).replace(/[&<>'"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));
+    return String(value).replace(/[&<>'"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char]);
 }
 
-async function loadWallet() {
-    walletItems = await apiFetch(`${API_URL}/wallet`);
-    renderWallet();
-}
-
-async function loadPlans() {
-    mealPlans = await apiFetch(`${API_URL}/meal_plans`);
+function formatDate(value) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+    return new Intl.DateTimeFormat("de-DE", { day: "2-digit", month: "short", year: "numeric" }).format(date);
 }
 
 function renderWallet() {
-    const list = document.getElementById("wallet-list");
-    const q = (document.getElementById("wallet-search")?.value || "").toLowerCase().trim();
-    const items = walletItems.filter(item => [item.title, item.note, item.source_platform].join(" ").toLowerCase().includes(q));
-    if (!items.length) {
-        list.innerHTML = `<div class="section-card wallet-empty">Noch keine Inspiration gespeichert.</div>`;
+    const container = document.getElementById("wallet-list");
+    const term = (document.getElementById("wallet-search")?.value || "").trim().toLowerCase();
+    const visible = walletItems.filter(item => [item.title, item.note, item.source_platform].join(" ").toLowerCase().includes(term));
+
+    if (!visible.length) {
+        container.innerHTML = `<div class="wallet-empty-state"><strong>${term ? "Nichts gefunden." : "Noch nichts gespeichert."}</strong><span>${term ? "Versuche einen anderen Suchbegriff." : "Deine nächste Food-Idee kann hier anfangen."}</span></div>`;
         return;
     }
-    list.innerHTML = items.map(item => `
-        <article class="wallet-card" id="item-${item.id}">
-            <div class="wallet-card-topline">
+
+    container.innerHTML = visible.map(item => `
+        <article class="wallet-item-card">
+            <div class="wallet-item-meta">
                 <span class="wallet-source-badge">${escapeHtml(platformLabel(item.source_platform))}</span>
-                <button class="wallet-delete-button" type="button" onclick="deleteWalletItem(${item.id})" aria-label="Löschen"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+                <span>${escapeHtml(formatDate(item.created_at))}</span>
             </div>
-            <h3>${escapeHtml(item.title)}</h3>
-            ${item.note ? `<p>${escapeHtml(item.note)}</p>` : ""}
-            <div class="wallet-card-actions">
-                ${item.source_url ? `<a class="wallet-link-button" href="${escapeHtml(item.source_url)}" target="_blank" rel="noopener">Quelle öffnen</a>` : ""}
-                <button type="button" onclick="openPlanDialog(${item.id})"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg> Food Moment</button>
+            <div class="wallet-item-body">
+                <h3>${escapeHtml(item.title)}</h3>
+                ${item.note ? `<p>${escapeHtml(item.note)}</p>` : `<p class="wallet-item-note-empty">Inspiration für später</p>`}
             </div>
-        </article>`).join("");
+            <div class="wallet-item-actions">
+                <a class="wallet-link-button" href="${escapeHtml(item.source_url)}" target="_blank" rel="noopener noreferrer">Quelle öffnen</a>
+                <button type="button" class="wallet-moment-button" data-plan-item="${item.id}">Zum Wochenplan</button>
+                <button type="button" class="wallet-icon-button" data-delete-item="${item.id}" aria-label="Wallet-Eintrag löschen" title="Löschen">×</button>
+            </div>
+        </article>
+    `).join("");
+
+    container.querySelectorAll("[data-plan-item]").forEach(button => {
+        button.addEventListener("click", () => openPlanDialog(Number(button.dataset.planItem)));
+    });
+    container.querySelectorAll("[data-delete-item]").forEach(button => {
+        button.addEventListener("click", () => deleteWalletItem(Number(button.dataset.deleteItem)));
+    });
+}
+
+async function loadWallet() {
+    walletItems = await apiFetch(`${API_URL}/wallet?workspace_id=${encodeURIComponent(WORKSPACE_ID)}`);
+    renderWallet();
+}
+
+async function loadMealPlans() {
+    mealPlans = await apiFetch(`${API_URL}/meal_plans`);
 }
 
 async function saveWalletItem(event) {
     event.preventDefault();
+    const url = document.getElementById("wallet-url").value.trim();
     const title = document.getElementById("wallet-title").value.trim();
-    const source_url = document.getElementById("wallet-url").value.trim();
     const note = document.getElementById("wallet-note").value.trim();
-    if (!source_url && !title && !note) return showToast("Bitte Link oder Inspiration eingeben.");
-    await apiFetch(`${API_URL}/wallet`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, source_url, note })
-    });
-    event.target.reset();
-    await loadWallet();
-    showToast("Inspiration in der Wallet gespeichert.");
+
+    try {
+        const created = await apiFetch(`${API_URL}/wallet`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ source_url: url, title, note, workspace_id: WORKSPACE_ID })
+        });
+        walletItems.unshift(created);
+        document.getElementById("wallet-form").reset();
+        renderWallet();
+        showToast("Inspiration gespeichert.");
+    } catch (error) {
+        console.error(error);
+        showToast(error.message || "Inspiration konnte nicht gespeichert werden.");
+    }
 }
 
-window.deleteWalletItem = async function(id) {
-    if (!confirm("Diesen Wallet-Eintrag löschen?")) return;
-    await apiFetch(`${API_URL}/wallet/${id}`, { method: "DELETE" });
-    await loadWallet();
-    showToast("Wallet-Eintrag gelöscht.");
-};
+async function deleteWalletItem(id) {
+    if (!confirm("Diesen Wallet-Eintrag wirklich entfernen?")) return;
+    try {
+        await apiFetch(`${API_URL}/wallet/${id}`, { method: "DELETE" });
+        walletItems = walletItems.filter(item => item.id !== id);
+        renderWallet();
+        showToast("Aus Wallet entfernt.");
+    } catch (error) {
+        console.error(error);
+        showToast("Eintrag konnte nicht entfernt werden.");
+    }
+}
 
-window.openPlanDialog = async function(id) {
-    activeWalletItemId = id;
-    if (!mealPlans.length) await loadPlans();
-    const item = walletItems.find(entry => entry.id === id);
-    document.getElementById("wallet-plan-title").textContent = item?.title || "Zum Wochenplan hinzufügen";
+function populateDialogFields() {
     const planSelect = document.getElementById("wallet-plan-select");
+    const daySelect = document.getElementById("wallet-plan-day");
+    const mealSelect = document.getElementById("wallet-plan-meal");
     planSelect.innerHTML = mealPlans.length
         ? mealPlans.map(plan => `<option value="${plan.id}">${escapeHtml(plan.name)}</option>`).join("")
-        : `<option value="">Kein Wochenplan vorhanden</option>`;
-    document.getElementById("wallet-plan-dialog").showModal();
-};
-
-async function planWalletItem() {
-    const planId = document.getElementById("wallet-plan-select").value;
-    const day = document.getElementById("wallet-day-select").value;
-    const mealType = document.getElementById("wallet-meal-select").value;
-    if (!planId) return showToast("Bitte zuerst einen Wochenplan anlegen.");
-    const plan = await apiFetch(`${API_URL}/meal_plans/${planId}`);
-    const data = Array.isArray(plan.data) ? [...plan.data] : [];
-    const existingIndex = data.findIndex(entry => entry.day === day && entry.mealType === mealType);
-    const entry = { day, mealType, sourceType: "wallet", sourceId: String(activeWalletItemId), recipeId: "" };
-    if (existingIndex >= 0) data[existingIndex] = entry; else data.push(entry);
-    await apiFetch(`${API_URL}/meal_plans/${planId}`, {
-        method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: plan.name, data })
-    });
-    document.getElementById("wallet-plan-dialog").close();
-    showToast("Food Moment im Wochenplan geplant.");
+        : `<option value="">Noch kein Wochenplan vorhanden</option>`;
+    daySelect.innerHTML = WEEK_DAYS.map(day => `<option value="${day}">${day}</option>`).join("");
+    mealSelect.innerHTML = MEAL_ROWS.map(meal => `<option value="${meal.key}">${meal.label}</option>`).join("");
 }
 
-function importSharedData() {
-    const params = new URLSearchParams(location.search);
-    const sharedUrl = params.get("url") || "";
-    const sharedText = params.get("text") || "";
-    const sharedTitle = params.get("title") || "";
-    if (sharedUrl) document.getElementById("wallet-url").value = sharedUrl;
-    if (sharedTitle) document.getElementById("wallet-title").value = sharedTitle;
-    if (sharedText && !sharedUrl) {
-        const match = sharedText.match(/https?:\/\/\S+/);
-        if (match) document.getElementById("wallet-url").value = match[0];
-        else document.getElementById("wallet-note").value = sharedText;
+function openPlanDialog(itemId) {
+    pendingPlanWalletItemId = itemId;
+    const item = walletItems.find(entry => entry.id === itemId);
+    document.getElementById("wallet-plan-item-name").textContent = item?.title || "";
+    populateDialogFields();
+    const dialog = document.getElementById("wallet-plan-dialog");
+    if (typeof dialog.showModal === "function") dialog.showModal();
+}
+
+async function addWalletItemToPlan() {
+    const planId = document.getElementById("wallet-plan-select").value;
+    const day = document.getElementById("wallet-plan-day").value;
+    const mealType = document.getElementById("wallet-plan-meal").value;
+    if (!planId) {
+        showToast("Bitte zuerst einen Wochenplan anlegen.");
+        return;
     }
+
+    try {
+        const plan = await apiFetch(`${API_URL}/meal_plans/${planId}`);
+        const data = Array.isArray(plan.data) ? [...plan.data] : [];
+        const existingIndex = data.findIndex(entry => entry.day === day && entry.mealType === mealType);
+        const replacement = { day, mealType, sourceType: "wallet", sourceId: String(pendingPlanWalletItemId) };
+        if (existingIndex >= 0) data[existingIndex] = replacement;
+        else data.push(replacement);
+
+        await apiFetch(`${API_URL}/meal_plans/${planId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: plan.name, data })
+        });
+        document.getElementById("wallet-plan-dialog").close();
+        showToast(`Als Food Moment für ${day} eingeplant.`);
+    } catch (error) {
+        console.error(error);
+        showToast("Food Moment konnte nicht eingeplant werden.");
+    }
+}
+
+function applyShareParams() {
+    const params = new URLSearchParams(window.location.search);
+    const url = params.get("url") || "";
+    const text = params.get("text") || "";
+    const title = params.get("title") || "";
+    if (!url && !text && !title) return;
+
+    const urlMatch = (url || text).match(/https?:\/\/\S+/);
+    document.getElementById("wallet-url").value = url || urlMatch?.[0] || "";
+    document.getElementById("wallet-title").value = title || "Neue Inspiration";
+    if (text && text !== urlMatch?.[0]) document.getElementById("wallet-note").value = text.replace(urlMatch?.[0] || "", "").trim();
+    history.replaceState({}, "", "/wallet.html");
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
     initBurgerMenu();
-    DAYS.forEach(day => document.getElementById("wallet-day-select").add(new Option(day, day)));
-    MEALS.forEach(([value, label]) => document.getElementById("wallet-meal-select").add(new Option(label, value)));
+    applyShareParams();
     document.getElementById("wallet-form").addEventListener("submit", saveWalletItem);
     document.getElementById("wallet-search").addEventListener("input", renderWallet);
-    document.getElementById("wallet-plan-confirm").addEventListener("click", planWalletItem);
-    importSharedData();
-    await Promise.all([loadWallet(), loadPlans()]);
+    document.getElementById("wallet-plan-submit").addEventListener("click", addWalletItemToPlan);
+    try {
+        await Promise.all([loadWallet(), loadMealPlans()]);
+    } catch (error) {
+        console.error(error);
+        showToast("Wallet konnte nicht vollständig geladen werden.");
+    }
 });

@@ -9,48 +9,97 @@
     <meta name="theme-color" content="#f5f7fb">
 </head>
 <body>
-<div class="container">
-    <header class="app-header"><button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen"></button><div class="app-header-title">Food Moment Platform</div><div id="burger-dropdown" class="burger-dropdown is-hidden"></div></header>
-
-    <main class="page-content wallet-page">
-        <section class="section-card wallet-intro">
-            <div>
-                <p class="recipe-kicker">Inspiration sammeln</p>
-                <h1>Deine Food Moment Wallet</h1>
-                <p>Speichere einen Link oder Gedanken. Erst wenn du ihn planst, wird daraus ein Food Moment.</p>
+    <div class="container">
+        <nav class="burger-menu app-topbar">
+            <button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen">☰</button>
+            <div class="app-topbar-title">Food Moment Wallet</div>
+            <div id="burger-dropdown" class="burger-dropdown is-hidden">
+                <a href="/index.html">Home</a>
+                <a href="/wallet.html" aria-current="page">Wallet</a>
+                <a href="/index.html#meal-plan">Wochenplan</a>
+                <a href="/index.html#recipe-book">Rezeptbuch</a>
+                <a href="/recipeCreate.html">Neues Rezept</a>
             </div>
-            <form id="wallet-form" class="wallet-capture-form">
-                <input id="wallet-title" type="text" placeholder="Titel – optional">
-                <input id="wallet-url" type="url" placeholder="Link von Instagram, TikTok, Pinterest, Website …">
-                <textarea id="wallet-note" rows="2" placeholder="Was gefällt dir daran? – optional"></textarea>
-                <div class="form-actions"><button type="submit">Inspiration speichern</button></div>
-            </form>
-        </section>
+        </nav>
 
-        <section class="wallet-toolbar">
-            <h2>Gespeichert</h2>
-            <input id="wallet-search" class="recipe-search-input" type="search" placeholder="Wallet durchsuchen …">
-        </section>
-        <section id="wallet-list" class="wallet-grid"></section>
-    </main>
-</div>
+        <main class="page-content wallet-page">
+            <header class="wallet-hero">
+                <p class="recipe-kicker">Inspiration sammeln</p>
+                <h1>Food Moment Wallet</h1>
+                <p>Speichere Food-Inspirationen aus Social Media und dem Web. Ein Eintrag bleibt Inspiration – bis du ihn in einen konkreten Food Moment einplanst.</p>
+            </header>
 
-<dialog id="wallet-plan-dialog" class="wallet-dialog">
-    <form method="dialog" class="wallet-plan-form">
-        <button class="wallet-dialog-close" value="cancel" aria-label="Schließen"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
-        <p class="recipe-kicker">Make it a Food Moment</p>
-        <h2 id="wallet-plan-title">Zum Wochenplan hinzufügen</h2>
-        <label>Wochenplan<select id="wallet-plan-select"></select></label>
-        <div class="wallet-plan-row">
-            <label>Tag<select id="wallet-day-select"></select></label>
-            <label>Moment<select id="wallet-meal-select"></select></label>
-        </div>
-        <div class="form-actions"><button id="wallet-plan-confirm" type="button">Food Moment planen</button></div>
-    </form>
-</dialog>
+            <section class="section-card wallet-capture-card" aria-labelledby="wallet-add-title">
+                <div class="wallet-section-heading">
+                    <div>
+                        <p class="recipe-kicker">Neu</p>
+                        <h2 id="wallet-add-title">Inspiration speichern</h2>
+                    </div>
+                </div>
+                <form id="wallet-form" class="wallet-form">
+                    <div class="form-section">
+                        <label for="wallet-url">Link</label>
+                        <input id="wallet-url" name="url" type="url" inputmode="url" placeholder="Instagram, TikTok, Pinterest, YouTube oder Website" required>
+                    </div>
+                    <div class="form-section">
+                        <label for="wallet-title">Titel</label>
+                        <input id="wallet-title" name="title" type="text" placeholder="Was möchtest du wiederfinden?" required>
+                    </div>
+                    <div class="form-section">
+                        <label for="wallet-note">Notiz <span class="field-optional">optional</span></label>
+                        <textarea id="wallet-note" name="note" rows="2" placeholder="Warum hast du das gespeichert?"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit">In Wallet speichern</button>
+                    </div>
+                </form>
+            </section>
 
-<div id="app-toast" class="app-toast is-hidden"></div>
-<script src="navigation.js"></script>
-<script src="wallet.js"></script>
+            <section class="wallet-library" aria-labelledby="wallet-library-title">
+                <div class="wallet-section-heading">
+                    <div>
+                        <p class="recipe-kicker">Deine Inspirationen</p>
+                        <h2 id="wallet-library-title">Gespeichert</h2>
+                    </div>
+                    <input id="wallet-search" class="wallet-search-input" type="search" placeholder="Wallet durchsuchen …" aria-label="Wallet durchsuchen">
+                </div>
+                <div id="wallet-list" class="wallet-grid"></div>
+            </section>
+        </main>
+    </div>
+
+    <dialog id="wallet-plan-dialog" class="wallet-dialog">
+        <form method="dialog" class="wallet-dialog-card">
+            <div class="wallet-dialog-heading">
+                <div>
+                    <p class="recipe-kicker">Food Moment</p>
+                    <h2>Zum Wochenplan hinzufügen</h2>
+                </div>
+                <button class="dialog-close-button" value="cancel" aria-label="Dialog schließen">×</button>
+            </div>
+            <p id="wallet-plan-item-name" class="wallet-plan-item-name"></p>
+            <div class="wallet-plan-fields">
+                <div class="form-section">
+                    <label for="wallet-plan-select">Wochenplan</label>
+                    <select id="wallet-plan-select"></select>
+                </div>
+                <div class="form-section">
+                    <label for="wallet-plan-day">Tag</label>
+                    <select id="wallet-plan-day"></select>
+                </div>
+                <div class="form-section">
+                    <label for="wallet-plan-meal">Moment</label>
+                    <select id="wallet-plan-meal"></select>
+                </div>
+            </div>
+            <div class="form-actions wallet-dialog-actions">
+                <button type="button" id="wallet-plan-submit">Hinzufügen</button>
+            </div>
+        </form>
+    </dialog>
+
+    <div id="app-toast" class="app-toast is-hidden"></div>
+    <script src="navigation.js"></script>
+    <script src="wallet.js"></script>
 </body>
 </html>

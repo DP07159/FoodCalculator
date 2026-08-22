@@ -15,6 +15,7 @@
             <div class="app-topbar-title">Food Calculator</div>
             <div id="burger-dropdown" class="burger-dropdown is-hidden">
                 <a href="/index.html">Startseite</a>
+                <a href="/wallet.html">Food Moment Wallet</a>
                 <a href="/recipeCreate.html">Neues Rezept</a>
                 <a href="/index.html#recipe-book">Rezeptbuch</a>
                 <a href="/index.html#meal-plan">Wochenplan</a>
@@ -42,20 +43,6 @@
                     <div class="meal-plan-save-inline">
                         <input type="text" id="plan-name" class="toolbar-plan-name" placeholder="Neuen Plan speichern als">
                         <button type="button" class="toolbar-icon-button toolbar-save-button" onclick="saveMealPlan()" title="Neuen Plan speichern" aria-label="Neuen Plan speichern">💾</button>
-                    </div>
-                </div>
-
-                <div id="wallet-plan-panel" class="wallet-plan-panel is-hidden" aria-live="polite">
-                    <div class="wallet-plan-copy">
-                        <span class="wallet-plan-kicker">Aus der Food Moment Wallet</span>
-                        <strong id="wallet-plan-title"></strong>
-                        <span>Diese Inspiration wird direkt als Food Moment in einen Wochenplan-Slot gelegt – ohne daraus ein Rezept zu machen.</span>
-                    </div>
-                    <div class="wallet-plan-controls">
-                        <select id="wallet-plan-day" aria-label="Wochentag"></select>
-                        <select id="wallet-plan-meal" aria-label="Mahlzeit"></select>
-                        <button type="button" class="wallet-plan-add-button" onclick="addPendingWalletItemToPlan()">Zum Food Moment machen</button>
-                        <button type="button" class="wallet-plan-cancel-button" onclick="cancelPendingWalletItem()">Abbrechen</button>
                     </div>
                 </div>
 

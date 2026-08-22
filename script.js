@@ -11,7 +11,6 @@ const MEAL_ROWS = [
 let recipes = [];
 let mealPlans = [];
 let walletItems = [];
-let pendingWalletItem = null;
 let selectedDay = getTodayInGerman();
 let activeMealPlanId = null;
 let activeMealPlanName = "";
@@ -49,19 +48,10 @@ function getWalletItemById(itemId) {
 
 function parsePlanValue(value) {
     const raw = String(value || "");
-    if (!raw) return { contentType: "", contentId: "" };
-    if (raw.includes(":")) {
-        const [contentType, ...rest] = raw.split(":");
-        return { contentType, contentId: rest.join(":") };
-    }
-    return { contentType: "recipe", contentId: raw };
-}
-
-function getPlanContent(value) {
-    const parsed = parsePlanValue(value);
-    if (parsed.contentType === "wallet") return { type: "wallet", item: getWalletItemById(parsed.contentId) };
-    if (parsed.contentType === "recipe") return { type: "recipe", item: getRecipeById(parsed.contentId) };
-    return { type: "", item: null };
+    if (!raw) return { sourceType: "", sourceId: "" };
+    if (raw.startsWith("wallet:")) return { sourceType: "wallet", sourceId: raw.slice(7) };
+    if (raw.startsWith("recipe:")) return { sourceType: "recipe", sourceId: raw.slice(7) };
+    return { sourceType: "recipe", sourceId: raw };
 }
 
 function isFavoriteRecipe(recipe) {
@@ -114,6 +104,15 @@ async function loadRecipes() {
     }
 }
 
+async function loadWalletItems() {
+    try {
+        walletItems = await apiFetch(`${API_URL}/wallet`);
+    } catch (error) {
+        console.error("Fehler beim Laden der Wallet:", error);
+        walletItems = [];
+    }
+}
+
 async function loadMealPlans() {
     try {
         mealPlans = await apiFetch(`${API_URL}/meal_plans`);
@@ -121,15 +120,6 @@ async function loadMealPlans() {
     } catch (error) {
         console.error("Fehler beim Laden der Wochenpläne:", error);
         showToast("Wochenpläne konnten nicht geladen werden.");
-    }
-}
-
-async function loadWalletItems() {
-    try {
-        walletItems = await apiFetch(`${API_URL}/wallet`);
-    } catch (error) {
-        console.error("Fehler beim Laden der Wallet:", error);
-        walletItems = [];
     }
 }
 
@@ -180,28 +170,26 @@ function populateMealTable() {
             select.dataset.mealType = meal.key;
             select.innerHTML = `<option value="">-- Wählen --</option>`;
 
-            const recipeGroup = document.createElement("optgroup");
-            recipeGroup.label = "Rezepte";
             recipes
                 .filter(recipe => Array.isArray(recipe.mealTypes) && recipe.mealTypes.includes(meal.key))
                 .forEach(recipe => {
                     const option = document.createElement("option");
                     option.value = `recipe:${recipe.id}`;
                     option.textContent = `${recipe.name} (${recipe.calories} kcal)`;
-                    recipeGroup.appendChild(option);
+                    select.appendChild(option);
                 });
-            select.appendChild(recipeGroup);
 
             if (walletItems.length) {
-                const walletGroup = document.createElement("optgroup");
-                walletGroup.label = "Food Moment Wallet";
+                const divider = document.createElement("option");
+                divider.disabled = true;
+                divider.textContent = "──── Wallet ────";
+                select.appendChild(divider);
                 walletItems.forEach(item => {
                     const option = document.createElement("option");
                     option.value = `wallet:${item.id}`;
-                    option.textContent = `✦ ${item.title}`;
-                    walletGroup.appendChild(option);
+                    option.textContent = `💡 ${item.title}`;
+                    select.appendChild(option);
                 });
-                select.appendChild(walletGroup);
             }
 
             select.addEventListener("change", () => {
@@ -243,8 +231,9 @@ function calculateCalories() {
     WEEK_DAYS.forEach(day => {
         let total = 0;
         document.querySelectorAll(`#meal-table select[data-day="${day}"]`).forEach(select => {
-            const content = getPlanContent(select.value);
-            if (content.type === "recipe" && content.item) total += Number(content.item.calories) || 0;
+            const selection = parsePlanValue(select.value);
+            const recipe = selection.sourceType === "recipe" ? getRecipeById(selection.sourceId) : null;
+            if (recipe) total += Number(recipe.calories) || 0;
         });
 
         const totalCell = document.querySelector(`#meal-table .total-calories[data-day="${day}"]`);
@@ -290,27 +279,26 @@ function renderDayDetail(day) {
     let totalCalories = 0;
 
     const mealCardsHtml = MEAL_ROWS.map(meal => {
-        const content = getPlanContent(mealsForDay[meal.key]);
-        if (content.type === "recipe" && content.item) totalCalories += Number(content.item.calories) || 0;
+        const selection = parsePlanValue(mealsForDay[meal.key]);
+        const recipe = selection.sourceType === "recipe" ? getRecipeById(selection.sourceId) : null;
+        const walletItem = selection.sourceType === "wallet" ? getWalletItemById(selection.sourceId) : null;
+        if (recipe) totalCalories += Number(recipe.calories) || 0;
 
-        let contentHtml = "Noch nichts gewählt";
-        let metaHtml = "–";
-        if (content.type === "recipe" && content.item) {
-            contentHtml = `<a href="/recipeInstructions.html?id=${content.item.id}" class="day-detail-link">${content.item.name}</a>`;
-            metaHtml = `${content.item.calories} kcal`;
-        } else if (content.type === "wallet" && content.item) {
-            const sourceLink = content.item.source_url
-                ? `<a href="${content.item.source_url}" target="_blank" rel="noopener noreferrer" class="day-detail-link">${content.item.title}</a>`
-                : content.item.title;
-            contentHtml = `<span class="day-detail-wallet-badge">Wallet</span> ${sourceLink}`;
-            metaHtml = "Food Moment · Inspiration";
+        let valueHtml = "Noch nichts gewählt";
+        let meta = "–";
+        if (recipe) {
+            valueHtml = `<a href="/recipeInstructions.html?id=${recipe.id}" class="day-detail-link">${recipe.name}</a>`;
+            meta = `${recipe.calories} kcal`;
+        } else if (walletItem) {
+            valueHtml = `<a href="/wallet.html#item-${walletItem.id}" class="day-detail-link">💡 ${walletItem.title}</a>`;
+            meta = `Wallet · ${walletItem.source_platform || "Inspiration"}`;
         }
 
         return `
             <div class="day-detail-meal-card">
                 <div class="day-detail-meal-label">${meal.label}</div>
-                <div class="day-detail-meal-value">${contentHtml}</div>
-                <div class="day-detail-meal-calories">${metaHtml}</div>
+                <div class="day-detail-meal-value">${valueHtml}</div>
+                <div class="day-detail-meal-calories">${meta}</div>
             </div>
         `;
     }).join("");
@@ -497,27 +485,27 @@ window.deleteRecipe = async function(recipeId) {
 function collectMealPlanData() {
     const data = [];
     document.querySelectorAll("#meal-table select").forEach(select => {
-        const parsed = parsePlanValue(select.value);
+        const selection = parsePlanValue(select.value);
         data.push({
             day: select.dataset.day,
             mealType: select.dataset.mealType,
-            contentType: parsed.contentType || null,
-            contentId: parsed.contentId || null,
-            recipeId: parsed.contentType === "recipe" ? parsed.contentId : ""
+            sourceType: selection.sourceType || null,
+            sourceId: selection.sourceId || null,
+            recipeId: selection.sourceType === "recipe" ? selection.sourceId : ""
         });
     });
     return data;
 }
 
 function applyMealPlanData(data = []) {
-    document.querySelectorAll("#meal-table select").forEach(select => { select.value = ""; });
     data.forEach(entry => {
         const select = document.querySelector(`#meal-table select[data-day="${entry.day}"][data-meal-type="${entry.mealType}"]`);
-        if (!select) return;
-        const value = entry.contentType && entry.contentId
-            ? `${entry.contentType}:${entry.contentId}`
-            : (entry.recipeId ? `recipe:${entry.recipeId}` : "");
-        select.value = value;
+        if (select) {
+            const value = entry.sourceType && entry.sourceId
+                ? `${entry.sourceType}:${entry.sourceId}`
+                : (entry.recipeId ? `recipe:${entry.recipeId}` : "");
+            select.value = value;
+        }
     });
     calculateCalories();
     renderDayDetail(selectedDay);
@@ -614,8 +602,8 @@ function getIngredientsFromText(text) {
 window.shareWeeklyShoppingList = async function() {
     const selectedIds = new Set();
     document.querySelectorAll("#meal-table select").forEach(select => {
-        const parsed = parsePlanValue(select.value);
-        if (parsed.contentType === "recipe" && parsed.contentId) selectedIds.add(String(parsed.contentId));
+        const selection = parsePlanValue(select.value);
+        if (selection.sourceType === "recipe" && selection.sourceId) selectedIds.add(String(selection.sourceId));
     });
 
     const items = [];
@@ -640,57 +628,10 @@ window.shareWeeklyShoppingList = async function() {
     }
 };
 
-function initPendingWalletItem() {
-    const itemId = new URLSearchParams(window.location.search).get("walletItem");
-    if (!itemId) return;
-    pendingWalletItem = getWalletItemById(itemId);
-    if (!pendingWalletItem) return;
-
-    const panel = document.getElementById("wallet-plan-panel");
-    const title = document.getElementById("wallet-plan-title");
-    const daySelect = document.getElementById("wallet-plan-day");
-    const mealSelect = document.getElementById("wallet-plan-meal");
-    if (!panel || !title || !daySelect || !mealSelect) return;
-
-    title.textContent = pendingWalletItem.title;
-    daySelect.innerHTML = WEEK_DAYS.map(day => `<option value="${day}" ${day === selectedDay ? "selected" : ""}>${day}</option>`).join("");
-    mealSelect.innerHTML = MEAL_ROWS.map(meal => `<option value="${meal.key}">${meal.label}</option>`).join("");
-    panel.classList.remove("is-hidden");
-    panel.scrollIntoView({ behavior: "smooth", block: "center" });
-}
-
-window.addPendingWalletItemToPlan = function() {
-    if (!pendingWalletItem) return;
-    const day = document.getElementById("wallet-plan-day")?.value;
-    const mealType = document.getElementById("wallet-plan-meal")?.value;
-    const select = document.querySelector(`#meal-table select[data-day="${day}"][data-meal-type="${mealType}"]`);
-    if (!select) return;
-    select.value = `wallet:${pendingWalletItem.id}`;
-    selectedDay = day;
-    calculateCalories();
-    renderDayDetail(day);
-    document.querySelectorAll(".plan-day-header").forEach(header => header.classList.toggle("is-active", header.dataset.day === day));
-    document.getElementById("wallet-plan-panel")?.classList.add("is-hidden");
-    const cleanUrl = new URL(window.location.href);
-    cleanUrl.searchParams.delete("walletItem");
-    history.replaceState({}, "", cleanUrl.pathname + cleanUrl.search + cleanUrl.hash);
-    showToast("Inspiration als Food Moment eingeplant. Plan jetzt speichern oder aktualisieren.");
-    pendingWalletItem = null;
-};
-
-window.cancelPendingWalletItem = function() {
-    pendingWalletItem = null;
-    document.getElementById("wallet-plan-panel")?.classList.add("is-hidden");
-    const cleanUrl = new URL(window.location.href);
-    cleanUrl.searchParams.delete("walletItem");
-    history.replaceState({}, "", cleanUrl.pathname + cleanUrl.search + cleanUrl.hash);
-};
-
 document.addEventListener("DOMContentLoaded", async () => {
     initBurgerMenu();
-    await Promise.all([loadMealPlans(), loadRecipes(), loadWalletItems()]);
-    populateMealTable();
-    initPendingWalletItem();
+    await Promise.all([loadMealPlans(), loadWalletItems()]);
+    await loadRecipes();
 
     document.getElementById("recipe-search")?.addEventListener("input", populateRecipeList);
     document.getElementById("recipe-sort")?.addEventListener("change", populateRecipeList);

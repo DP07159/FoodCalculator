@@ -5,7 +5,7 @@
     "display": "standalone",
     "background_color": "#f5f7fb",
     "theme_color": "#f5f7fb",
-    "description": "Food Moments, Wochenplan, Rezepte und persönliche Inspirations-Wallet",
+    "description": "Food Moments, Wallet, Wochenplan, Rezepte und Einkaufsliste",
     "icons": [
         {
             "src": "/icon-192.png",
@@ -21,6 +21,7 @@
     "share_target": {
         "action": "/wallet.html",
         "method": "GET",
+        "enctype": "application/x-www-form-urlencoded",
         "params": {
             "title": "title",
             "text": "text",

@@ -1,13 +1,17 @@
-const APP_NAVIGATION_LINKS = [
-    { label: "Home", shortLabel: "Home", href: "/index.html", capability: "home", icon: "home", primary: true },
-    { label: "Wochenplan", shortLabel: "Plan", href: "/mealPlan.html", capability: "meal_plan", icon: "calendar", primary: true },
-    { label: "Rezepte", shortLabel: "Rezepte", href: "/recipes.html", capability: "recipes", icon: "recipes", primary: true },
-    { label: "Inventar", shortLabel: "Inventar", href: "/inventory.html", capability: "inventory", privilege: "inventory.view", icon: "inventory", primary: true },
-    { label: "Rezept anlegen", href: "/recipeCreate.html", capability: "recipes", icon: "plus", secondary: true },
-    { label: "Administration", href: "/admin.html", capability: "admin", role: "platform_admin", icon: "settings", secondary: true }
+const STATIC_NAVIGATION_LINKS = [
+    { label: "Home", shortLabel: "Home", href: "/index.html", capability: "home", icon: "home", primary: true, order: 0 },
+    { label: "Administration", href: "/admin.html", capability: "admin", icon: "settings", secondary: true, order: 900 }
 ];
 
-const NavigationState = { privileges: new Set(), roles: new Set(), modules: new Map(), loaded: false, platformAdmin: false };
+const NavigationState = {
+    privileges: new Set(),
+    roles: new Set(),
+    modules: new Map(),
+    links: [...STATIC_NAVIGATION_LINKS],
+    homeActions: [],
+    loaded: false,
+    platformAdmin: false
+};
 
 const NAV_ICON_PATHS = {
     home: '<path d="M4 11.5 12 5l8 6.5V20H5V11.5"/><path d="M9 20v-6h6v6"/>',
@@ -18,38 +22,94 @@ const NAV_ICON_PATHS = {
     settings: '<circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.5-2.4 1A7 7 0 0 0 15 6l-.4-2.6h-4L10.2 6a7 7 0 0 0-1.6 1L6.2 6 4.2 9.5 6.1 11a7 7 0 0 0 0 2l-1.9 1.5 2 3.5 2.4-1A7 7 0 0 0 10 18l.4 2.6h4L15 18a7 7 0 0 0 1.5-1l2.4 1 2-3.5L18.9 13c.1-.3.1-.7.1-1Z"/>'
 };
 
+function buildModuleLinks(modules) {
+    const links = [];
+    const homeActions = [];
+
+    modules.forEach(moduleDefinition => {
+        const capability = moduleDefinition.code;
+        const navigation = moduleDefinition.navigation;
+
+        if (navigation) {
+            links.push({
+                label: navigation.label || moduleDefinition.name,
+                shortLabel: navigation.short_label || navigation.label || moduleDefinition.name,
+                href: navigation.href,
+                capability,
+                icon: navigation.icon || "home",
+                primary: navigation.primary !== false,
+                order: Number(navigation.order || 100),
+                moduleEnabled: moduleDefinition.enabled === true
+            });
+        }
+
+        (moduleDefinition.secondary_navigation || []).forEach(item => {
+            links.push({
+                label: item.label,
+                shortLabel: item.short_label || item.label,
+                href: item.href,
+                capability,
+                icon: item.icon || "plus",
+                secondary: true,
+                order: Number(item.order || 500),
+                moduleEnabled: moduleDefinition.enabled === true
+            });
+        });
+
+        (moduleDefinition.home_actions || []).forEach(action => {
+            homeActions.push({
+                ...action,
+                capability,
+                moduleEnabled: moduleDefinition.enabled === true
+            });
+        });
+    });
+
+    return {
+        links: links.sort((a, b) => a.order - b.order),
+        homeActions: homeActions.sort((a, b) => Number(a.order || 100) - Number(b.order || 100))
+    };
+}
+
 async function loadNavigationAccess() {
     if (!window.AuthShell?.getToken?.() || !window.AuthShell?.getWorkspacePublicId?.()) return;
+
     try {
-        const [permissionResponse, adminProbeResponse] = await Promise.all([
-            AuthShell.request("/authorization/effective-permissions"),
+        const [contextResponse, adminProbeResponse] = await Promise.all([
+            AuthShell.request("/platform/context"),
             AuthShell.request("/platform-admin/catalog")
         ]);
 
-        const payload = await permissionResponse.json().catch(() => null);
-        if (permissionResponse.ok) {
+        const payload = await contextResponse.json().catch(() => null);
+        if (contextResponse.ok) {
+            const modules = Array.isArray(payload?.modules) ? payload.modules : [];
+            const dynamic = buildModuleLinks(modules);
+
             NavigationState.privileges = new Set((payload?.privileges || []).map(item => item.code));
             NavigationState.roles = new Set((payload?.roles || []).map(item => item.code));
-            NavigationState.modules = new Map((payload?.modules || []).map(item => [item.code, item]));
+            NavigationState.modules = new Map(modules.map(item => [item.code, item]));
+            NavigationState.links = [...STATIC_NAVIGATION_LINKS, ...dynamic.links]
+                .sort((a, b) => Number(a.order || 100) - Number(b.order || 100));
+            NavigationState.homeActions = dynamic.homeActions;
+            NavigationState.loaded = true;
+        } else {
+            NavigationState.loaded = false;
         }
 
         NavigationState.platformAdmin = adminProbeResponse.ok;
-        NavigationState.loaded = permissionResponse.ok;
     } catch (error) {
-        console.warn("Navigation konnte Berechtigungen nicht vollständig laden:", error);
+        console.warn("Platform-Kontext konnte nicht vollständig geladen werden:", error);
     }
 }
 
 function linkIsAvailable(link) {
     if (link.capability === "admin") return NavigationState.platformAdmin;
+    if (link.capability === "home") return true;
     if (!NavigationState.loaded) return true;
-    if (["recipes", "meal_plan", "inventory"].includes(link.capability)) {
-        const moduleState = NavigationState.modules.get(link.capability);
-        if (moduleState && moduleState.enabled !== true) return false;
-    }
-    if (link.privilege && !NavigationState.privileges.has(link.privilege)) return false;
-    if (link.role && !NavigationState.roles.has(link.role)) return false;
-    return true;
+
+    const moduleState = NavigationState.modules.get(link.capability);
+    if (!moduleState) return false;
+    return moduleState.enabled === true;
 }
 
 function isCurrentLink(link) {
@@ -106,8 +166,7 @@ function bindWorkspaceSwitchers(root = document) {
 function renderBurgerMenu() {
     const burgerDropdown = document.getElementById("burger-dropdown");
     if (!burgerDropdown) return;
-    const links = APP_NAVIGATION_LINKS.filter(linkIsAvailable);
-    const workspace = window.AuthShell?.getWorkspace?.();
+    const links = NavigationState.links.filter(linkIsAvailable);
     const user = window.AuthShell?.getUser?.();
 
     burgerDropdown.innerHTML = `
@@ -116,7 +175,7 @@ function renderBurgerMenu() {
             <small>${escapeNavigationHtml(user?.display_name || user?.email || "")}</small>
         </div>
         <div class="platform-nav-links">
-            ${links.map(link => `<a href="${link.href}"${isCurrentLink(link) ? ' aria-current="page" class="is-current"' : ""}>${link.label}</a>`).join("")}
+            ${links.map(link => `<a href="${link.href}"${isCurrentLink(link) ? ' aria-current="page" class="is-current"' : ""}>${escapeNavigationHtml(link.label)}</a>`).join("")}
         </div>
         <div class="platform-menu-footer">
             <button type="button" id="navigation-logout">Abmelden</button>
@@ -144,26 +203,32 @@ function applyExperienceContext() {
 
 function isCapabilityAvailable(capability) {
     if (capability === "home") return true;
-    return APP_NAVIGATION_LINKS
-        .filter(link => link.capability === capability)
-        .some(linkIsAvailable);
+    if (capability === "admin") return NavigationState.platformAdmin;
+    const moduleState = NavigationState.modules.get(capability);
+    return !NavigationState.loaded ? true : moduleState?.enabled === true;
+}
+
+function getHomeActions() {
+    return NavigationState.homeActions.filter(action => action.moduleEnabled === true);
 }
 
 window.PlatformNavigation = {
     isCapabilityAvailable,
+    getHomeActions,
+    iconMarkup: navIcon,
     getState: () => ({
         loaded: NavigationState.loaded,
         platformAdmin: NavigationState.platformAdmin,
         roles: [...NavigationState.roles],
-        modules: [...NavigationState.modules.values()]
+        modules: [...NavigationState.modules.values()],
+        links: [...NavigationState.links]
     })
 };
 
 function renderPlatformShell() {
-    const available = APP_NAVIGATION_LINKS.filter(linkIsAvailable);
+    const available = NavigationState.links.filter(linkIsAvailable);
     const primary = available.filter(link => link.primary);
     const secondary = available.filter(link => link.secondary);
-    const workspace = window.AuthShell?.getWorkspace?.();
     const user = window.AuthShell?.getUser?.();
 
     let sidebar = document.getElementById("platform-sidebar");
@@ -205,10 +270,7 @@ function escapeNavigationHtml(value) {
 
 function applyNavigationAvailability(root = document) {
     root.querySelectorAll("[data-nav-capability]").forEach(element => {
-        const capability = element.dataset.navCapability;
-        const matching = APP_NAVIGATION_LINKS.filter(link => link.capability === capability);
-        const available = matching.length === 0 || matching.some(linkIsAvailable);
-        element.hidden = !available;
+        element.hidden = !isCapabilityAvailable(element.dataset.navCapability);
     });
 }
 
@@ -218,6 +280,9 @@ async function refreshNavigation() {
     renderPlatformShell();
     applyNavigationAvailability();
     applyExperienceContext();
+    document.dispatchEvent(new CustomEvent("platform:navigation-ready", {
+        detail: window.PlatformNavigation.getState()
+    }));
 }
 
 function initBurgerMenu() {

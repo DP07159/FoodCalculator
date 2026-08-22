@@ -5439,3 +5439,107 @@ body[data-experience-density="working"] .intent-action {
 body[data-experience-density="balanced"] .intent-action {
     min-height: 76px;
 }
+
+/* ========================================================================== 
+   Sprint 7 · Registry-driven shell + collision-safe mobile header
+   ========================================================================== */
+@media (max-width: 980px) {
+    /* Mobile header owns only menu + brand. Workspace/user/logout live in menu. */
+    .app-header.platform-header,
+    .app-header {
+        display: grid;
+        grid-template-columns: 48px minmax(0, 1fr) 48px;
+        align-items: center;
+        min-height: 64px;
+        padding: 8px 12px;
+        margin-bottom: 18px;
+    }
+
+    .burger-button {
+        position: static;
+        grid-column: 1;
+        transform: none;
+        justify-self: start;
+    }
+
+    .burger-button:hover,
+    .burger-button:active {
+        transform: none;
+    }
+
+    .app-header-title,
+    .platform-wordmark {
+        position: static;
+        grid-column: 2;
+        transform: none;
+        justify-self: center;
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden;
+        text-align: center;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        pointer-events: auto;
+        font-size: 1.08rem;
+    }
+
+    /* Defensive fallback: legacy AuthShell controls can never collide again. */
+    .app-header > .auth-shell-user {
+        display: none !important;
+    }
+
+    .burger-dropdown {
+        top: calc(100% + 8px);
+        left: 12px;
+        width: min(360px, calc(100vw - 24px));
+        max-height: calc(100dvh - 104px);
+        overflow-y: auto;
+    }
+
+    .platform-menu-context {
+        display: grid;
+        gap: 8px;
+    }
+
+    .platform-menu-context .platform-workspace-switcher,
+    .platform-menu-context .platform-workspace-switch-select {
+        width: 100%;
+        max-width: none;
+    }
+}
+
+@media (max-width: 420px) {
+    .app-header.platform-header,
+    .app-header {
+        grid-template-columns: 44px minmax(0, 1fr) 44px;
+        padding-inline: 10px;
+    }
+
+    .app-header-title,
+    .platform-wordmark {
+        font-size: 1rem;
+    }
+}
+
+/* Home action count is registry-driven; borders must not assume four items. */
+.intent-actions:empty {
+    display: none;
+}
+
+.intent-action:last-child {
+    border-bottom: 0;
+}
+
+@media (min-width: 721px) {
+    .intent-action:nth-last-child(-n+2) {
+        border-bottom: 0;
+    }
+}
+
+@media (min-width: 721px) {
+    /* Correct separators for any registry-driven number of home actions. */
+    .intent-action:nth-last-child(-n+2) { border-bottom: 1px solid var(--color-border-soft); }
+    .intent-action:last-child { border-bottom: 0; }
+    .intent-action:nth-last-child(2):nth-child(odd) { border-bottom: 0; }
+    .intent-action:last-child:nth-child(odd) { border-right: 0; }
+}

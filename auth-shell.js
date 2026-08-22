@@ -133,6 +133,9 @@ const AuthShell = (() => {
 
     function renderUserControls() {
         if (!currentUser) return;
+        // Sobald die Platform Navigation aktiv ist, besitzt sie allein die UI für
+        // Workspace, User und Logout. Das verhindert doppelte Header-Controls.
+        if (window.PlatformNavigation) return;
         const header = document.querySelector(".app-header");
         if (!header || document.getElementById("auth-shell-user")) return;
 

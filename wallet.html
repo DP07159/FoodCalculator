@@ -10,17 +10,7 @@
 </head>
 <body>
 <div class="container">
-    <nav class="burger-menu app-topbar">
-        <button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen">☰</button>
-        <div class="app-topbar-title">Food Moment Wallet</div>
-        <div id="burger-dropdown" class="burger-dropdown is-hidden">
-            <a href="/index.html">Startseite</a>
-            <a href="/wallet.html">Food Moment Wallet</a>
-            <a href="/recipeCreate.html">Neues Rezept</a>
-            <a href="/index.html#recipe-book">Rezeptbuch</a>
-            <a href="/index.html#meal-plan">Wochenplan</a>
-        </div>
-    </nav>
+    <header class="app-header"><button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen"></button><div class="app-header-title">Food Moment Platform</div><div id="burger-dropdown" class="burger-dropdown is-hidden"></div></header>
 
     <main class="page-content wallet-page">
         <section class="section-card wallet-intro">
@@ -47,7 +37,7 @@
 
 <dialog id="wallet-plan-dialog" class="wallet-dialog">
     <form method="dialog" class="wallet-plan-form">
-        <button class="wallet-dialog-close" value="cancel" aria-label="Schließen">×</button>
+        <button class="wallet-dialog-close" value="cancel" aria-label="Schließen"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
         <p class="recipe-kicker">Make it a Food Moment</p>
         <h2 id="wallet-plan-title">Zum Wochenplan hinzufügen</h2>
         <label>Wochenplan<select id="wallet-plan-select"></select></label>

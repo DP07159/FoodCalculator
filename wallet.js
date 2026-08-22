@@ -57,13 +57,13 @@ function renderWallet() {
         <article class="wallet-card" id="item-${item.id}">
             <div class="wallet-card-topline">
                 <span class="wallet-source-badge">${escapeHtml(platformLabel(item.source_platform))}</span>
-                <button class="wallet-delete-button" type="button" onclick="deleteWalletItem(${item.id})" aria-label="Löschen">×</button>
+                <button class="wallet-delete-button" type="button" onclick="deleteWalletItem(${item.id})" aria-label="Löschen"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
             </div>
             <h3>${escapeHtml(item.title)}</h3>
             ${item.note ? `<p>${escapeHtml(item.note)}</p>` : ""}
             <div class="wallet-card-actions">
-                ${item.source_url ? `<a class="wallet-link-button" href="${escapeHtml(item.source_url)}" target="_blank" rel="noopener">Quelle öffnen ↗</a>` : ""}
-                <button type="button" onclick="openPlanDialog(${item.id})">＋ Food Moment</button>
+                ${item.source_url ? `<a class="wallet-link-button" href="${escapeHtml(item.source_url)}" target="_blank" rel="noopener">Quelle öffnen</a>` : ""}
+                <button type="button" onclick="openPlanDialog(${item.id})"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg> Food Moment</button>
             </div>
         </article>`).join("");
 }

@@ -3,24 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Food Calculator</title>
+    <title>Food Moment Platform</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#f5f7fb">
 </head>
 <body>
-    <div class="container">
-        <nav class="burger-menu app-topbar">
-            <button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen">☰</button>
-            <div class="app-topbar-title">Food Calculator</div>
-            <div id="burger-dropdown" class="burger-dropdown is-hidden">
-                <a href="/index.html">Startseite</a>
-                <a href="/wallet.html">Food Moment Wallet</a>
-                <a href="/recipeCreate.html">Neues Rezept</a>
-                <a href="/index.html#recipe-book">Rezeptbuch</a>
-                <a href="/index.html#meal-plan">Wochenplan</a>
-            </div>
-        </nav>
+    <header class="app-header"><button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen"></button><div class="app-header-title">Food Moment Platform</div><div id="burger-dropdown" class="burger-dropdown is-hidden"></div></header>
 
         <main class="page-content">
             <section id="meal-plan" class="section-card">
@@ -32,17 +21,17 @@
                     </div>
 
                     <div class="meal-plan-current-actions">
-                        <button type="button" class="toolbar-icon-button toolbar-shopping-button" onclick="shareWeeklyShoppingList()" title="Einkaufsliste teilen" aria-label="Einkaufsliste teilen">🛒</button>
-                        <button type="button" class="toolbar-icon-button toolbar-update-button" onclick="updateMealPlan()" title="Plan aktualisieren" aria-label="Plan aktualisieren">↻</button>
-                        <button type="button" class="toolbar-icon-button toolbar-delete-button" onclick="deleteMealPlan()" title="Plan löschen" aria-label="Plan löschen">🗑</button>
-                        <button type="button" class="toolbar-icon-button toolbar-toggle-save-button" onclick="togglePlanSaveToolbar()" title="Neuen Plan anlegen" aria-label="Neuen Plan anlegen">＋</button>
+                        <button type="button" class="toolbar-icon-button toolbar-shopping-button" onclick="shareWeeklyShoppingList()" title="Einkaufsliste teilen" aria-label="Einkaufsliste teilen"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6h15l-1.5 8.5H8L6 3H3"/><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/></svg></button>
+                        <button type="button" class="toolbar-icon-button toolbar-update-button" onclick="updateMealPlan()" title="Plan aktualisieren" aria-label="Plan aktualisieren"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5"/><path d="M20 12a8 8 0 1 1-2.3-5.7L20 8"/></svg></button>
+                        <button type="button" class="toolbar-icon-button toolbar-delete-button" onclick="deleteMealPlan()" title="Plan löschen" aria-label="Plan löschen"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 14h10l1-14M9 7V4h6v3"/></svg></button>
+                        <button type="button" class="toolbar-icon-button toolbar-toggle-save-button" onclick="togglePlanSaveToolbar()" title="Neuen Plan anlegen" aria-label="Neuen Plan anlegen"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
                     </div>
                 </div>
 
                 <div id="plan-save-panel" class="plan-save-panel is-hidden">
                     <div class="meal-plan-save-inline">
                         <input type="text" id="plan-name" class="toolbar-plan-name" placeholder="Neuen Plan speichern als">
-                        <button type="button" class="toolbar-icon-button toolbar-save-button" onclick="saveMealPlan()" title="Neuen Plan speichern" aria-label="Neuen Plan speichern">💾</button>
+                        <button type="button" class="toolbar-icon-button toolbar-save-button" onclick="saveMealPlan()" title="Neuen Plan speichern" aria-label="Neuen Plan speichern"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h12l2 2v14H5zM8 4v6h8V4M8 20v-6h8v6"/></svg></button>
                     </div>
                 </div>
 
@@ -54,7 +43,7 @@
                 <div id="recipe-book">
                     <div class="recipe-book-topbar">
                         <h2>Rezeptbuch</h2>
-                        <button type="button" class="recipe-toolbar-toggle-button" onclick="toggleRecipeToolbar()" title="Rezept hinzufügen" aria-label="Rezept hinzufügen">＋</button>
+                        <button type="button" class="recipe-toolbar-toggle-button" onclick="toggleRecipeToolbar()" title="Rezept hinzufügen" aria-label="Rezept hinzufügen"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
                     </div>
 
                     <div id="recipe-add-panel" class="recipe-add-panel is-hidden">
@@ -68,7 +57,7 @@
                             <input type="text" id="recipe-name" class="recipe-toolbar-name" placeholder="Rezeptname">
                             <input type="text" id="recipe-calories" class="recipe-toolbar-calories" placeholder="Kalorien" inputmode="numeric" pattern="[0-9]*">
                             <input type="number" id="recipe-portions" class="recipe-toolbar-portions" placeholder="Portionen" min="1" step="1">
-                            <button type="button" class="recipe-toolbar-save-button" onclick="addRecipe()" title="Rezept speichern" aria-label="Rezept speichern">💾</button>
+                            <button type="button" class="recipe-toolbar-save-button" onclick="addRecipe()" title="Rezept speichern" aria-label="Rezept speichern"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h12l2 2v14H5zM8 4v6h8V4M8 20v-6h8v6"/></svg></button>
                         </div>
                     </div>
 

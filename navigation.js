@@ -1,13 +1,22 @@
 const APP_NAVIGATION_LINKS = [
-    { label: "Home", href: "/index.html", capability: "home" },
-    { label: "Wochenplan", href: "/mealPlan.html", capability: "meal_plan" },
-    { label: "Rezepte", href: "/recipes.html", capability: "recipes" },
-    { label: "Inventar", href: "/inventory.html", capability: "inventory", privilege: "inventory.view" },
-    { label: "Rezept anlegen", href: "/recipeCreate.html", capability: "recipes" },
-    { label: "Administration", href: "/admin.html", capability: "admin", role: "platform_admin" }
+    { label: "Home", shortLabel: "Home", href: "/index.html", capability: "home", icon: "home", primary: true },
+    { label: "Wochenplan", shortLabel: "Plan", href: "/mealPlan.html", capability: "meal_plan", icon: "calendar", primary: true },
+    { label: "Rezepte", shortLabel: "Rezepte", href: "/recipes.html", capability: "recipes", icon: "recipes", primary: true },
+    { label: "Inventar", shortLabel: "Inventar", href: "/inventory.html", capability: "inventory", privilege: "inventory.view", icon: "inventory", primary: true },
+    { label: "Rezept anlegen", href: "/recipeCreate.html", capability: "recipes", icon: "plus", secondary: true },
+    { label: "Administration", href: "/admin.html", capability: "admin", role: "platform_admin", icon: "settings", secondary: true }
 ];
 
 const NavigationState = { privileges: new Set(), roles: new Set(), loaded: false };
+
+const NAV_ICON_PATHS = {
+    home: '<path d="M4 11.5 12 5l8 6.5V20H5V11.5"/><path d="M9 20v-6h6v6"/>',
+    calendar: '<path d="M5 3v3M19 3v3M4 8h16M5 5h14v15H5z"/><path d="M8 12h3M13 12h3M8 16h3"/>',
+    recipes: '<path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/>',
+    inventory: '<path d="M4 6h16v14H4zM7 3h10v3M8 10h8M8 14h5"/>',
+    plus: '<path d="M12 5v14M5 12h14"/>',
+    settings: '<circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.5-2.4 1A7 7 0 0 0 15 6l-.4-2.6h-4L10.2 6a7 7 0 0 0-1.6 1L6.2 6 4.2 9.5 6.1 11a7 7 0 0 0 0 2l-1.9 1.5 2 3.5 2.4-1A7 7 0 0 0 10 18l.4 2.6h4L15 18a7 7 0 0 0 1.5-1l2.4 1 2-3.5L18.9 13c.1-.3.1-.7.1-1Z"/>'
+};
 
 async function loadNavigationAccess() {
     if (!window.AuthShell?.getToken?.() || !window.AuthShell?.getWorkspacePublicId?.()) return;
@@ -30,6 +39,25 @@ function linkIsAvailable(link) {
     return true;
 }
 
+function isCurrentLink(link) {
+    const currentPath = window.location.pathname || "/index.html";
+    const linkPath = link.href.split("#")[0];
+    if (currentPath === linkPath || (currentPath === "/" && linkPath === "/index.html")) return true;
+    if (link.capability === "recipes" && ["/recipeCreate.html", "/recipeDetails.html", "/recipeInstructions.html"].includes(currentPath)) return link.href === "/recipes.html";
+    if (link.capability === "admin" && ["/adminTable.html", "/adminUsers.html"].includes(currentPath)) return true;
+    return false;
+}
+
+function navIcon(name) {
+    return `<svg class="fc-icon platform-nav-icon" viewBox="0 0 24 24" aria-hidden="true">${NAV_ICON_PATHS[name] || NAV_ICON_PATHS.home}</svg>`;
+}
+
+function navLinkMarkup(link, mode = "sidebar") {
+    const current = isCurrentLink(link);
+    const label = mode === "bottom" ? (link.shortLabel || link.label) : link.label;
+    return `<a href="${link.href}" class="platform-${mode}-link${current ? " is-current" : ""}"${current ? ' aria-current="page"' : ""}>${navIcon(link.icon)}<span>${escapeNavigationHtml(label)}</span></a>`;
+}
+
 function renderBurgerMenu() {
     const burgerDropdown = document.getElementById("burger-dropdown");
     if (!burgerDropdown) return;
@@ -43,18 +71,52 @@ function renderBurgerMenu() {
             <small>${escapeNavigationHtml(user?.display_name || user?.email || "")}</small>
         </div>
         <div class="platform-nav-links">
-            ${links.map(link => {
-                const currentPath = window.location.pathname || "/index.html";
-                const linkPath = link.href.split("#")[0];
-                const isCurrent = currentPath === linkPath || (currentPath === "/" && linkPath === "/index.html");
-                return `<a href="${link.href}"${isCurrent ? ' aria-current="page" class="is-current"' : ""}>${link.label}</a>`;
-            }).join("")}
+            ${links.map(link => `<a href="${link.href}"${isCurrentLink(link) ? ' aria-current="page" class="is-current"' : ""}>${link.label}</a>`).join("")}
         </div>
         <div class="platform-menu-footer">
             <button type="button" id="navigation-logout">Abmelden</button>
         </div>`;
 
     burgerDropdown.querySelector("#navigation-logout")?.addEventListener("click", () => AuthShell.logout());
+}
+
+function renderPlatformShell() {
+    const available = APP_NAVIGATION_LINKS.filter(linkIsAvailable);
+    const primary = available.filter(link => link.primary);
+    const secondary = available.filter(link => link.secondary);
+    const workspace = window.AuthShell?.getWorkspace?.();
+    const user = window.AuthShell?.getUser?.();
+
+    let sidebar = document.getElementById("platform-sidebar");
+    if (!sidebar) {
+        sidebar = document.createElement("aside");
+        sidebar.id = "platform-sidebar";
+        sidebar.className = "platform-sidebar";
+        document.body.prepend(sidebar);
+    }
+    sidebar.innerHTML = `
+        <a class="platform-sidebar-brand" href="/index.html">Food Moment</a>
+        <div class="platform-sidebar-workspace">
+            <span>${escapeNavigationHtml(workspace?.name || "Workspace")}</span>
+            <small>${escapeNavigationHtml(user?.display_name || user?.email || "")}</small>
+        </div>
+        <nav class="platform-sidebar-nav" aria-label="Hauptnavigation">
+            ${primary.map(link => navLinkMarkup(link, "sidebar")).join("")}
+        </nav>
+        ${secondary.length ? `<nav class="platform-sidebar-secondary" aria-label="Weitere Bereiche">${secondary.map(link => navLinkMarkup(link, "sidebar")).join("")}</nav>` : ""}
+        <button type="button" class="platform-sidebar-logout" id="platform-sidebar-logout">Abmelden</button>`;
+    sidebar.querySelector("#platform-sidebar-logout")?.addEventListener("click", () => AuthShell.logout());
+
+    let bottom = document.getElementById("platform-bottom-nav");
+    if (!bottom) {
+        bottom = document.createElement("nav");
+        bottom.id = "platform-bottom-nav";
+        bottom.className = "platform-bottom-nav";
+        bottom.setAttribute("aria-label", "Mobile Hauptnavigation");
+        document.body.append(bottom);
+    }
+    bottom.innerHTML = primary.slice(0, 4).map(link => navLinkMarkup(link, "bottom")).join("");
+    document.body.classList.add("platform-shell-ready");
 }
 
 function escapeNavigationHtml(value) {
@@ -73,15 +135,16 @@ function applyNavigationAvailability(root = document) {
 async function refreshNavigation() {
     await loadNavigationAccess();
     renderBurgerMenu();
+    renderPlatformShell();
     applyNavigationAvailability();
 }
 
 function initBurgerMenu() {
     const burgerButton = document.getElementById("burger-button");
     const burgerDropdown = document.getElementById("burger-dropdown");
-    if (!burgerButton || !burgerDropdown) return;
     renderBurgerMenu();
-    if (burgerDropdown.dataset.initialized === "true") return;
+    renderPlatformShell();
+    if (!burgerButton || !burgerDropdown || burgerDropdown.dataset.initialized === "true") return;
     burgerDropdown.dataset.initialized = "true";
 
     burgerButton.addEventListener("click", event => {

@@ -1,4 +1,4 @@
-const CACHE_NAME = "food-moment-platform-v28-platform-shell-sprint2";
+const CACHE_NAME = "food-moment-platform-v29-responsive-shell-sprint3";
 
 const FILES_TO_CACHE = [
     "/",

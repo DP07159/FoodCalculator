@@ -4969,3 +4969,115 @@ input:focus, select:focus, textarea:focus { border-color: #66764A; }
 
 .platform-nav-links a.is-current, .platform-nav-links a[aria-current="page"] { background: var(--color-primary-soft); color: var(--color-primary-text); }
 .module-page .meal-plan-title-group > h2, .module-page .recipe-book-topbar > h2 { font-size: 18px; font-family: var(--font-family-base); font-weight: 600; }
+
+/* ========================================================================== 
+   Platform Shell Sprint 3 · responsive navigation + inventory module alignment
+   ========================================================================== */
+.platform-sidebar,
+.platform-bottom-nav { display: none; }
+
+@media (min-width: 981px) {
+    body.platform-shell-ready { padding-left: 228px; }
+    body.platform-shell-ready > .app-header { display: none; }
+    .platform-sidebar {
+        position: fixed;
+        inset: 0 auto 0 0;
+        z-index: 1200;
+        display: flex;
+        flex-direction: column;
+        width: 228px;
+        padding: 24px 16px 18px;
+        background: var(--color-surface);
+        border-right: 1px solid var(--color-border);
+    }
+    .platform-sidebar-brand {
+        margin: 0 8px 22px;
+        color: var(--color-text);
+        font-size: 18px;
+        font-weight: 750;
+        letter-spacing: -.02em;
+        text-decoration: none;
+    }
+    .platform-sidebar-workspace {
+        margin: 0 8px 18px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--color-border-soft);
+    }
+    .platform-sidebar-workspace span,
+    .platform-sidebar-workspace small { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .platform-sidebar-workspace span { font-size: 13px; font-weight: 700; }
+    .platform-sidebar-workspace small { margin-top: 3px; color: var(--color-text-muted); font-size: 11px; }
+    .platform-sidebar-nav,
+    .platform-sidebar-secondary { display: grid; gap: 4px; }
+    .platform-sidebar-secondary { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--color-border-soft); }
+    .platform-sidebar-link {
+        display: grid;
+        grid-template-columns: 22px 1fr;
+        gap: 11px;
+        align-items: center;
+        min-height: 42px;
+        padding: 9px 10px;
+        border-radius: 8px;
+        color: var(--color-text-secondary, #62645E);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+    }
+    .platform-sidebar-link:hover { background: var(--color-surface-soft); color: var(--color-text); }
+    .platform-sidebar-link.is-current { background: var(--color-primary-soft); color: var(--color-primary-text); }
+    .platform-nav-icon { width: 20px; height: 20px; }
+    .platform-sidebar-logout {
+        margin: 12px 10px 0;
+        padding: 8px 0;
+        border: 0;
+        background: transparent;
+        color: var(--color-text-muted);
+        text-align: left;
+        font-size: 12px;
+    }
+    body.platform-shell-ready .container { max-width: 1440px; }
+    body.platform-shell-ready.food-moment-home .container { max-width: 1120px; }
+}
+
+@media (max-width: 980px) {
+    body.platform-shell-ready { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+    .platform-bottom-nav {
+        position: fixed;
+        inset: auto 0 0 0;
+        z-index: 1300;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        padding: 7px 8px calc(7px + env(safe-area-inset-bottom, 0px));
+        background: rgba(255, 255, 255, .97);
+        border-top: 1px solid var(--color-border);
+        backdrop-filter: blur(12px);
+    }
+    .platform-bottom-link {
+        display: flex;
+        min-width: 0;
+        min-height: 54px;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        border-radius: 8px;
+        color: var(--color-text-muted);
+        text-decoration: none;
+        font-size: 11px;
+        font-weight: 600;
+    }
+    .platform-bottom-link .platform-nav-icon { width: 21px; height: 21px; }
+    .platform-bottom-link.is-current { color: var(--color-primary-text); background: var(--color-primary-soft); }
+    .platform-bottom-link span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+
+.inventory-module .inventory-header { max-width: 760px; }
+.inventory-module .inventory-list-card { padding: 24px; }
+.inventory-module .inventory-list-topbar { margin-bottom: 16px; }
+.inventory-module .inventory-filter-controls { padding-bottom: 18px; border-bottom: 1px solid var(--color-border-soft); }
+.inventory-module .inventory-list-detailed { margin-top: 4px; }
+
+@media (max-width: 720px) {
+    .inventory-module .inventory-list-card { padding: 16px; }
+    .inventory-module .inventory-filter-controls { gap: 8px; }
+}

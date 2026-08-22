@@ -1,4 +1,4 @@
-const CACHE_NAME = "food-moment-platform-v31-navigation-fallback-sprint8";
+const CACHE_NAME = "food-moment-platform-v32-wallet-sprint9";
 
 const FILES_TO_CACHE = [
     "/",
@@ -24,6 +24,8 @@ const FILES_TO_CACHE = [
     "/admin.js",
     "/inventory.html",
     "/inventory.js",
+    "/wallet.html",
+    "/wallet.js",
     "/manifest.json"
 ];
 

@@ -53,6 +53,7 @@ const NAV_ICON_PATHS = {
     calendar: '<path d="M5 3v3M19 3v3M4 8h16M5 5h14v15H5z"/><path d="M8 12h3M13 12h3M8 16h3"/>',
     recipes: '<path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/>',
     inventory: '<path d="M4 6h16v14H4zM7 3h10v3M8 10h8M8 14h5"/>',
+    wallet: '<path d="M4 7h16v13H4z"/><path d="M7 7V5h10v2"/><path d="M8 11h8M8 15h5"/>',
     plus: '<path d="M12 5v14M5 12h14"/>',
     settings: '<circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.5-2.4 1A7 7 0 0 0 15 6l-.4-2.6h-4L10.2 6a7 7 0 0 0-1.6 1L6.2 6 4.2 9.5 6.1 11a7 7 0 0 0 0 2l-1.9 1.5 2 3.5 2.4-1A7 7 0 0 0 10 18l.4 2.6h4L15 18a7 7 0 0 0 1.5-1l2.4 1 2-3.5L18.9 13c.1-.3.1-.7.1-1Z"/>'
 };
@@ -73,7 +74,7 @@ function buildModuleLinks(modules) {
                 capability,
                 icon: navigation.icon || "home",
                 primary: navigation.primary !== false,
-                order: Number(navigation.order || 100),
+                order: Number(navigation.order ?? 100),
                 moduleEnabled: moduleDefinition.enabled === true
             });
         }
@@ -86,7 +87,7 @@ function buildModuleLinks(modules) {
                 capability,
                 icon: item.icon || "plus",
                 secondary: true,
-                order: Number(item.order || 500),
+                order: Number(item.order ?? 500),
                 moduleEnabled: moduleDefinition.enabled === true
             });
         });
@@ -102,7 +103,7 @@ function buildModuleLinks(modules) {
 
     return {
         links: links.sort((a, b) => a.order - b.order),
-        homeActions: homeActions.sort((a, b) => Number(a.order || 100) - Number(b.order || 100))
+        homeActions: homeActions.sort((a, b) => Number(a.order ?? 100) - Number(b.order ?? 100))
     };
 }
 
@@ -182,7 +183,7 @@ async function loadNavigationAccess() {
     NavigationState.roles = roles;
     NavigationState.modules = new Map(modules.map(item => [item.code, item]));
     NavigationState.links = [...STATIC_NAVIGATION_LINKS, ...dynamic.links]
-        .sort((a, b) => Number(a.order || 100) - Number(b.order || 100));
+        .sort((a, b) => Number(a.order ?? 100) - Number(b.order ?? 100));
     NavigationState.homeActions = dynamic.homeActions;
     NavigationState.loaded = true;
 

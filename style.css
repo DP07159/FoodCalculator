@@ -5543,3 +5543,51 @@ body[data-experience-density="balanced"] .intent-action {
     .intent-action:nth-last-child(2):nth-child(odd) { border-bottom: 0; }
     .intent-action:last-child:nth-child(odd) { border-right: 0; }
 }
+
+/* Sprint 9 · Food Moment Wallet */
+.wallet-page-header { max-width: 820px; }
+.wallet-capture { padding: 0 0 32px; border-bottom: 1px solid var(--color-border); }
+.wallet-capture-toolbar { margin-bottom: 18px; }
+.wallet-capture-toolbar h2,
+.wallet-library-head h2 { margin: 0 0 4px; font-family: var(--font-family-base); font-size: 20px; font-weight: 600; }
+.wallet-capture-form { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(220px, .8fr); gap: 16px 20px; align-items: end; }
+.wallet-note-field { grid-column: 1 / -1; }
+.wallet-capture-form textarea { min-height: 92px; }
+.field-optional { color: var(--color-text-muted); font-weight: 400; text-transform: none; letter-spacing: 0; }
+.wallet-capture-actions { display: flex; justify-content: flex-start; grid-column: 1 / -1; }
+.wallet-library { padding-top: 32px; }
+.wallet-library-head { display: flex; justify-content: space-between; gap: 24px; align-items: end; margin-bottom: 8px; }
+.wallet-status-filter { display: grid; gap: 4px; min-width: 180px; color: var(--color-text-muted); font-size: 12px; font-weight: 600; }
+.wallet-status-filter select { min-height: 38px; background: var(--color-surface); }
+.wallet-list { border-top: 1px solid var(--color-border); }
+.wallet-item { display: grid; grid-template-columns: minmax(0, 1fr) minmax(180px, 240px); gap: 28px; padding: 24px 0; border-bottom: 1px solid var(--color-border-soft); }
+.wallet-item-meta { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; color: var(--color-text-muted); font-size: 12px; }
+.wallet-item-meta span + span::before { content: "·"; margin-right: 10px; }
+.wallet-item h3 { margin: 0 0 8px; font-size: 18px; font-weight: 600; }
+.wallet-item p { max-width: 720px; margin: 0 0 14px; color: var(--color-text-secondary); }
+.wallet-item-actions { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+.wallet-source-link,
+.wallet-text-action { color: var(--color-primary-text); font-size: 13px; font-weight: 600; text-decoration: none; }
+.wallet-text-action { padding: 0; border: 0; background: transparent; }
+.wallet-source-link:hover,
+.wallet-text-action:hover { text-decoration: underline; }
+.wallet-item-next { align-self: center; padding-left: 20px; border-left: 1px solid var(--color-border-soft); }
+.wallet-item-next span,
+.wallet-item-next small { display: block; }
+.wallet-item-next span { margin-bottom: 4px; color: var(--color-text-muted); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.wallet-item-next small { color: var(--color-text-secondary); font-size: 13px; }
+.wallet-empty-state,
+.wallet-loading { padding: 32px 0; color: var(--color-text-muted); }
+.wallet-empty-state strong { display: block; margin-bottom: 6px; color: var(--color-text); }
+.wallet-empty-state p { margin: 0; max-width: 620px; }
+.wallet-empty-state.is-error strong { color: var(--color-danger-text); }
+
+@media (max-width: 768px) {
+    .wallet-capture-form { grid-template-columns: 1fr; }
+    .wallet-note-field,
+    .wallet-capture-actions { grid-column: auto; }
+    .wallet-library-head { align-items: stretch; flex-direction: column; gap: 14px; }
+    .wallet-status-filter { min-width: 0; }
+    .wallet-item { grid-template-columns: 1fr; gap: 16px; padding: 20px 0; }
+    .wallet-item-next { padding: 12px 0 0; border-left: 0; border-top: 1px solid var(--color-border-soft); }
+}

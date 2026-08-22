@@ -5,7 +5,7 @@
     "display": "standalone",
     "background_color": "#F8F7F3",
     "theme_color": "#F8F7F3",
-    "description": "Food Moments, Rezepte, Wochenplanung und Inventar in einem Workspace.",
+    "description": "Food Moments, Wallet, Rezepte, Wochenplanung und Inventar in einem Workspace.",
     "icons": [
         {
             "src": "/icon-192.png",
@@ -17,5 +17,15 @@
             "sizes": "512x512",
             "type": "image/png"
         }
-    ]
+    ],
+    "share_target": {
+        "action": "/wallet.html?capture=1",
+        "method": "GET",
+        "enctype": "application/x-www-form-urlencoded",
+        "params": {
+            "title": "title",
+            "text": "text",
+            "url": "url"
+        }
+    }
 }

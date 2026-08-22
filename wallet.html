@@ -1,105 +1,85 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de" class="auth-pending">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Food Moment Wallet</title>
+    <title>Wallet · Food Moment Platform</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#f5f7fb">
+    <meta name="theme-color" content="#F8F7F3">
 </head>
-<body>
-    <div class="container">
-        <nav class="burger-menu app-topbar">
-            <button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen">☰</button>
-            <div class="app-topbar-title">Food Moment Wallet</div>
-            <div id="burger-dropdown" class="burger-dropdown is-hidden">
-                <a href="/index.html">Home</a>
-                <a href="/wallet.html" aria-current="page">Wallet</a>
-                <a href="/index.html#meal-plan">Wochenplan</a>
-                <a href="/index.html#recipe-book">Rezeptbuch</a>
-                <a href="/recipeCreate.html">Neues Rezept</a>
-            </div>
-        </nav>
+<body class="module-page wallet-module">
+    <header class="app-header platform-header">
+        <button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen">
+            <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+        <a class="app-header-title platform-wordmark" href="/index.html">Food Moment</a>
+        <div id="burger-dropdown" class="burger-dropdown is-hidden"></div>
+    </header>
 
-        <main class="page-content wallet-page">
-            <header class="wallet-hero">
-                <p class="recipe-kicker">Inspiration sammeln</p>
-                <h1>Food Moment Wallet</h1>
-                <p>Speichere Food-Inspirationen aus Social Media und dem Web. Ein Eintrag bleibt Inspiration – bis du ihn in einen konkreten Food Moment einplanst.</p>
+    <div class="container module-container">
+        <main class="page-content module-content">
+            <header class="page-header module-page-header wallet-page-header">
+                <p class="recipe-kicker">Inspiration</p>
+                <h1>Wallet</h1>
+                <p class="module-intro">Speichere Food-Ideen aus Social Media, Websites oder deinem Kopf. Erst später entscheidest du, was daraus wird.</p>
             </header>
 
-            <section class="section-card wallet-capture-card" aria-labelledby="wallet-add-title">
-                <div class="wallet-section-heading">
+            <section class="wallet-capture module-workspace" aria-labelledby="wallet-capture-title">
+                <div class="module-toolbar wallet-capture-toolbar">
                     <div>
-                        <p class="recipe-kicker">Neu</p>
-                        <h2 id="wallet-add-title">Inspiration speichern</h2>
+                        <h2 id="wallet-capture-title">Inspiration merken</h2>
+                        <p class="module-toolbar-copy">Ein Link reicht. Titel und Notiz sind optional.</p>
                     </div>
                 </div>
-                <form id="wallet-form" class="wallet-form">
-                    <div class="form-section">
-                        <label for="wallet-url">Link</label>
-                        <input id="wallet-url" name="url" type="url" inputmode="url" placeholder="Instagram, TikTok, Pinterest, YouTube oder Website" required>
+                <form id="wallet-capture-form" class="wallet-capture-form">
+                    <div class="form-section wallet-url-field">
+                        <label for="wallet-source-url">Link</label>
+                        <input id="wallet-source-url" name="source_url" type="url" inputmode="url" autocomplete="url" placeholder="https://instagram.com/…">
                     </div>
                     <div class="form-section">
-                        <label for="wallet-title">Titel</label>
-                        <input id="wallet-title" name="title" type="text" placeholder="Was möchtest du wiederfinden?" required>
+                        <label for="wallet-title">Titel <span class="field-optional">optional</span></label>
+                        <input id="wallet-title" name="title" type="text" maxlength="240" placeholder="z. B. Zitronenpasta für Freitag">
                     </div>
-                    <div class="form-section">
+                    <div class="form-section wallet-note-field">
                         <label for="wallet-note">Notiz <span class="field-optional">optional</span></label>
-                        <textarea id="wallet-note" name="note" rows="2" placeholder="Warum hast du das gespeichert?"></textarea>
+                        <textarea id="wallet-note" name="note" rows="2" maxlength="2000" placeholder="Was möchtest du dir dazu merken?"></textarea>
                     </div>
-                    <div class="form-actions">
-                        <button type="submit">In Wallet speichern</button>
+                    <div class="wallet-capture-actions">
+                        <button class="primary-action-button" type="submit">
+                            <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16v13H4z"/><path d="M7 7V5h10v2"/><path d="M8 11h8M8 15h5"/></svg>
+                            <span>In Wallet speichern</span>
+                        </button>
                     </div>
+                    <p id="wallet-form-feedback" class="intent-feedback" aria-live="polite"></p>
                 </form>
             </section>
 
             <section class="wallet-library" aria-labelledby="wallet-library-title">
-                <div class="wallet-section-heading">
+                <div class="wallet-library-head">
                     <div>
-                        <p class="recipe-kicker">Deine Inspirationen</p>
-                        <h2 id="wallet-library-title">Gespeichert</h2>
+                        <h2 id="wallet-library-title">Für später gemerkt</h2>
+                        <p class="module-toolbar-copy">Dein Eingangskorb für Food-Inspiration.</p>
                     </div>
-                    <input id="wallet-search" class="wallet-search-input" type="search" placeholder="Wallet durchsuchen …" aria-label="Wallet durchsuchen">
+                    <label class="wallet-status-filter">
+                        <span>Status</span>
+                        <select id="wallet-status-select">
+                            <option value="saved">Gemerkt</option>
+                            <option value="used">Verwendet</option>
+                            <option value="archived">Archiviert</option>
+                            <option value="all">Alle</option>
+                        </select>
+                    </label>
                 </div>
-                <div id="wallet-list" class="wallet-grid"></div>
+                <div id="wallet-list" class="wallet-list" aria-live="polite"></div>
             </section>
         </main>
     </div>
 
-    <dialog id="wallet-plan-dialog" class="wallet-dialog">
-        <form method="dialog" class="wallet-dialog-card">
-            <div class="wallet-dialog-heading">
-                <div>
-                    <p class="recipe-kicker">Food Moment</p>
-                    <h2>Zum Wochenplan hinzufügen</h2>
-                </div>
-                <button class="dialog-close-button" value="cancel" aria-label="Dialog schließen">×</button>
-            </div>
-            <p id="wallet-plan-item-name" class="wallet-plan-item-name"></p>
-            <div class="wallet-plan-fields">
-                <div class="form-section">
-                    <label for="wallet-plan-select">Wochenplan</label>
-                    <select id="wallet-plan-select"></select>
-                </div>
-                <div class="form-section">
-                    <label for="wallet-plan-day">Tag</label>
-                    <select id="wallet-plan-day"></select>
-                </div>
-                <div class="form-section">
-                    <label for="wallet-plan-meal">Moment</label>
-                    <select id="wallet-plan-meal"></select>
-                </div>
-            </div>
-            <div class="form-actions wallet-dialog-actions">
-                <button type="button" id="wallet-plan-submit">Hinzufügen</button>
-            </div>
-        </form>
-    </dialog>
-
     <div id="app-toast" class="app-toast is-hidden"></div>
+    <script src="auth-shell.js"></script>
     <script src="navigation.js"></script>
     <script src="wallet.js"></script>
+    <script>AuthShell.guard();</script>
 </body>
 </html>

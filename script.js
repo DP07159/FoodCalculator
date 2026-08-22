@@ -10,7 +10,6 @@ const MEAL_ROWS = [
 
 let recipes = [];
 let mealPlans = [];
-let walletItems = [];
 let selectedDay = getTodayInGerman();
 let activeMealPlanId = null;
 let activeMealPlanName = "";
@@ -42,16 +41,16 @@ function getRecipeById(recipeId) {
     return recipes.find(recipe => String(recipe.id) === String(recipeId));
 }
 
-function getWalletItemById(itemId) {
-    return walletItems.find(item => String(item.id) === String(itemId));
-}
 
-function parsePlanValue(value) {
-    const raw = String(value || "");
-    if (!raw) return { sourceType: "", sourceId: "" };
-    if (raw.startsWith("wallet:")) return { sourceType: "wallet", sourceId: raw.slice(7) };
-    if (raw.startsWith("recipe:")) return { sourceType: "recipe", sourceId: raw.slice(7) };
-    return { sourceType: "recipe", sourceId: raw };
+function getIconSvg(name, isFilled = false) {
+    const icons = {
+        favorite: `<svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8z"/></svg>`,
+        edit: `<svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l11-11a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>`,
+        delete: `<svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 14h10l1-14"/><path d="M9 7V4h6v3"/></svg>`,
+        prev: `<svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>`,
+        next: `<svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>`
+    };
+    return icons[name] || "";
 }
 
 function isFavoriteRecipe(recipe) {
@@ -65,7 +64,7 @@ async function toggleFavoriteRecipe(recipeId) {
     const newFavoriteValue = isFavoriteRecipe(recipe) ? 0 : 1;
 
     try {
-        const response = await fetch(`${API_URL}/recipes/${recipeId}/favorite`, {
+        const response = await AuthShell.request(`${API_URL}/recipes/${recipeId}/favorite`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ is_favorite: newFavoriteValue })
@@ -83,7 +82,7 @@ async function toggleFavoriteRecipe(recipeId) {
 }
 
 async function apiFetch(url, options = {}) {
-    const response = await fetch(url, options);
+    const response = await AuthShell.request(url, options);
     let payload = null;
     try { payload = await response.json(); } catch { payload = null; }
     if (!response.ok) {
@@ -101,15 +100,6 @@ async function loadRecipes() {
     } catch (error) {
         console.error("Fehler beim Laden der Rezepte:", error);
         showToast("Rezepte konnten nicht geladen werden.");
-    }
-}
-
-async function loadWalletItems() {
-    try {
-        walletItems = await apiFetch(`${API_URL}/wallet`);
-    } catch (error) {
-        console.error("Fehler beim Laden der Wallet:", error);
-        walletItems = [];
     }
 }
 
@@ -174,23 +164,10 @@ function populateMealTable() {
                 .filter(recipe => Array.isArray(recipe.mealTypes) && recipe.mealTypes.includes(meal.key))
                 .forEach(recipe => {
                     const option = document.createElement("option");
-                    option.value = `recipe:${recipe.id}`;
+                    option.value = recipe.id;
                     option.textContent = `${recipe.name} (${recipe.calories} kcal)`;
                     select.appendChild(option);
                 });
-
-            if (walletItems.length) {
-                const divider = document.createElement("option");
-                divider.disabled = true;
-                divider.textContent = "──── Wallet ────";
-                select.appendChild(divider);
-                walletItems.forEach(item => {
-                    const option = document.createElement("option");
-                    option.value = `wallet:${item.id}`;
-                    option.textContent = `💡 ${item.title}`;
-                    select.appendChild(option);
-                });
-            }
 
             select.addEventListener("change", () => {
                 calculateCalories();
@@ -231,8 +208,7 @@ function calculateCalories() {
     WEEK_DAYS.forEach(day => {
         let total = 0;
         document.querySelectorAll(`#meal-table select[data-day="${day}"]`).forEach(select => {
-            const selection = parsePlanValue(select.value);
-            const recipe = selection.sourceType === "recipe" ? getRecipeById(selection.sourceId) : null;
+            const recipe = getRecipeById(select.value);
             if (recipe) total += Number(recipe.calories) || 0;
         });
 
@@ -279,26 +255,16 @@ function renderDayDetail(day) {
     let totalCalories = 0;
 
     const mealCardsHtml = MEAL_ROWS.map(meal => {
-        const selection = parsePlanValue(mealsForDay[meal.key]);
-        const recipe = selection.sourceType === "recipe" ? getRecipeById(selection.sourceId) : null;
-        const walletItem = selection.sourceType === "wallet" ? getWalletItemById(selection.sourceId) : null;
+        const recipe = getRecipeById(mealsForDay[meal.key]);
         if (recipe) totalCalories += Number(recipe.calories) || 0;
-
-        let valueHtml = "Noch nichts gewählt";
-        let meta = "–";
-        if (recipe) {
-            valueHtml = `<a href="/recipeInstructions.html?id=${recipe.id}" class="day-detail-link">${recipe.name}</a>`;
-            meta = `${recipe.calories} kcal`;
-        } else if (walletItem) {
-            valueHtml = `<a href="/wallet.html#item-${walletItem.id}" class="day-detail-link">💡 ${walletItem.title}</a>`;
-            meta = `Wallet · ${walletItem.source_platform || "Inspiration"}`;
-        }
 
         return `
             <div class="day-detail-meal-card">
                 <div class="day-detail-meal-label">${meal.label}</div>
-                <div class="day-detail-meal-value">${valueHtml}</div>
-                <div class="day-detail-meal-calories">${meta}</div>
+                <div class="day-detail-meal-value">
+                    ${recipe ? `<a href="/recipeInstructions.html?id=${recipe.id}" class="day-detail-link">${recipe.name}</a>` : "Noch nichts gewählt"}
+                </div>
+                <div class="day-detail-meal-calories">${recipe ? `${recipe.calories} kcal` : "–"}</div>
             </div>
         `;
     }).join("");
@@ -309,12 +275,12 @@ function renderDayDetail(day) {
         <div class="day-detail-card">
             <div class="day-detail-header">
                 <div class="day-detail-title-line">
-                    <button type="button" class="day-nav-button" onclick="changeSelectedDay(-1)" aria-label="Vorheriger Tag">‹</button>
+                    <button type="button" class="day-nav-button" onclick="changeSelectedDay(-1)" aria-label="Vorheriger Tag">${getIconSvg("prev")}</button>
                     <div class="day-detail-title-inline">
                         <span class="day-detail-title-prefix">Dein Tagesplan für</span>
                         <span class="day-detail-title-day">${day}</span>
                     </div>
-                    <button type="button" class="day-nav-button" onclick="changeSelectedDay(1)" aria-label="Nächster Tag">›</button>
+                    <button type="button" class="day-nav-button" onclick="changeSelectedDay(1)" aria-label="Nächster Tag">${getIconSvg("next")}</button>
                 </div>
                 <div class="day-detail-stats">
                     <div class="day-detail-stat"><span>Gesamt</span><strong>${totalCalories} kcal</strong></div>
@@ -409,20 +375,24 @@ function populateRecipeList() {
         favoriteButton.type = "button";
         favoriteButton.className = "recipe-favorite-button";
         favoriteButton.classList.toggle("is-favorite", isFavoriteRecipe(recipe));
-        favoriteButton.innerHTML = isFavoriteRecipe(recipe) ? "★" : "☆";
+        favoriteButton.innerHTML = getIconSvg("favorite");
         favoriteButton.title = isFavoriteRecipe(recipe) ? "Favorit entfernen" : "Als Favorit markieren";
+        favoriteButton.setAttribute("aria-label", favoriteButton.title);
         favoriteButton.onclick = () => toggleFavoriteRecipe(recipe.id);
 
         const editButton = document.createElement("button");
         editButton.type = "button";
-        editButton.innerHTML = "✎";
+        editButton.innerHTML = getIconSvg("edit");
         editButton.title = "Rezept bearbeiten";
+        editButton.setAttribute("aria-label", "Rezept bearbeiten");
         editButton.onclick = () => window.location.href = `/recipeDetails.html?id=${recipe.id}`;
 
         const deleteButton = document.createElement("button");
         deleteButton.type = "button";
-        deleteButton.innerHTML = "🗑";
+        deleteButton.innerHTML = getIconSvg("delete");
+        deleteButton.className = "delete-button";
         deleteButton.title = "Rezept löschen";
+        deleteButton.setAttribute("aria-label", "Rezept löschen");
         deleteButton.onclick = () => deleteRecipe(recipe.id);
 
         icons.appendChild(favoriteButton);
@@ -485,14 +455,7 @@ window.deleteRecipe = async function(recipeId) {
 function collectMealPlanData() {
     const data = [];
     document.querySelectorAll("#meal-table select").forEach(select => {
-        const selection = parsePlanValue(select.value);
-        data.push({
-            day: select.dataset.day,
-            mealType: select.dataset.mealType,
-            sourceType: selection.sourceType || null,
-            sourceId: selection.sourceId || null,
-            recipeId: selection.sourceType === "recipe" ? selection.sourceId : ""
-        });
+        data.push({ day: select.dataset.day, mealType: select.dataset.mealType, recipeId: select.value });
     });
     return data;
 }
@@ -500,12 +463,7 @@ function collectMealPlanData() {
 function applyMealPlanData(data = []) {
     data.forEach(entry => {
         const select = document.querySelector(`#meal-table select[data-day="${entry.day}"][data-meal-type="${entry.mealType}"]`);
-        if (select) {
-            const value = entry.sourceType && entry.sourceId
-                ? `${entry.sourceType}:${entry.sourceId}`
-                : (entry.recipeId ? `recipe:${entry.recipeId}` : "");
-            select.value = value;
-        }
+        if (select) select.value = entry.recipeId || "";
     });
     calculateCalories();
     renderDayDetail(selectedDay);
@@ -602,8 +560,7 @@ function getIngredientsFromText(text) {
 window.shareWeeklyShoppingList = async function() {
     const selectedIds = new Set();
     document.querySelectorAll("#meal-table select").forEach(select => {
-        const selection = parsePlanValue(select.value);
-        if (selection.sourceType === "recipe" && selection.sourceId) selectedIds.add(String(selection.sourceId));
+        if (select.value) selectedIds.add(String(select.value));
     });
 
     const items = [];
@@ -629,12 +586,34 @@ window.shareWeeklyShoppingList = async function() {
 };
 
 document.addEventListener("DOMContentLoaded", async () => {
-    initBurgerMenu();
-    await Promise.all([loadMealPlans(), loadWalletItems()]);
-    await loadRecipes();
+    try {
+        const authenticated = await AuthShell.guard();
 
-    document.getElementById("recipe-search")?.addEventListener("input", populateRecipeList);
-    document.getElementById("recipe-sort")?.addEventListener("change", populateRecipeList);
+        if (!authenticated) {
+            return;
+        }
+
+        const hasMealPlanModule = Boolean(document.getElementById("meal-table") || document.getElementById("plan-list"));
+        const hasRecipeModule = Boolean(document.getElementById("recipe-list"));
+
+        const initialLoads = [];
+        if (hasMealPlanModule) initialLoads.push(loadMealPlans());
+        // Meal Planning needs recipe choices as well; recipe-only pages obviously need recipes too.
+        if (hasMealPlanModule || hasRecipeModule) initialLoads.push(loadRecipes());
+        await Promise.all(initialLoads);
+
+        document.getElementById("recipe-search")
+            ?.addEventListener("input", populateRecipeList);
+
+        document.getElementById("recipe-sort")
+            ?.addEventListener("change", populateRecipeList);
+    } catch (error) {
+        console.error("App-Initialisierung fehlgeschlagen:", error);
+        showToast(
+            error?.message ||
+            "Die Daten konnten nicht geladen werden."
+        );
+    }
 });
 
 if ("serviceWorker" in navigator) {

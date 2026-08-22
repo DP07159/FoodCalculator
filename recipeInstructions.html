@@ -1,16 +1,25 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de" class="auth-pending">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kochanleitung</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#f5f7fb">
+    <meta name="theme-color" content="#F8F7F3">
 </head>
-<body>
-    <header class="app-header"><button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen"></button><div class="app-header-title">Food Moment Platform</div><div id="burger-dropdown" class="burger-dropdown is-hidden"></div></header>
+<body class="module-page recipe-reading-module">
+    <header class="app-header">
+        <button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen">
+            <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
 
+        <a class="app-header-title platform-wordmark" href="/index.html">Food Moment</a>
+
+        <div id="burger-dropdown" class="burger-dropdown is-hidden"></div>
+    </header>
+
+    <div class="container module-container">
         <main class="page-content recipe-instructions-page">
             <header class="header-container recipe-hero">
                 <div class="recipe-info">
@@ -18,11 +27,28 @@
                     <h1 id="display-recipe-name"></h1>
                 </div>
                 <div class="recipe-header-actions">
-                    <div class="recipe-stat">🍽️ <span id="display-recipe-portions"></span></div>
-                    <div class="recipe-stat">🍫 <span id="display-recipe-calories"></span></div>
-                    <button type="button" id="favorite-recipe-button" class="header-icon-button favorite-header-button" title="Als Favorit markieren" aria-label="Als Favorit markieren">☆</button>
-                    <button type="button" id="share-ingredients-button" class="header-icon-button" title="Zutatenliste teilen" aria-label="Zutatenliste teilen">↗</button>
-                    <button type="button" id="edit-recipe-button" class="header-icon-button" title="Rezept bearbeiten" aria-label="Rezept bearbeiten">✎</button>
+                    <div class="recipe-stat recipe-portions-control" title="Portionen anpassen">
+                        <button type="button" id="decrease-portions-button" class="recipe-portion-button" aria-label="Portionen reduzieren">
+                            <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg>
+                        </button>
+                        <span class="recipe-stat-icon"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="12" r="6"/><circle cx="11" cy="12" r="3"/><path d="M20 4v16"/></svg></span>
+                        <span id="display-recipe-portions"></span>
+                        <button type="button" id="increase-portions-button" class="recipe-portion-button" aria-label="Portionen erhöhen">
+                            <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                        </button>
+                    </div>
+                    <div class="recipe-stat"><span class="recipe-stat-icon"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22c4 0 7-2.7 7-6.8 0-2.6-1.5-5.1-4.4-7.5.1 2.1-.7 3.5-2.1 4.2.2-3.3-1.3-6-4.1-8.1.2 3.6-3.4 5.6-3.4 11.2C5 19.3 8 22 12 22z"/></svg></span><span id="display-recipe-calories"></span></div>
+                    <button type="button" id="favorite-recipe-button" class="header-icon-button favorite-header-button" title="Als Favorit markieren" aria-label="Als Favorit markieren"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8z"/></svg></button>
+                    <button type="button" id="workspace-assignments-button" class="header-icon-button is-hidden" title="Workspaces zuordnen" aria-label="Workspaces zuordnen">
+                        <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <rect x="3" y="4" width="7" height="7" rx="1.5"/>
+                            <rect x="14" y="4" width="7" height="7" rx="1.5"/>
+                            <rect x="3" y="15" width="7" height="6" rx="1.5"/>
+                            <path d="M17.5 15v6M14.5 18h6"/>
+                        </svg>
+                    </button>
+                    <button type="button" id="share-ingredients-button" class="header-icon-button" title="Zutatenliste teilen" aria-label="Zutatenliste teilen"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M20 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h5"/></svg></button>
+                    <button type="button" id="edit-recipe-button" class="primary-action-button recipe-edit-primary"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l11-11a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg><span>Rezept bearbeiten</span></button>
                 </div>
             </header>
 
@@ -38,7 +64,36 @@
         </main>
     </div>
 
+
+    <div id="recipe-workspace-overlay" class="recipe-workspace-overlay is-hidden" aria-hidden="true">
+        <div class="recipe-workspace-dialog" role="dialog" aria-modal="true" aria-labelledby="recipe-workspace-title">
+            <div class="recipe-workspace-dialog-header">
+                <div>
+                    <p class="recipe-kicker">Rezept verfügbar machen</p>
+                    <h2 id="recipe-workspace-title">Zu Workspaces hinzufügen</h2>
+                </div>
+                <button type="button" id="recipe-workspace-close" class="header-icon-button" aria-label="Schließen">
+                    <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <div class="recipe-workspace-search-wrap">
+                <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+                <input type="search" id="recipe-workspace-search" placeholder="Workspace suchen">
+            </div>
+
+            <div id="recipe-workspace-list" class="recipe-workspace-list"></div>
+
+            <div class="recipe-workspace-dialog-footer">
+                <span id="recipe-workspace-save-state" class="recipe-workspace-save-state"></span>
+                <button type="button" id="recipe-workspace-done" class="recipe-workspace-primary-button">Fertig</button>
+            </div>
+        </div>
+    </div>
+
     <div id="app-toast" class="app-toast is-hidden"></div>
+    <script src="auth-shell.js"></script>
+    <script>AuthShell.guard();</script>
     <script src="navigation.js"></script>
     <script src="recipeInstructions.js"></script>
 </body>

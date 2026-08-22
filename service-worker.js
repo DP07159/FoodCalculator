@@ -1,17 +1,10 @@
-const CACHE_NAME = "food-moment-platform-v31-navigation-fallback-sprint8";
+const CACHE_NAME = "food-calculator-v11";
 
 const FILES_TO_CACHE = [
     "/",
     "/index.html",
     "/style.css",
-    "/home.js",
-    "/recipes.html",
-    "/mealPlan.html",
     "/script.js",
-    "/auth-shell.js",
-    "/platform.js",
-    "/login.html",
-    "/login.js",
     "/navigation.js",
     "/recipeInstructions.html",
     "/recipeInstructions.js",
@@ -19,11 +12,8 @@ const FILES_TO_CACHE = [
     "/recipeDetails.js",
     "/recipeCreate.html",
     "/recipeCreate.js",
-    "/admin.html",
-    "/adminTable.html",
-    "/admin.js",
-    "/inventory.html",
-    "/inventory.js",
+    "/wallet.html",
+    "/wallet.js",
     "/manifest.json"
 ];
 
@@ -43,25 +33,6 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
     if (event.request.method !== "GET") return;
-
-    const url = new URL(event.request.url);
-    const isAppShellAsset =
-        event.request.mode === "navigate" ||
-        ["script", "style"].includes(event.request.destination);
-
-    if (url.origin === self.location.origin && isAppShellAsset) {
-        event.respondWith(
-            fetch(event.request)
-                .then(response => {
-                    const copy = response.clone();
-                    caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
-                    return response;
-                })
-                .catch(() => caches.match(event.request))
-        );
-        return;
-    }
-
     event.respondWith(
         caches.match(event.request).then(cached => cached || fetch(event.request))
     );

@@ -1,50 +1,111 @@
 <!DOCTYPE html>
-<html lang="de" class="auth-pending">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dein Food Moment · Food Moment Platform</title>
+    <title>Food Calculator</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#F8F7F3">
+    <meta name="theme-color" content="#f5f7fb">
 </head>
-<body class="food-moment-home">
-    <header class="app-header platform-header">
-        <button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen">
-            <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-        </button>
-        <a class="app-header-title platform-wordmark" href="/index.html">Food Moment</a>
-        <div id="burger-dropdown" class="burger-dropdown is-hidden"></div>
-    </header>
+<body>
+    <div class="container">
+        <nav class="burger-menu app-topbar">
+            <button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen">☰</button>
+            <div class="app-topbar-title">Food Calculator</div>
+            <div id="burger-dropdown" class="burger-dropdown is-hidden">
+                <a href="/index.html">Startseite</a>
+                <a href="/recipeCreate.html">Neues Rezept</a>
+                <a href="/index.html#recipe-book">Rezeptbuch</a>
+                <a href="/index.html#meal-plan">Wochenplan</a>
+            </div>
+        </nav>
 
-    <div class="container home-container">
-        <main class="intent-home" aria-labelledby="food-moment-title">
-            <section class="intent-hero">
-                <p class="intent-eyebrow" id="home-workspace-label">Was möchtest du tun?</p>
-                <h1 id="food-moment-title">Dein Food Moment.</h1>
-                <p class="intent-lead">Sag uns, was gerade ansteht. Wir öffnen den passenden Weg – ohne dir die Module der Plattform erklären zu müssen.</p>
-
-                <form id="intent-form" class="intent-input-wrap">
-                    <label for="intent-input">Was hast du vor?</label>
-                    <div class="intent-input-row">
-                        <input id="intent-input" type="text" autocomplete="off" placeholder="z. B. Freitagabend kommen Freunde …">
-                        <button class="primary-button intent-submit" type="submit">Weiter</button>
+        <main class="page-content">
+            <section id="meal-plan" class="section-card">
+                <div class="meal-plan-topbar">
+                    <div class="meal-plan-title-group">
+                        <h2>Wochenplan</h2>
+                        <select id="plan-list" class="toolbar-plan-select"></select>
+                        <p id="current-plan-name">Aktueller Wochenplan: keiner</p>
                     </div>
-                    <p id="intent-feedback" class="intent-feedback" aria-live="polite"></p>
-                </form>
+
+                    <div class="meal-plan-current-actions">
+                        <button type="button" class="toolbar-icon-button toolbar-shopping-button" onclick="shareWeeklyShoppingList()" title="Einkaufsliste teilen" aria-label="Einkaufsliste teilen">🛒</button>
+                        <button type="button" class="toolbar-icon-button toolbar-update-button" onclick="updateMealPlan()" title="Plan aktualisieren" aria-label="Plan aktualisieren">↻</button>
+                        <button type="button" class="toolbar-icon-button toolbar-delete-button" onclick="deleteMealPlan()" title="Plan löschen" aria-label="Plan löschen">🗑</button>
+                        <button type="button" class="toolbar-icon-button toolbar-toggle-save-button" onclick="togglePlanSaveToolbar()" title="Neuen Plan anlegen" aria-label="Neuen Plan anlegen">＋</button>
+                    </div>
+                </div>
+
+                <div id="plan-save-panel" class="plan-save-panel is-hidden">
+                    <div class="meal-plan-save-inline">
+                        <input type="text" id="plan-name" class="toolbar-plan-name" placeholder="Neuen Plan speichern als">
+                        <button type="button" class="toolbar-icon-button toolbar-save-button" onclick="saveMealPlan()" title="Neuen Plan speichern" aria-label="Neuen Plan speichern">💾</button>
+                    </div>
+                </div>
+
+                <div id="wallet-plan-panel" class="wallet-plan-panel is-hidden" aria-live="polite">
+                    <div class="wallet-plan-copy">
+                        <span class="wallet-plan-kicker">Aus der Food Moment Wallet</span>
+                        <strong id="wallet-plan-title"></strong>
+                        <span>Diese Inspiration wird direkt als Food Moment in einen Wochenplan-Slot gelegt – ohne daraus ein Rezept zu machen.</span>
+                    </div>
+                    <div class="wallet-plan-controls">
+                        <select id="wallet-plan-day" aria-label="Wochentag"></select>
+                        <select id="wallet-plan-meal" aria-label="Mahlzeit"></select>
+                        <button type="button" class="wallet-plan-add-button" onclick="addPendingWalletItemToPlan()">Zum Food Moment machen</button>
+                        <button type="button" class="wallet-plan-cancel-button" onclick="cancelPendingWalletItem()">Abbrechen</button>
+                    </div>
+                </div>
+
+                <div class="weekly-plan-board" id="meal-table"></div>
+                <div id="day-detail-panel" class="day-detail-panel"></div>
             </section>
 
-            <section id="intent-actions" class="intent-actions" aria-label="Schnelleinstiege"></section>
+            <section class="recipe-book-box section-card">
+                <div id="recipe-book">
+                    <div class="recipe-book-topbar">
+                        <h2>Rezeptbuch</h2>
+                        <button type="button" class="recipe-toolbar-toggle-button" onclick="toggleRecipeToolbar()" title="Rezept hinzufügen" aria-label="Rezept hinzufügen">＋</button>
+                    </div>
 
-            <section class="home-ambient-note">
-                <p><strong>Food Moments verbinden künftig Planung, Rezepte, Inventar und Einkauf.</strong> Die detaillierte Erfassung bleibt bewusst noch offen, bis die separate Food-Moment-Fachspezifikation beschlossen ist.</p>
+                    <div id="recipe-add-panel" class="recipe-add-panel is-hidden">
+                        <div class="recipe-book-toolbar">
+                            <div class="recipe-checkboxes recipe-toolbar-checkboxes">
+                                <label><input type="checkbox" value="breakfast"> Frühstück</label>
+                                <label><input type="checkbox" value="lunch"> Mittagessen</label>
+                                <label><input type="checkbox" value="dinner"> Abendessen</label>
+                                <label><input type="checkbox" value="snack"> Snack</label>
+                            </div>
+                            <input type="text" id="recipe-name" class="recipe-toolbar-name" placeholder="Rezeptname">
+                            <input type="text" id="recipe-calories" class="recipe-toolbar-calories" placeholder="Kalorien" inputmode="numeric" pattern="[0-9]*">
+                            <input type="number" id="recipe-portions" class="recipe-toolbar-portions" placeholder="Portionen" min="1" step="1">
+                            <button type="button" class="recipe-toolbar-save-button" onclick="addRecipe()" title="Rezept speichern" aria-label="Rezept speichern">💾</button>
+                        </div>
+                    </div>
+
+                    <div class="recipe-book-controls">
+                        <input type="text" id="recipe-search" class="recipe-search-input" placeholder="Rezepte durchsuchen ...">
+                        <select id="recipe-sort" class="recipe-sort-select">
+                            <option value="name-asc">Name A–Z</option>
+                            <option value="name-desc">Name Z–A</option>
+                            <option value="favorites">Favoriten</option>
+                            <option value="breakfast">Nur Frühstück</option>
+                            <option value="lunch">Nur Mittagessen</option>
+                            <option value="dinner">Nur Abendessen</option>
+                            <option value="snack">Nur Snack</option>
+                        </select>
+                    </div>
+
+                    <ul id="recipe-list"></ul>
+                </div>
             </section>
         </main>
     </div>
 
-    <script src="auth-shell.js"></script>
+    <div id="app-toast" class="app-toast is-hidden"></div>
     <script src="navigation.js"></script>
-    <script src="home.js"></script>
-    <script>AuthShell.guard();</script>
+    <script src="script.js"></script>
 </body>
 </html>

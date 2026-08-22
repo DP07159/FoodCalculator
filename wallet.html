@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Moment Wallet</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#f5f7fb">
+</head>
+<body>
+    <div class="container">
+        <nav class="burger-menu app-topbar">
+            <button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen">☰</button>
+            <div class="app-topbar-title">Food Moment Wallet</div>
+            <div id="burger-dropdown" class="burger-dropdown is-hidden">
+                <a href="/index.html">Home</a>
+                <a href="/wallet.html">Food Moment Wallet</a>
+                <a href="/recipeCreate.html">Neues Rezept</a>
+                <a href="/index.html#recipe-book">Rezeptbuch</a>
+                <a href="/index.html#meal-plan">Wochenplan</a>
+            </div>
+        </nav>
+
+        <main class="page-content wallet-page">
+            <header class="wallet-hero">
+                <div>
+                    <p class="recipe-kicker">Inspiration Inbox</p>
+                    <h1>Food Moment Wallet</h1>
+                    <p>Speichere Food-Inspiration zunächst so, wie du sie findest. Später entscheidest du, ob daraus ein Food Moment, ein Rezept oder einfach nur eine gute Idee wird.</p>
+                </div>
+            </header>
+
+            <section class="section-card wallet-capture-card">
+                <div class="wallet-capture-heading">
+                    <div>
+                        <p class="recipe-kicker">Neue Inspiration</p>
+                        <h2>Was möchtest du behalten?</h2>
+                    </div>
+                </div>
+                <form id="wallet-form" class="wallet-form">
+                    <div class="form-section wallet-url-field">
+                        <label for="wallet-url">Link</label>
+                        <input id="wallet-url" type="url" inputmode="url" placeholder="Instagram, TikTok, Pinterest, YouTube oder Website">
+                    </div>
+                    <div class="form-section">
+                        <label for="wallet-title">Titel</label>
+                        <input id="wallet-title" type="text" placeholder="z. B. Smashed Potato Salad">
+                    </div>
+                    <div class="form-section wallet-note-field">
+                        <label for="wallet-note">Notiz · optional</label>
+                        <textarea id="wallet-note" rows="2" placeholder="Warum möchtest du dir das merken?"></textarea>
+                    </div>
+                    <div class="form-actions wallet-form-actions">
+                        <button type="submit">In Wallet speichern</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="section-card wallet-library-card">
+                <div class="wallet-library-header">
+                    <div>
+                        <p class="recipe-kicker">Gespeichert</p>
+                        <h2>Deine Inspirationen</h2>
+                    </div>
+                    <input id="wallet-search" class="wallet-search" type="search" placeholder="Wallet durchsuchen …">
+                </div>
+                <div id="wallet-list" class="wallet-grid"></div>
+            </section>
+        </main>
+    </div>
+
+    <div id="app-toast" class="app-toast is-hidden"></div>
+    <script src="navigation.js"></script>
+    <script src="wallet.js"></script>
+</body>
+</html>

@@ -1,32 +1,37 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de" class="auth-pending">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rezept bearbeiten</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#f5f7fb">
+    <meta name="theme-color" content="#F8F7F3">
 </head>
-<body>
-    <div class="container">
-        <nav class="burger-menu">
-            <button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen">☰</button>
-            <div id="burger-dropdown" class="burger-dropdown is-hidden">
-                <a href="/index.html">Home</a>
-                <a href="/wallet.html">Wallet</a>
-                <a href="/index.html#meal-plan">Wochenplan</a>
-                <a href="/index.html#recipe-book">Rezeptbuch</a>
-                <a href="/recipeCreate.html">Neues Rezept</a>
-            </div>
-        </nav>
+<body class="module-page recipe-form-module">
+    <header class="app-header">
+        <button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen">
+            <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
 
-        <header class="page-header">
-            <h1>Rezept bearbeiten</h1>
-        </header>
+        <a class="app-header-title platform-wordmark" href="/index.html">Food Moment</a>
 
-        <main class="page-content">
-            <form id="recipe-form" class="section-card">
+        <div id="burger-dropdown" class="burger-dropdown is-hidden"></div>
+    </header>
+
+    <div class="container module-container">
+        <main class="page-content module-content recipe-form-page">
+            <header class="page-header module-page-header recipe-form-header">
+                <p class="recipe-kicker">Rezepte</p>
+                <div class="recipe-form-heading-row">
+                    <div>
+                        <h1>Rezept bearbeiten</h1>
+                        <p class="module-intro">Passe Inhalt und Metadaten an. Änderungen bleiben im aktuellen Workspace.</p>
+                    </div>
+                    <a class="tertiary-action-link" href="/recipes.html">Zum Rezeptbuch</a>
+                </div>
+            </header>
+            <form id="recipe-form" class="module-workspace recipe-editor-workspace">
                 <div class="form-section">
                     <label for="recipe-name">Name</label>
                     <input type="text" id="recipe-name" name="recipe-name">
@@ -72,6 +77,8 @@
     </div>
 
     <div id="app-toast" class="app-toast is-hidden"></div>
+    <script src="auth-shell.js"></script>
+    <script>AuthShell.guard();</script>
     <script src="navigation.js"></script>
     <script src="recipeDetails.js"></script>
 </body>

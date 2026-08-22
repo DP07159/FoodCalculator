@@ -5398,3 +5398,44 @@ input:focus, select:focus, textarea:focus { border-color: #66764A; }
         width: 100%;
     }
 }
+
+
+/* Sprint 6 · Workspace- und rollenadaptive Experience */
+body[data-experience-density="precision"] .module-intro,
+body[data-experience-density="precision"] .module-toolbar-copy,
+body[data-experience-density="precision"] .intent-lead {
+    max-width: 62ch;
+}
+
+body[data-experience-density="precision"] .module-workspace,
+body[data-experience-density="working"] .module-workspace {
+    padding-top: 16px;
+    padding-bottom: 16px;
+}
+
+body[data-experience-density="precision"] .module-toolbar,
+body[data-experience-density="working"] .module-toolbar {
+    gap: 12px;
+}
+
+body[data-experience-density="precision"] input,
+body[data-experience-density="precision"] select,
+body[data-experience-density="working"] input,
+body[data-experience-density="working"] select {
+    min-height: 38px;
+}
+
+body[data-experience-density="precision"] .intent-actions,
+body[data-experience-density="working"] .intent-actions {
+    gap: 8px;
+}
+
+body[data-experience-density="precision"] .intent-action,
+body[data-experience-density="working"] .intent-action {
+    min-height: 64px;
+    padding-block: 12px;
+}
+
+body[data-experience-density="balanced"] .intent-action {
+    min-height: 76px;
+}

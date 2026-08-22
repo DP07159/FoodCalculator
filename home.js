@@ -4,12 +4,17 @@ document.addEventListener("auth:ready", () => {
     if (label && workspace?.name) label.textContent = `${workspace.name} · Was möchtest du tun?`;
 });
 
+function capabilityTarget(capability, href) {
+    const nav = window.PlatformNavigation;
+    return !nav || nav.isCapabilityAvailable(capability) ? href : null;
+}
+
 function resolveIntent(text) {
     const value = String(text || "").trim().toLocaleLowerCase("de");
     if (!value) return null;
-    if (/(inventar|vorrat|lager|kühlschrank|kuehlschrank|vorhanden)/.test(value)) return "/inventory.html";
-    if (/(woche|wochenplan|planen|montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag)/.test(value)) return "/mealPlan.html";
-    if (/(rezept|kochen|essen|gericht|dinner|mittag|frühstück|fruehstueck)/.test(value)) return "/recipes.html";
+    if (/(inventar|vorrat|lager|kühlschrank|kuehlschrank|vorhanden)/.test(value)) return capabilityTarget("inventory", "/inventory.html");
+    if (/(woche|wochenplan|planen|montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag)/.test(value)) return capabilityTarget("meal_plan", "/mealPlan.html");
+    if (/(rezept|kochen|essen|gericht|dinner|mittag|frühstück|fruehstueck)/.test(value)) return capabilityTarget("recipes", "/recipes.html");
     return null;
 }
 
@@ -28,5 +33,5 @@ document.getElementById("intent-form")?.addEventListener("submit", event => {
         window.location.href = target;
         return;
     }
-    if (feedback) feedback.textContent = "Verstanden. Die freie Food-Moment-Erfassung bauen wir nach der Fachspezifikation aus. Für jetzt kannst du einen der passenden Einstiege unten wählen.";
+    if (feedback) feedback.textContent = "Dafür ist in diesem Workspace aktuell kein direkter Einstieg verfügbar. Du kannst einen der sichtbaren Wege unten wählen.";
 });

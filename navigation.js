@@ -7,7 +7,7 @@ const APP_NAVIGATION_LINKS = [
     { label: "Administration", href: "/admin.html", capability: "admin", role: "platform_admin", icon: "settings", secondary: true }
 ];
 
-const NavigationState = { privileges: new Set(), roles: new Set(), loaded: false, platformAdmin: false };
+const NavigationState = { privileges: new Set(), roles: new Set(), modules: new Map(), loaded: false, platformAdmin: false };
 
 const NAV_ICON_PATHS = {
     home: '<path d="M4 11.5 12 5l8 6.5V20H5V11.5"/><path d="M9 20v-6h6v6"/>',
@@ -30,6 +30,7 @@ async function loadNavigationAccess() {
         if (permissionResponse.ok) {
             NavigationState.privileges = new Set((payload?.privileges || []).map(item => item.code));
             NavigationState.roles = new Set((payload?.roles || []).map(item => item.code));
+            NavigationState.modules = new Map((payload?.modules || []).map(item => [item.code, item]));
         }
 
         NavigationState.platformAdmin = adminProbeResponse.ok;
@@ -42,6 +43,10 @@ async function loadNavigationAccess() {
 function linkIsAvailable(link) {
     if (link.capability === "admin") return NavigationState.platformAdmin;
     if (!NavigationState.loaded) return true;
+    if (["recipes", "meal_plan", "inventory"].includes(link.capability)) {
+        const moduleState = NavigationState.modules.get(link.capability);
+        if (moduleState && moduleState.enabled !== true) return false;
+    }
     if (link.privilege && !NavigationState.privileges.has(link.privilege)) return false;
     if (link.role && !NavigationState.roles.has(link.role)) return false;
     return true;
@@ -121,6 +126,39 @@ function renderBurgerMenu() {
     bindWorkspaceSwitchers(burgerDropdown);
 }
 
+function applyExperienceContext() {
+    const workspace = window.AuthShell?.getWorkspace?.();
+    const roles = NavigationState.roles;
+    const density = roles.has("medic")
+        ? "precision"
+        : workspace?.workspace_type === "restaurant"
+            ? "working"
+            : "balanced";
+
+    document.body.dataset.workspaceType = workspace?.workspace_type || "unknown";
+    document.body.dataset.experienceDensity = density;
+    document.body.classList.toggle("experience-precision", density === "precision");
+    document.body.classList.toggle("experience-working", density === "working");
+    document.body.classList.toggle("experience-balanced", density === "balanced");
+}
+
+function isCapabilityAvailable(capability) {
+    if (capability === "home") return true;
+    return APP_NAVIGATION_LINKS
+        .filter(link => link.capability === capability)
+        .some(linkIsAvailable);
+}
+
+window.PlatformNavigation = {
+    isCapabilityAvailable,
+    getState: () => ({
+        loaded: NavigationState.loaded,
+        platformAdmin: NavigationState.platformAdmin,
+        roles: [...NavigationState.roles],
+        modules: [...NavigationState.modules.values()]
+    })
+};
+
 function renderPlatformShell() {
     const available = APP_NAVIGATION_LINKS.filter(linkIsAvailable);
     const primary = available.filter(link => link.primary);
@@ -179,6 +217,7 @@ async function refreshNavigation() {
     renderBurgerMenu();
     renderPlatformShell();
     applyNavigationAvailability();
+    applyExperienceContext();
 }
 
 function initBurgerMenu() {

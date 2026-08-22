@@ -8,7 +8,7 @@
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#F8F7F3">
 </head>
-<body>
+<body class="module-page recipe-form-module">
     <header class="app-header">
         <button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen">
             <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
@@ -19,9 +19,19 @@
         <div id="burger-dropdown" class="burger-dropdown is-hidden"></div>
     </header>
 
-    <div class="container">
-        <main class="page-content">
-            <form id="recipe-form" class="section-card">
+    <div class="container module-container">
+        <main class="page-content module-content recipe-form-page">
+            <header class="page-header module-page-header recipe-form-header">
+                <p class="recipe-kicker">Rezepte</p>
+                <div class="recipe-form-heading-row">
+                    <div>
+                        <h1>Neues Rezept</h1>
+                        <p class="module-intro">Erfasse nur, was du für ein gutes Rezept wirklich brauchst.</p>
+                    </div>
+                    <a class="tertiary-action-link" href="/recipes.html">Zum Rezeptbuch</a>
+                </div>
+            </header>
+            <form id="recipe-form" class="module-workspace recipe-editor-workspace">
                 <div class="form-section">
                     <label for="recipe-name">Name</label>
                     <input type="text" id="recipe-name" name="recipe-name">

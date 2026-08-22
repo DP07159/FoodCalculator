@@ -5230,3 +5230,171 @@ input:focus, select:focus, textarea:focus { border-color: #66764A; }
     .inventory-workspace .inventory-filter-controls { grid-template-columns: 1fr; }
     .recipes-workspace .recipe-add-panel { padding: 14px; }
 }
+
+/* Sprint 5 · Workspace switcher + platform admin navigation repair */
+.platform-workspace-switcher {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+}
+
+.platform-workspace-switcher-label {
+    color: var(--color-text-muted);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+}
+
+.platform-workspace-switch-select {
+    width: 100%;
+    min-height: 34px;
+    padding: 6px 28px 6px 9px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.platform-workspace-static {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.platform-menu-context .platform-workspace-switcher {
+    margin-bottom: 6px;
+}
+
+@media (min-width: 1000px) {
+    .platform-sidebar-workspace .platform-workspace-switcher {
+        width: 100%;
+    }
+
+    .platform-sidebar-workspace .platform-workspace-switch-select {
+        background: var(--color-surface-subtle, #F1F0EB);
+    }
+}
+
+/* Sprint 5 · Recipe reading/editor consolidation */
+.recipe-form-page,
+.recipe-instructions-page {
+    max-width: 1160px;
+    margin: 0 auto;
+}
+
+.recipe-form-heading-row {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.tertiary-action-link {
+    flex: 0 0 auto;
+    color: var(--color-text-secondary, #62645E);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 650;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.tertiary-action-link:hover {
+    color: var(--color-primary-text);
+    border-bottom-color: var(--color-primary-text);
+}
+
+.recipe-editor-workspace {
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.recipe-editor-workspace .form-section {
+    gap: 8px;
+}
+
+.recipe-editor-workspace .recipe-inline-fields,
+.recipe-editor-workspace .recipe-row {
+    gap: 24px;
+}
+
+.recipe-editor-workspace .recipe-row {
+    padding-top: 24px;
+    border-top: 1px solid var(--color-border-soft);
+}
+
+.recipe-editor-workspace textarea {
+    background: var(--color-surface);
+}
+
+.recipe-editor-workspace .form-actions {
+    padding-top: 8px;
+    border-top: 1px solid var(--color-border-soft);
+}
+
+.recipe-editor-workspace .form-actions button {
+    min-height: 44px;
+    padding: 10px 18px;
+    color: #fff;
+    background: var(--color-primary, #4D5B35);
+    border-color: var(--color-primary, #4D5B35);
+    border-radius: 8px;
+    font-weight: 700;
+}
+
+.recipe-editor-workspace .form-actions button:hover {
+    background: var(--color-primary-text, #384326);
+}
+
+.recipe-reading-module .recipe-hero {
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--color-border-soft);
+}
+
+.recipe-reading-module #display-recipe-ingredients,
+.recipe-reading-module #display-recipe-instructions {
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.recipe-reading-module #display-recipe-ingredients {
+    background: var(--color-surface-subtle, #F1F0EB);
+    border-radius: 8px;
+}
+
+.recipe-reading-module #display-recipe-instructions {
+    background: transparent;
+    padding-top: 8px;
+}
+
+.recipe-edit-primary {
+    min-width: auto;
+    width: auto;
+    height: 40px;
+    padding-inline: 12px;
+}
+
+@media (max-width: 768px) {
+    .recipe-form-heading-row {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .recipe-edit-primary {
+        grid-column: 1 / -1;
+        width: 100%;
+    }
+}

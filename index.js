@@ -9,6 +9,7 @@ const foodItemService = require("./src/modules/foodItems/service");
 const inventoryService = require("./src/modules/inventory/service");
 const inventoryRoutes = require("./src/modules/inventory/routes");
 const mealPlanRoutes = require("./src/modules/mealPlans/routes");
+const recipeRoutes = require("./src/modules/recipes/routes");
 const recipeQueryRoutes = require("./src/modules/recipes/queryRoutes");
 const recipeWriteRoutes = require("./src/modules/recipes/writeRoutes");
 const recipeSyncService = require("./src/modules/recipes/syncService");
@@ -16,6 +17,7 @@ const adminRoutes = require("./src/modules/admin/routes");
 const identity = require("./src/core/identity");
 const workspaces = require("./src/core/workspaces");
 const authorization = require("./src/core/authorization");
+const platformAdmin = require("./src/core/platformAdmin");
 
 
 const normalizeGermanText = ingredients.normalizeGermanText;
@@ -48,6 +50,20 @@ async function ensureSchema() {
     await addColumnIfMissing("recipes", "version", "INTEGER DEFAULT 1");
     await addColumnIfMissing("recipes", "created_at", "DATETIME");
     await addColumnIfMissing("recipes", "updated_at", "DATETIME");
+
+    await run(`
+        CREATE TABLE IF NOT EXISTS recipe_workspace_assignments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            recipe_id INTEGER NOT NULL,
+            workspace_id INTEGER NOT NULL,
+            assigned_by_user_id INTEGER,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(recipe_id, workspace_id),
+            FOREIGN KEY (recipe_id) REFERENCES recipes(id) ON DELETE CASCADE,
+            FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON DELETE CASCADE,
+            FOREIGN KEY (assigned_by_user_id) REFERENCES users(id) ON DELETE SET NULL
+        )
+    `);
 
     await run(`
         CREATE TABLE IF NOT EXISTS recipe_ingredients (
@@ -280,12 +296,14 @@ app.get("/check-db", async (req, res) => {
 
 app.use(inventoryRoutes);
 app.use(mealPlanRoutes);
+app.use("/recipes", recipeRoutes);
 app.use(recipeQueryRoutes);
 app.use(recipeWriteRoutes);
 app.use(adminRoutes);
 app.use("/auth", identity.routes);
 app.use("/workspaces", workspaces.routes);
 app.use("/authorization", authorization.routes);
+app.use("/platform-admin", platformAdmin.routes);
 
 
 app.get("/food-items/resolve", async (req, res) => {

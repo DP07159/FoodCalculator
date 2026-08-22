@@ -7,7 +7,7 @@ const APP_NAVIGATION_LINKS = [
     { label: "Administration", href: "/admin.html", capability: "admin", role: "platform_admin", icon: "settings", secondary: true }
 ];
 
-const NavigationState = { privileges: new Set(), roles: new Set(), loaded: false };
+const NavigationState = { privileges: new Set(), roles: new Set(), loaded: false, platformAdmin: false };
 
 const NAV_ICON_PATHS = {
     home: '<path d="M4 11.5 12 5l8 6.5V20H5V11.5"/><path d="M9 20v-6h6v6"/>',
@@ -21,19 +21,27 @@ const NAV_ICON_PATHS = {
 async function loadNavigationAccess() {
     if (!window.AuthShell?.getToken?.() || !window.AuthShell?.getWorkspacePublicId?.()) return;
     try {
-        const response = await AuthShell.request("/authorization/effective-permissions");
-        const payload = await response.json().catch(() => null);
-        if (!response.ok) return;
-        NavigationState.privileges = new Set((payload?.privileges || []).map(item => item.code));
-        NavigationState.roles = new Set((payload?.roles || []).map(item => item.code));
-        NavigationState.loaded = true;
+        const [permissionResponse, adminProbeResponse] = await Promise.all([
+            AuthShell.request("/authorization/effective-permissions"),
+            AuthShell.request("/platform-admin/catalog")
+        ]);
+
+        const payload = await permissionResponse.json().catch(() => null);
+        if (permissionResponse.ok) {
+            NavigationState.privileges = new Set((payload?.privileges || []).map(item => item.code));
+            NavigationState.roles = new Set((payload?.roles || []).map(item => item.code));
+        }
+
+        NavigationState.platformAdmin = adminProbeResponse.ok;
+        NavigationState.loaded = permissionResponse.ok;
     } catch (error) {
-        console.warn("Navigation konnte Berechtigungen nicht laden:", error);
+        console.warn("Navigation konnte Berechtigungen nicht vollständig laden:", error);
     }
 }
 
 function linkIsAvailable(link) {
-    if (!NavigationState.loaded) return link.capability !== "admin";
+    if (link.capability === "admin") return NavigationState.platformAdmin;
+    if (!NavigationState.loaded) return true;
     if (link.privilege && !NavigationState.privileges.has(link.privilege)) return false;
     if (link.role && !NavigationState.roles.has(link.role)) return false;
     return true;
@@ -58,6 +66,38 @@ function navLinkMarkup(link, mode = "sidebar") {
     return `<a href="${link.href}" class="platform-${mode}-link${current ? " is-current" : ""}"${current ? ' aria-current="page"' : ""}>${navIcon(link.icon)}<span>${escapeNavigationHtml(label)}</span></a>`;
 }
 
+function workspaceSelectorMarkup(mode = "menu") {
+    const workspaces = window.AuthShell?.getWorkspaces?.() || [];
+    const current = window.AuthShell?.getWorkspace?.();
+    if (workspaces.length <= 1) {
+        return `<span class="platform-workspace-static">${escapeNavigationHtml(current?.name || "Workspace")}</span>`;
+    }
+
+    return `<label class="platform-workspace-switcher platform-workspace-switcher-${mode}">
+        <span class="platform-workspace-switcher-label">Workspace</span>
+        <select class="platform-workspace-switch-select" aria-label="Workspace wechseln">
+            ${workspaces.map(workspace => `<option value="${escapeNavigationHtml(workspace.public_id)}"${workspace.public_id === current?.public_id ? " selected" : ""}>${escapeNavigationHtml(workspace.name)}</option>`).join("")}
+        </select>
+    </label>`;
+}
+
+function bindWorkspaceSwitchers(root = document) {
+    root.querySelectorAll(".platform-workspace-switch-select").forEach(select => {
+        if (select.dataset.bound === "true") return;
+        select.dataset.bound = "true";
+        select.addEventListener("change", async event => {
+            try {
+                select.disabled = true;
+                await AuthShell.switchWorkspace(event.target.value);
+                window.location.reload();
+            } catch (error) {
+                console.error("Workspace konnte nicht gewechselt werden:", error);
+                select.disabled = false;
+            }
+        });
+    });
+}
+
 function renderBurgerMenu() {
     const burgerDropdown = document.getElementById("burger-dropdown");
     if (!burgerDropdown) return;
@@ -67,7 +107,7 @@ function renderBurgerMenu() {
 
     burgerDropdown.innerHTML = `
         <div class="platform-menu-context">
-            <span>${escapeNavigationHtml(workspace?.name || "Workspace")}</span>
+            ${workspaceSelectorMarkup("menu")}
             <small>${escapeNavigationHtml(user?.display_name || user?.email || "")}</small>
         </div>
         <div class="platform-nav-links">
@@ -78,6 +118,7 @@ function renderBurgerMenu() {
         </div>`;
 
     burgerDropdown.querySelector("#navigation-logout")?.addEventListener("click", () => AuthShell.logout());
+    bindWorkspaceSwitchers(burgerDropdown);
 }
 
 function renderPlatformShell() {
@@ -97,7 +138,7 @@ function renderPlatformShell() {
     sidebar.innerHTML = `
         <a class="platform-sidebar-brand" href="/index.html">Food Moment</a>
         <div class="platform-sidebar-workspace">
-            <span>${escapeNavigationHtml(workspace?.name || "Workspace")}</span>
+            ${workspaceSelectorMarkup("sidebar")}
             <small>${escapeNavigationHtml(user?.display_name || user?.email || "")}</small>
         </div>
         <nav class="platform-sidebar-nav" aria-label="Hauptnavigation">
@@ -106,6 +147,7 @@ function renderPlatformShell() {
         ${secondary.length ? `<nav class="platform-sidebar-secondary" aria-label="Weitere Bereiche">${secondary.map(link => navLinkMarkup(link, "sidebar")).join("")}</nav>` : ""}
         <button type="button" class="platform-sidebar-logout" id="platform-sidebar-logout">Abmelden</button>`;
     sidebar.querySelector("#platform-sidebar-logout")?.addEventListener("click", () => AuthShell.logout());
+    bindWorkspaceSwitchers(sidebar);
 
     let bottom = document.getElementById("platform-bottom-nav");
     if (!bottom) {

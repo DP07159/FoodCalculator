@@ -1,11 +1,14 @@
-const CACHE_NAME = "food-calculator-sprint-6e-inventory-auth-workspace-fix";
+const CACHE_NAME = "food-moment-platform-v27-foundation-sprint1";
 
 const FILES_TO_CACHE = [
     "/",
     "/index.html",
     "/style.css",
+    "/home.js",
+    "/tools.html",
     "/script.js",
     "/auth-shell.js",
+    "/platform.js",
     "/login.html",
     "/login.js",
     "/navigation.js",
@@ -16,8 +19,6 @@ const FILES_TO_CACHE = [
     "/recipeCreate.html",
     "/recipeCreate.js",
     "/admin.html",
-    "/adminUsers.html",
-    "/adminUsers.js",
     "/adminTable.html",
     "/admin.js",
     "/inventory.html",
@@ -41,15 +42,26 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
     if (event.request.method !== "GET") return;
+
     const url = new URL(event.request.url);
-    const dynamicShell = event.request.mode === "navigate" || ["script", "style"].includes(event.request.destination);
-    if (url.origin === self.location.origin && dynamicShell) {
-        event.respondWith(fetch(event.request).then(response => {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-            return response;
-        }).catch(() => caches.match(event.request)));
+    const isAppShellAsset =
+        event.request.mode === "navigate" ||
+        ["script", "style"].includes(event.request.destination);
+
+    if (url.origin === self.location.origin && isAppShellAsset) {
+        event.respondWith(
+            fetch(event.request)
+                .then(response => {
+                    const copy = response.clone();
+                    caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
+                    return response;
+                })
+                .catch(() => caches.match(event.request))
+        );
         return;
     }
-    event.respondWith(caches.match(event.request).then(cached => cached || fetch(event.request)));
+
+    event.respondWith(
+        caches.match(event.request).then(cached => cached || fetch(event.request))
+    );
 });

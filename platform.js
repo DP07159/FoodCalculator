@@ -15,6 +15,8 @@ const PlatformShell = (() => {
         ready: false
     };
 
+    let initPromise = null;
+
     function isLoginPage() {
         return window.location.pathname.endsWith("/login.html") ||
             window.location.pathname === "/login.html";
@@ -106,7 +108,9 @@ const PlatformShell = (() => {
         const response = await apiFetch(path, options);
         const payload = await response.json().catch(() => null);
         if (!response.ok) {
-            throw new Error(payload?.error || "Serverfehler");
+            const error = new Error(payload?.error || "Serverfehler");
+            error.status = response.status;
+            throw error;
         }
         return payload;
     }
@@ -188,33 +192,67 @@ const PlatformShell = (() => {
     }
 
     async function initializeContext() {
-        if (!getToken()) {
-            if (!isLoginPage()) {
-                window.location.replace("/login.html");
-            }
-            return;
-        }
-
-        try {
-            await loadUser();
-            await loadWorkspaces();
-            await loadPermissions();
-            state.ready = true;
-
-            document.body?.classList.remove("permission-pending");
-            applyPermissionState();
+        if (state.ready) {
             renderPlatformContext();
-
-            document.dispatchEvent(new CustomEvent("platform:ready", {
-                detail: getContext()
-            }));
-        } catch (error) {
-            console.error("Platform Shell konnte nicht initialisiert werden:", error);
-            clearSession();
-            if (!isLoginPage()) {
-                window.location.replace("/login.html?reason=session");
-            }
+            applyPermissionState();
+            return getContext();
         }
+
+        if (initPromise) {
+            return initPromise;
+        }
+
+        initPromise = (async () => {
+            if (!getToken()) {
+                if (!isLoginPage()) {
+                    window.location.replace("/login.html");
+                }
+                return null;
+            }
+
+            try {
+                await loadUser();
+                await loadWorkspaces();
+                await loadPermissions();
+
+                state.ready = true;
+                document.body?.classList.remove("permission-pending");
+
+                applyPermissionState();
+                renderPlatformContext();
+
+                const context = getContext();
+                document.dispatchEvent(new CustomEvent("platform:ready", {
+                    detail: context
+                }));
+
+                return context;
+            } catch (error) {
+                console.error("Platform Shell konnte nicht initialisiert werden:", error);
+
+                document.body?.classList.remove("permission-pending");
+
+                if (error?.status === 401) {
+                    clearSession();
+                    if (!isLoginPage()) {
+                        window.location.replace("/login.html?reason=session");
+                    }
+                    return null;
+                }
+
+                document.dispatchEvent(new CustomEvent("platform:error", {
+                    detail: {
+                        message: error?.message || "Platform-Kontext konnte nicht geladen werden."
+                    }
+                }));
+
+                throw error;
+            } finally {
+                initPromise = null;
+            }
+        })();
+
+        return initPromise;
     }
 
     async function switchWorkspace(publicId) {

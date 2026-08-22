@@ -4833,3 +4833,119 @@ body.modal-open .app-header {
         justify-content: flex-start;
     }
 }
+
+/* ========================================================================== 
+   Food Moment Platform · Design Foundation v0.1 · Foundation Sprint
+   Additive transition layer. Existing module selectors remain compatible.
+   ========================================================================== */
+:root {
+    --color-page-bg: #F8F7F3;
+    --color-surface: #FFFFFF;
+    --color-surface-soft: #F1F0EB;
+    --color-primary: #4D5B35;
+    --color-primary-soft: #E8EBE1;
+    --color-primary-border: #CCD3BE;
+    --color-primary-text: #384326;
+    --color-text: #242521;
+    --color-text-muted: #62645E;
+    --color-border: #DDDCD5;
+    --color-border-soft: #E7E6E0;
+    --color-danger-bg: #FFF4F2;
+    --color-danger-border: #E7B8AF;
+    --color-danger-text: #8B3428;
+    --color-success-bg: #F2F6ED;
+    --color-success-border: #C9D8BC;
+    --color-success-text: #46633B;
+    --font-family-base: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-family-editorial: "Source Serif 4", Georgia, "Times New Roman", serif;
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 16px;
+    --space-lg: 24px;
+    --space-xl: 32px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 12px;
+    --shadow-card: 0 4px 16px rgba(30, 32, 27, .08);
+    --shadow-soft: 0 2px 8px rgba(30, 32, 27, .06);
+    --shadow-focus: 0 0 0 3px rgba(102, 118, 74, .15);
+}
+
+body { background: var(--color-page-bg); color: var(--color-text); }
+h1, .intent-hero h1 { letter-spacing: -.02em; }
+input, select, textarea { border-radius: 8px; border-color: var(--color-border); }
+input:focus, select:focus, textarea:focus { border-color: #66764A; }
+
+.app-header.platform-header,
+.app-header {
+    background: rgba(248, 247, 243, .94);
+    border-bottom-color: rgba(197, 196, 188, .55);
+}
+.platform-wordmark { color: var(--color-text); text-decoration: none; font-weight: 700; letter-spacing: -.02em; }
+.burger-button:hover { background: var(--color-primary-soft); color: var(--color-primary-text); }
+.burger-dropdown { border-radius: 12px; border-color: var(--color-border); box-shadow: var(--shadow-card); }
+.platform-menu-context { padding: 14px 14px 12px; border-bottom: 1px solid var(--color-border-soft); }
+.platform-menu-context span, .platform-menu-context small { display: block; }
+.platform-menu-context span { font-weight: 700; }
+.platform-menu-context small { margin-top: 2px; color: var(--color-text-muted); font-size: 12px; }
+.platform-nav-links { padding: 6px; }
+.platform-nav-links a { display: block; padding: 10px 12px; border-radius: 8px; color: var(--color-text); text-decoration: none; font-weight: 600; }
+.platform-nav-links a:hover { background: var(--color-primary-soft); color: var(--color-primary-text); }
+.platform-menu-footer { padding: 8px 12px 12px; border-top: 1px solid var(--color-border-soft); }
+.platform-menu-footer button { padding: 7px 0; border: 0; background: transparent; color: var(--color-text-muted); }
+
+.section-card, #meal-plan, .recipe-book-box, #recipe-form, #display-recipe-ingredients, #display-recipe-instructions {
+    border-color: var(--color-border);
+    border-radius: 12px;
+    box-shadow: none;
+}
+.toolbar-icon-button, .recipe-toolbar-toggle-button, .recipe-toolbar-save-button, .header-icon-button, .recipe-icons button, .day-nav-button {
+    border-radius: 8px;
+    border-color: var(--color-primary-border);
+    background: var(--color-primary-soft);
+    color: var(--color-primary-text);
+}
+.toolbar-icon-button:hover, .recipe-toolbar-toggle-button:hover, .recipe-toolbar-save-button:hover, .header-icon-button:hover, .recipe-icons button:hover, .day-nav-button:hover {
+    transform: none;
+    background: #DCE2D1;
+}
+
+.home-container { max-width: 1040px; padding-top: clamp(48px, 9vh, 104px); }
+.intent-home { max-width: 900px; margin: 0 auto; }
+.intent-hero { max-width: 760px; margin-bottom: 48px; }
+.intent-eyebrow { margin-bottom: 12px; color: var(--color-text-muted); font-size: 13px; font-weight: 600; }
+.intent-hero h1 { margin: 0 0 14px; font-family: var(--font-family-editorial); font-size: clamp(42px, 7vw, 64px); font-weight: 500; line-height: 1.02; }
+.intent-lead { max-width: 660px; margin-bottom: 32px; color: var(--color-text-muted); font-size: 18px; line-height: 1.6; }
+.intent-input-wrap { margin: 0; }
+.intent-input-wrap > label { display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; }
+.intent-input-row { display: flex; gap: 8px; }
+.intent-input-row input { min-height: 52px; padding: 12px 14px; background: var(--color-surface); font-size: 16px; }
+.primary-button, .intent-submit { width: auto; min-height: 52px; padding: 0 20px; border: 1px solid var(--color-primary); border-radius: 8px; background: var(--color-primary); color: #fff; font-weight: 700; white-space: nowrap; }
+.primary-button:hover, .intent-submit:hover { background: #384326; }
+.intent-feedback { min-height: 20px; margin: 8px 0 0; color: var(--color-text-muted); font-size: 13px; }
+.intent-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); }
+.intent-action { display: grid; grid-template-columns: 40px 1fr 24px; gap: 14px; align-items: center; min-height: 96px; padding: 18px 20px; color: var(--color-text); text-decoration: none; border-bottom: 1px solid var(--color-border-soft); }
+.intent-action:nth-child(odd) { border-right: 1px solid var(--color-border); }
+.intent-action:nth-last-child(-n+2) { border-bottom: 0; }
+.intent-action:hover { background: rgba(232, 235, 225, .55); }
+.intent-action-icon { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; color: var(--color-primary-text); }
+.intent-action-icon .fc-icon { width: 24px; height: 24px; }
+.intent-action strong, .intent-action small { display: block; }
+.intent-action strong { margin-bottom: 3px; font-size: 16px; }
+.intent-action small { color: var(--color-text-muted); font-size: 13px; }
+.intent-arrow { width: 18px; height: 18px; color: var(--color-text-muted); }
+.home-ambient-note { max-width: 680px; margin: 32px 0 0; color: var(--color-text-muted); font-size: 13px; line-height: 1.6; }
+.home-ambient-note strong { color: var(--color-text); font-weight: 600; }
+[hidden] { display: none !important; }
+
+@media (max-width: 720px) {
+    .home-container { padding-top: 40px; }
+    .intent-hero { margin-bottom: 36px; }
+    .intent-hero h1 { font-size: 44px; }
+    .intent-lead { font-size: 16px; }
+    .intent-input-row { flex-direction: column; }
+    .intent-submit { width: 100%; }
+    .intent-actions { grid-template-columns: 1fr; }
+    .intent-action, .intent-action:nth-child(odd), .intent-action:nth-last-child(-n+2) { border-right: 0; border-bottom: 1px solid var(--color-border-soft); }
+    .intent-action:last-child { border-bottom: 0; }
+}

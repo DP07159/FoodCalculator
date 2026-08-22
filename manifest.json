@@ -1,11 +1,11 @@
 {
-    "name": "Food Calculator",
-    "short_name": "FoodCalc",
+    "name": "Food Moment Platform",
+    "short_name": "Food Moment",
     "start_url": "/index.html",
     "display": "standalone",
-    "background_color": "#f5f7fb",
-    "theme_color": "#f5f7fb",
-    "description": "Wochenplan, Rezepte und Einkaufsliste",
+    "background_color": "#F8F7F3",
+    "theme_color": "#F8F7F3",
+    "description": "Food Moments, Rezepte, Planung und Inventar",
     "icons": [
         {
             "src": "/icon-192.png",

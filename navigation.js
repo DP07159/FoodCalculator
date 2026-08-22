@@ -3,6 +3,41 @@ const STATIC_NAVIGATION_LINKS = [
     { label: "Administration", href: "/admin.html", capability: "admin", icon: "settings", secondary: true, order: 900 }
 ];
 
+const LEGACY_MODULE_DEFINITIONS = [
+    {
+        code: "meal_plan",
+        name: "Wochenplan",
+        enabled: true,
+        navigation: { label: "Wochenplan", short_label: "Plan", href: "/mealPlan.html", icon: "calendar", primary: true, order: 20 },
+        home_actions: [
+            { code: "plan_week", label: "Woche planen", description: "Mahlzeiten intuitiv platzieren", href: "/mealPlan.html", icon: "calendar", order: 20, intent_keywords: ["woche", "wochenplan", "planen", "montag", "dienstag", "mittwoch", "donnerstag", "freitag", "samstag", "sonntag"] }
+        ]
+    },
+    {
+        code: "recipes",
+        name: "Rezepte",
+        enabled: true,
+        navigation: { label: "Rezepte", short_label: "Rezepte", href: "/recipes.html", icon: "recipes", primary: true, order: 30 },
+        secondary_navigation: [
+            { label: "Rezept anlegen", href: "/recipeCreate.html", icon: "plus", order: 10 }
+        ],
+        home_actions: [
+            { code: "cook_now", label: "Jetzt kochen", description: "Ein passendes Rezept finden", href: "/recipes.html", icon: "recipes", order: 10, intent_keywords: ["rezept", "kochen", "essen", "gericht", "dinner", "mittag", "frühstück", "fruehstueck"] },
+            { code: "create_recipe", label: "Rezept anlegen", description: "Ein eigenes Rezept erfassen", href: "/recipeCreate.html", icon: "plus", order: 40, intent_keywords: ["rezept anlegen", "rezept erfassen", "eigenes rezept"] }
+        ]
+    },
+    {
+        code: "inventory",
+        name: "Inventar",
+        enabled: true,
+        required_privilege: "inventory.view",
+        navigation: { label: "Inventar", short_label: "Inventar", href: "/inventory.html", icon: "inventory", primary: true, order: 40 },
+        home_actions: [
+            { code: "maintain_inventory", label: "Inventar pflegen", description: "Sehen, was da ist", href: "/inventory.html", icon: "inventory", order: 30, intent_keywords: ["inventar", "vorrat", "lager", "kühlschrank", "kuehlschrank", "vorhanden"] }
+        ]
+    }
+];
+
 const NavigationState = {
     privileges: new Set(),
     roles: new Set(),
@@ -74,31 +109,92 @@ function buildModuleLinks(modules) {
 async function loadNavigationAccess() {
     if (!window.AuthShell?.getToken?.() || !window.AuthShell?.getWorkspacePublicId?.()) return;
 
+    let platformContextLoaded = false;
+    let authorizationFallbackLoaded = false;
+    let payload = null;
+    let adminProbeResponse = null;
+
     try {
-        const [contextResponse, adminProbeResponse] = await Promise.all([
+        const [contextResponse, adminResponse] = await Promise.all([
             AuthShell.request("/platform/context"),
             AuthShell.request("/platform-admin/catalog")
         ]);
+        adminProbeResponse = adminResponse;
 
-        const payload = await contextResponse.json().catch(() => null);
-        if (contextResponse.ok) {
-            const modules = Array.isArray(payload?.modules) ? payload.modules : [];
-            const dynamic = buildModuleLinks(modules);
-
-            NavigationState.privileges = new Set((payload?.privileges || []).map(item => item.code));
-            NavigationState.roles = new Set((payload?.roles || []).map(item => item.code));
-            NavigationState.modules = new Map(modules.map(item => [item.code, item]));
-            NavigationState.links = [...STATIC_NAVIGATION_LINKS, ...dynamic.links]
-                .sort((a, b) => Number(a.order || 100) - Number(b.order || 100));
-            NavigationState.homeActions = dynamic.homeActions;
-            NavigationState.loaded = true;
-        } else {
-            NavigationState.loaded = false;
+        payload = await contextResponse.json().catch(() => null);
+        if (contextResponse.ok && Array.isArray(payload?.modules) && payload.modules.length > 0) {
+            platformContextLoaded = true;
         }
-
-        NavigationState.platformAdmin = adminProbeResponse.ok;
     } catch (error) {
-        console.warn("Platform-Kontext konnte nicht vollständig geladen werden:", error);
+        console.warn("Platform-Kontext ist nicht verfügbar; kompatibler Fallback wird verwendet:", error);
+    }
+
+    if (!platformContextLoaded) {
+        try {
+            const permissionResponse = await AuthShell.request("/authorization/effective-permissions");
+            const permissionPayload = await permissionResponse.json().catch(() => null);
+
+            if (permissionResponse.ok) {
+                payload = permissionPayload || {};
+                authorizationFallbackLoaded = true;
+            }
+        } catch (error) {
+            console.warn("Auch der Authorization-Fallback konnte nicht geladen werden:", error);
+        }
+    }
+
+    const privileges = new Set((payload?.privileges || []).map(item => item.code));
+    const roles = new Set((payload?.roles || []).map(item => item.code));
+
+    let modules;
+    if (platformContextLoaded) {
+        modules = payload.modules;
+    } else {
+        const entitlementByCode = new Map(
+            (payload?.modules || []).map(item => [item.code, item])
+        );
+
+        modules = LEGACY_MODULE_DEFINITIONS.map(definition => {
+            const entitlement = entitlementByCode.get(definition.code);
+            const moduleEnabled = entitlement ? entitlement.enabled !== false : true;
+            const privilegeGranted =
+                !authorizationFallbackLoaded ||
+                !definition.required_privilege ||
+                privileges.has(definition.required_privilege);
+
+            return {
+                ...definition,
+                enabled: moduleEnabled && privilegeGranted,
+                module_enabled: moduleEnabled,
+                privilege_granted: privilegeGranted,
+                unavailable_reason: !moduleEnabled
+                    ? "module_not_enabled"
+                    : !privilegeGranted
+                        ? "missing_privilege"
+                        : null
+            };
+        });
+    }
+
+    const dynamic = buildModuleLinks(modules);
+
+    NavigationState.privileges = privileges;
+    NavigationState.roles = roles;
+    NavigationState.modules = new Map(modules.map(item => [item.code, item]));
+    NavigationState.links = [...STATIC_NAVIGATION_LINKS, ...dynamic.links]
+        .sort((a, b) => Number(a.order || 100) - Number(b.order || 100));
+    NavigationState.homeActions = dynamic.homeActions;
+    NavigationState.loaded = true;
+
+    if (adminProbeResponse) {
+        NavigationState.platformAdmin = adminProbeResponse.ok;
+    } else {
+        try {
+            const adminResponse = await AuthShell.request("/platform-admin/catalog");
+            NavigationState.platformAdmin = adminResponse.ok;
+        } catch (error) {
+            NavigationState.platformAdmin = false;
+        }
     }
 }
 

@@ -1,4 +1,4 @@
-const CACHE_NAME = "food-moment-platform-v30-context-adaptive-sprint7";
+const CACHE_NAME = "food-moment-platform-v31-navigation-fallback-sprint8";
 
 const FILES_TO_CACHE = [
     "/",

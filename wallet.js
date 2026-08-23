@@ -1,180 +1,38 @@
-const WalletPage = (() => {
-    const state = { status: "saved", items: [] };
-
-    function escapeHtml(value) {
-        return String(value ?? "")
-            .replaceAll("&", "&amp;")
-            .replaceAll("<", "&lt;")
-            .replaceAll(">", "&gt;")
-            .replaceAll('"', "&quot;");
-    }
-
-    function formatPlatform(value) {
-        if (!value) return "Eigene Notiz";
-        const labels = {
-            instagram: "Instagram",
-            tiktok: "TikTok",
-            youtube: "YouTube",
-            pinterest: "Pinterest"
-        };
-        return labels[value] || value.replace(/^www\./, "");
-    }
-
-    function formatSavedAt(value) {
-        if (!value) return "";
-        const parsed = new Date(String(value).replace(" ", "T") + (String(value).includes("Z") ? "" : "Z"));
-        if (Number.isNaN(parsed.getTime())) return "";
-        return new Intl.DateTimeFormat("de-DE", { dateStyle: "medium" }).format(parsed);
-    }
-
-    function showToast(message) {
-        const toast = document.getElementById("app-toast");
-        if (!toast) return;
-        toast.textContent = message;
-        toast.classList.remove("is-hidden");
-        toast.classList.add("is-visible");
-        window.setTimeout(() => {
-            toast.classList.remove("is-visible");
-            toast.classList.add("is-hidden");
-        }, 2400);
-    }
-
-    async function api(path = "", options = {}) {
-        const headers = new Headers(options.headers || {});
-        if (options.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
-        const response = await AuthShell.request(`/wallet${path}`, { ...options, headers });
-        const payload = await response.json().catch(() => null);
-        if (!response.ok) throw new Error(payload?.error || "Wallet-Aktion fehlgeschlagen.");
-        return payload;
-    }
-
-    function renderEmpty() {
-        const label = state.status === "saved" ? "Noch nichts gemerkt." : "Hier gibt es noch keine Einträge.";
-        return `<div class="wallet-empty-state"><strong>${label}</strong><p>Speichere oben einen Link oder eine Idee. Die Wallet bleibt bewusst ein ruhiger Eingangskorb.</p></div>`;
-    }
-
-    function renderItem(item) {
-        const title = item.title || formatPlatform(item.source_platform) || "Gespeicherte Inspiration";
-        const platform = formatPlatform(item.source_platform);
-        const date = formatSavedAt(item.saved_at);
-        const source = item.source_url
-            ? `<a class="wallet-source-link" href="${escapeHtml(item.source_url)}" target="_blank" rel="noopener noreferrer">Quelle öffnen</a>`
-            : "";
-        const markAction = item.status === "saved"
-            ? `<button type="button" class="wallet-text-action" data-wallet-action="used" data-wallet-id="${escapeHtml(item.public_id)}">Als verwendet markieren</button>`
-            : `<button type="button" class="wallet-text-action" data-wallet-action="saved" data-wallet-id="${escapeHtml(item.public_id)}">Wieder merken</button>`;
-
-        return `<article class="wallet-item" data-wallet-item="${escapeHtml(item.public_id)}">
-            <div class="wallet-item-main">
-                <div class="wallet-item-meta"><span>${escapeHtml(platform)}</span>${date ? `<span>${escapeHtml(date)}</span>` : ""}</div>
-                <h3>${escapeHtml(title)}</h3>
-                ${item.note ? `<p>${escapeHtml(item.note)}</p>` : ""}
-                <div class="wallet-item-actions">
-                    ${source}
-                    ${markAction}
-                    <button type="button" class="wallet-text-action" data-wallet-action="archive" data-wallet-id="${escapeHtml(item.public_id)}">Archivieren</button>
-                </div>
-            </div>
-            <div class="wallet-item-next" aria-label="Spätere Weiterverwendung">
-                <span>Als Nächstes</span>
-                <small>Rezept · Food Moment · Planung</small>
-            </div>
-        </article>`;
-    }
-
-    function render() {
-        const list = document.getElementById("wallet-list");
-        if (!list) return;
-        list.innerHTML = state.items.length ? state.items.map(renderItem).join("") : renderEmpty();
-    }
-
-    async function load() {
-        const list = document.getElementById("wallet-list");
-        if (list) list.innerHTML = '<div class="wallet-loading">Wallet wird geladen …</div>';
-        try {
-            state.items = await api(`?status=${encodeURIComponent(state.status)}`);
-            render();
-        } catch (error) {
-            if (list) list.innerHTML = `<div class="wallet-empty-state is-error"><strong>Wallet konnte nicht geladen werden.</strong><p>${escapeHtml(error.message)}</p></div>`;
-        }
-    }
-
-    async function save(event) {
-        event.preventDefault();
-        const form = event.currentTarget;
-        const feedback = document.getElementById("wallet-form-feedback");
-        const button = form.querySelector('button[type="submit"]');
-        const payload = {
-            source_url: form.elements.source_url.value,
-            title: form.elements.title.value,
-            note: form.elements.note.value
-        };
-        try {
-            button.disabled = true;
-            if (feedback) feedback.textContent = "";
-            await api("", { method: "POST", body: JSON.stringify(payload) });
-            form.reset();
-            state.status = "saved";
-            document.getElementById("wallet-status-select").value = "saved";
-            await load();
-            showToast("Inspiration gespeichert");
-        } catch (error) {
-            if (feedback) feedback.textContent = error.message;
-        } finally {
-            button.disabled = false;
-        }
-    }
-
-    async function updateStatus(publicId, status) {
-        try {
-            await api(`/${encodeURIComponent(publicId)}`, {
-                method: "PATCH",
-                body: JSON.stringify({ status })
-            });
-            await load();
-            showToast(status === "archived" ? "Archiviert" : "Wallet aktualisiert");
-        } catch (error) {
-            showToast(error.message);
-        }
-    }
-
-    function bind() {
-        document.getElementById("wallet-capture-form")?.addEventListener("submit", save);
-        document.getElementById("wallet-status-select")?.addEventListener("change", event => {
-            state.status = event.target.value;
-            load();
-        });
-        document.getElementById("wallet-list")?.addEventListener("click", event => {
-            const button = event.target.closest("[data-wallet-action]");
-            if (!button) return;
-            const action = button.dataset.walletAction;
-            const status = action === "archive" ? "archived" : action;
-            updateStatus(button.dataset.walletId, status);
-        });
-
-        const params = new URLSearchParams(window.location.search);
-        const sharedTitle = params.get("title") || "";
-        const sharedText = params.get("text") || "";
-        let sharedUrl = params.get("url") || "";
-        if (!sharedUrl && sharedText) {
-            const urlMatch = sharedText.match(/https?:\/\/\S+/i);
-            if (urlMatch) sharedUrl = urlMatch[0].replace(/[),.;]+$/, "");
-        }
-        const noteText = sharedUrl ? sharedText.replace(sharedUrl, "").trim() : sharedText.trim();
-        if (sharedUrl) document.getElementById("wallet-source-url").value = sharedUrl;
-        if (sharedTitle) document.getElementById("wallet-title").value = sharedTitle;
-        if (noteText) document.getElementById("wallet-note").value = noteText;
-        if (params.get("capture") === "1" || sharedUrl || sharedTitle || sharedText) {
-            window.setTimeout(() => (sharedUrl ? document.getElementById("wallet-title") : document.getElementById("wallet-source-url"))?.focus(), 0);
-        }
-    }
-
-    function init() {
-        bind();
-        load();
-    }
-
-    return { init };
-})();
-
-document.addEventListener("auth:ready", WalletPage.init, { once: true });
+const WalletPage=(()=>{
+const state={status:'saved',items:[],view:'grid',search:'',platform:'all',period:'all',sort:'newest',preview:null};
+const $=id=>document.getElementById(id);
+function esc(v){return String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');}
+function platform(v){if(!v)return'Eigene Notiz';return({instagram:'Instagram',tiktok:'TikTok',youtube:'YouTube',pinterest:'Pinterest'})[v]||v.replace(/^www\./,'');}
+function parseDate(v){if(!v)return null;const d=new Date(String(v).replace(' ','T')+(String(v).match(/[zZ]|[+-]\d\d:?\d\d$/)?'':'Z'));return Number.isNaN(d.getTime())?null:d;}
+function dateLabel(v){const d=parseDate(v);if(!d)return'';const now=new Date(), diff=Math.floor((now-d)/86400000);if(diff===0)return'Heute';if(diff===1)return'Gestern';return new Intl.DateTimeFormat('de-DE',{day:'2-digit',month:'short',year:d.getFullYear()===now.getFullYear()?undefined:'numeric'}).format(d);}
+function toast(m){const t=$('app-toast');if(!t)return;t.textContent=m;t.classList.remove('is-hidden');t.classList.add('is-visible');clearTimeout(toast.timer);toast.timer=setTimeout(()=>{t.classList.remove('is-visible');t.classList.add('is-hidden');},2300);}
+async function api(path='',options={}){const h=new Headers(options.headers||{});if(options.body&&!h.has('Content-Type'))h.set('Content-Type','application/json');const r=await AuthShell.request(`/wallet${path}`,{...options,headers:h});const p=await r.json().catch(()=>null);if(!r.ok)throw new Error(p?.error||'Wallet-Aktion fehlgeschlagen.');return p;}
+function itemTitle(i){return i.title||i.source_page_title||platform(i.source_platform)||'Gespeicherte Inspiration';}
+function sourceHost(i){try{return new URL(i.source_url).hostname.replace(/^www\./,'');}catch(_){return platform(i.source_platform);}}
+function imageMarkup(i){if(i.source_image_url)return `<img src="${esc(i.source_image_url)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentElement.classList.add('is-fallback');this.remove()">`;return'';}
+function menu(i){return `<div class="wallet-item-menu-wrap"><button class="wallet-item-menu-button" type="button" data-action="menu" data-id="${esc(i.public_id)}" aria-label="Aktionen für ${esc(itemTitle(i))}" aria-expanded="false"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/></svg></button><div class="wallet-item-menu is-hidden" data-menu="${esc(i.public_id)}"><button type="button" data-action="food-moment" data-id="${esc(i.public_id)}">Food Moment daraus machen</button><button type="button" data-action="recipe" data-id="${esc(i.public_id)}">Rezept daraus erstellen</button><button type="button" data-action="edit" data-id="${esc(i.public_id)}">Inspiration bearbeiten</button>${i.status!=='archived'?`<button type="button" data-action="archive" data-id="${esc(i.public_id)}">Archivieren</button>`:''}<button class="is-danger" type="button" data-action="delete" data-id="${esc(i.public_id)}">Löschen</button></div></div>`;}
+function card(i){const url=i.source_url?`href="${esc(i.source_url)}" target="_blank" rel="noopener noreferrer"`:'';return `<article class="wallet-card"><a class="wallet-card-source" ${url} ${i.source_url?'':'aria-disabled="true"'}><div class="wallet-card-image ${i.source_image_url?'':'is-fallback'}">${imageMarkup(i)}<span>${esc(platform(i.source_platform))}</span></div><div class="wallet-card-body"><div class="wallet-card-meta"><span>${esc(platform(i.source_platform))}</span><span>${esc(dateLabel(i.saved_at))}</span></div><h3>${esc(itemTitle(i))}</h3>${i.note?`<p>${esc(i.note)}</p>`:''}</div></a>${menu(i)}</article>`;}
+function row(i){const url=i.source_url?`href="${esc(i.source_url)}" target="_blank" rel="noopener noreferrer"`:'';return `<article class="wallet-row"><a class="wallet-row-source" ${url} ${i.source_url?'':'aria-disabled="true"'}><div class="wallet-row-thumb ${i.source_image_url?'':'is-fallback'}">${imageMarkup(i)}</div><div class="wallet-row-copy"><h3>${esc(itemTitle(i))}</h3>${i.note?`<p>${esc(i.note)}</p>`:''}<div class="wallet-card-meta"><span>${esc(sourceHost(i))}</span><span>${esc(dateLabel(i.saved_at))}</span></div></div></a>${menu(i)}</article>`;}
+function filtered(){let a=[...state.items];const q=state.search.trim().toLocaleLowerCase('de');if(q)a=a.filter(i=>[itemTitle(i),i.note,platform(i.source_platform),sourceHost(i)].some(v=>String(v||'').toLocaleLowerCase('de').includes(q)));if(state.platform!=='all')a=a.filter(i=>(i.source_platform||'note')===state.platform);if(state.period!=='all'){const since=Date.now()-Number(state.period)*86400000;a=a.filter(i=>(parseDate(i.saved_at)?.getTime()||0)>=since);}if(state.sort==='oldest')a.sort((x,y)=>(parseDate(x.saved_at)||0)-(parseDate(y.saved_at)||0));else if(state.sort==='title')a.sort((x,y)=>itemTitle(x).localeCompare(itemTitle(y),'de'));else a.sort((x,y)=>(parseDate(y.saved_at)||0)-(parseDate(x.saved_at)||0));return a;}
+function renderPlatforms(){const s=$('wallet-platform-select');const current=state.platform;const vals=[...new Set(state.items.map(i=>i.source_platform||'note'))].sort();s.innerHTML='<option value="all">Alle Quellen</option>'+vals.map(v=>`<option value="${esc(v)}">${esc(v==='note'?'Eigene Notiz':platform(v))}</option>`).join('');s.value=vals.includes(current)?current:'all';if(s.value!==current)state.platform='all';}
+function render(){const list=$('wallet-list'),items=filtered();$('wallet-count').textContent=`${items.length} ${items.length===1?'Inspiration':'Inspirationen'}`;list.className=`wallet-collection is-${state.view}`;if(!items.length){list.innerHTML='<div class="wallet-empty-state"><strong>Keine Inspirationen gefunden.</strong><p>Passe die Filter an oder füge eine neue Inspiration hinzu.</p></div>';return;}list.innerHTML=items.map(state.view==='grid'?card:row).join('');}
+async function load(){const list=$('wallet-list');list.innerHTML='<div class="wallet-loading">Wallet wird geladen …</div>';try{state.items=await api(`?status=${encodeURIComponent(state.status)}`);renderPlatforms();render();}catch(e){list.innerHTML=`<div class="wallet-empty-state is-error"><strong>Wallet konnte nicht geladen werden.</strong><p>${esc(e.message)}</p></div>`;}}
+function openDialog(item=null){state.preview=null;$('wallet-edit-id').value=item?.public_id||'';$('wallet-dialog-title').textContent=item?'Inspiration bearbeiten':'Inspiration hinzufügen';$('wallet-source-url').value=item?.source_url||'';$('wallet-title').value=item?.title||'';$('wallet-note').value=item?.note||'';$('wallet-image-url').value=item?.source_image_url||'';$('wallet-page-title').value=item?.source_page_title||'';$('wallet-save-button').textContent=item?'Änderungen speichern':'Inspiration speichern';$('wallet-form-feedback').textContent='';renderPreview(item?{title:item.source_page_title||item.title,image_url:item.source_image_url,final_url:item.source_url}:null);$('wallet-dialog').showModal();setTimeout(()=>$('wallet-source-url').focus(),0);}
+function closeDialog(){$('wallet-dialog').close();}
+function renderPreview(p){const box=$('wallet-source-preview');if(!p?.title&&!p?.image_url){box.classList.add('is-hidden');return;}box.classList.remove('is-hidden');$('wallet-preview-title').textContent=p.title||'Vorschau';try{$('wallet-preview-host').textContent=new URL(p.final_url||$('wallet-source-url').value).hostname.replace(/^www\./,'');}catch(_){$('wallet-preview-host').textContent='';}const image=$('wallet-preview-image');image.innerHTML=p.image_url?`<img src="${esc(p.image_url)}" alt="" referrerpolicy="no-referrer">`:'';image.classList.toggle('is-empty',!p.image_url);}
+async function preview(){const url=$('wallet-source-url').value.trim();if(!url){$('wallet-form-feedback').textContent='Gib zuerst einen Link ein.';return;}const b=$('wallet-preview-button');b.disabled=true;b.textContent='Lädt …';try{const p=await api('/preview',{method:'POST',body:JSON.stringify({source_url:url})});state.preview=p;$('wallet-page-title').value=p.title||'';$('wallet-image-url').value=p.image_url||'';if(!$('wallet-title').value.trim()&&p.title)$('wallet-title').value=p.title;renderPreview(p);$('wallet-form-feedback').textContent=p.title||p.image_url?'Vorschau übernommen.':'Keine Vorschau gefunden – du kannst trotzdem speichern.';}catch(e){$('wallet-form-feedback').textContent=e.message;}finally{b.disabled=false;b.textContent='Vorschau laden';}}
+async function save(e){e.preventDefault();const id=$('wallet-edit-id').value;const payload={source_url:$('wallet-source-url').value,title:$('wallet-title').value,note:$('wallet-note').value,source_image_url:$('wallet-image-url').value,source_page_title:$('wallet-page-title').value};const b=$('wallet-save-button');b.disabled=true;try{if(id)await api(`/${encodeURIComponent(id)}`,{method:'PATCH',body:JSON.stringify(payload)});else await api('',{method:'POST',body:JSON.stringify(payload)});closeDialog();state.status='saved';$('wallet-status-select').value='saved';await load();toast(id?'Inspiration aktualisiert':'Inspiration gespeichert');}catch(err){$('wallet-form-feedback').textContent=err.message;}finally{b.disabled=false;}}
+async function patch(id,payload,msg){try{await api(`/${encodeURIComponent(id)}`,{method:'PATCH',body:JSON.stringify(payload)});await load();toast(msg);}catch(e){toast(e.message);}}
+function findItem(id){return state.items.find(i=>i.public_id===id);}
+function closeMenus(except=null){document.querySelectorAll('.wallet-item-menu').forEach(m=>{if(m.dataset.menu!==except)m.classList.add('is-hidden');});document.querySelectorAll('.wallet-item-menu-button').forEach(b=>{if(b.dataset.id!==except)b.setAttribute('aria-expanded','false');});}
+async function act(action,id,button){const i=findItem(id);if(!i)return;if(action==='menu'){const m=document.querySelector(`[data-menu="${CSS.escape(id)}"]`);const opening=m.classList.contains('is-hidden');closeMenus(opening?id:null);m.classList.toggle('is-hidden',!opening);button.setAttribute('aria-expanded',String(opening));return;}closeMenus();if(action==='edit'){openDialog(i);return;}if(action==='archive'){await patch(id,{status:'archived'},'Inspiration archiviert');return;}if(action==='delete'){if(!confirm(`„${itemTitle(i)}“ wirklich löschen?`))return;try{await api(`/${encodeURIComponent(id)}`,{method:'DELETE'});await load();toast('Inspiration gelöscht');}catch(e){toast(e.message);}return;}if(action==='recipe'){const q=new URLSearchParams({wallet_title:itemTitle(i),wallet_note:i.note||'',wallet_source:i.source_url||''});location.href=`/recipeCreate.html?${q}`;return;}if(action==='food-moment'){const q=new URLSearchParams({wallet_intent:itemTitle(i),wallet_id:i.public_id});location.href=`/index.html?${q}`;}}
+function bind(){
+$('wallet-add-button').addEventListener('click',()=>openDialog());$('wallet-dialog-close').addEventListener('click',closeDialog);$('wallet-cancel-button').addEventListener('click',closeDialog);$('wallet-preview-button').addEventListener('click',preview);$('wallet-capture-form').addEventListener('submit',save);
+$('wallet-source-url').addEventListener('change',()=>{if($('wallet-source-url').value.trim())preview();});
+$('wallet-status-select').addEventListener('change',e=>{state.status=e.target.value;load();});$('wallet-platform-select').addEventListener('change',e=>{state.platform=e.target.value;render();});$('wallet-period-select').addEventListener('change',e=>{state.period=e.target.value;render();});$('wallet-sort-select').addEventListener('change',e=>{state.sort=e.target.value;render();});$('wallet-search').addEventListener('input',e=>{state.search=e.target.value;render();});
+document.querySelectorAll('.wallet-view-button').forEach(b=>b.addEventListener('click',()=>{state.view=b.dataset.view;document.querySelectorAll('.wallet-view-button').forEach(x=>{const on=x===b;x.classList.toggle('is-active',on);x.setAttribute('aria-pressed',String(on));});render();}));
+$('wallet-list').addEventListener('click',e=>{const b=e.target.closest('[data-action]');if(b){e.preventDefault();e.stopPropagation();act(b.dataset.action,b.dataset.id,b);}});document.addEventListener('click',e=>{if(!e.target.closest('.wallet-item-menu-wrap'))closeMenus();});
+const p=new URLSearchParams(location.search);const sharedTitle=p.get('title')||'',sharedText=p.get('text')||'';let sharedUrl=p.get('url')||'';if(!sharedUrl&&sharedText){const m=sharedText.match(/https?:\/\/\S+/i);if(m)sharedUrl=m[0].replace(/[),.;]+$/,'');}if(p.get('capture')==='1'||sharedUrl||sharedTitle||sharedText){openDialog({source_url:sharedUrl,title:sharedTitle,note:sharedUrl?sharedText.replace(sharedUrl,'').trim():sharedText.trim()});if(sharedUrl)preview();}}
+function init(){bind();load();}
+return{init};})();
+document.addEventListener('auth:ready',WalletPage.init,{once:true});

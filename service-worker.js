@@ -1,4 +1,4 @@
-const CACHE_NAME = "food-moment-platform-v32-wallet-sprint9";
+const CACHE_NAME = "food-moment-platform-v33-wallet-visual-library";
 
 const FILES_TO_CACHE = [
     "/",

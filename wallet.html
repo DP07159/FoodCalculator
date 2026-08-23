@@ -8,78 +8,48 @@
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#F8F7F3">
 </head>
-<body class="module-page wallet-module">
-    <header class="app-header platform-header">
-        <button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen">
-            <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-        </button>
-        <a class="app-header-title platform-wordmark" href="/index.html">Food Moment</a>
-        <div id="burger-dropdown" class="burger-dropdown is-hidden"></div>
+<body class="module-page wallet-module wallet-v2">
+<header class="app-header platform-header">
+    <button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    <a class="app-header-title platform-wordmark" href="/index.html">Food Moment</a>
+    <div id="burger-dropdown" class="burger-dropdown is-hidden"></div>
+</header>
+<div class="container module-container">
+<main class="page-content module-content">
+    <header class="module-page-header wallet-v2-header">
+        <div><p class="recipe-kicker">Inspiration</p><h1>Wallet</h1><p class="module-intro">Ideen sammeln. Zur Quelle zurückkehren. Später entscheiden, was daraus wird.</p></div>
+        <button id="wallet-add-button" class="wallet-add-button" type="button"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Inspiration hinzufügen</span></button>
     </header>
 
-    <div class="container module-container">
-        <main class="page-content module-content">
-            <header class="page-header module-page-header wallet-page-header">
-                <p class="recipe-kicker">Inspiration</p>
-                <h1>Wallet</h1>
-                <p class="module-intro">Speichere Food-Ideen aus Social Media, Websites oder deinem Kopf. Erst später entscheidest du, was daraus wird.</p>
-            </header>
+    <section class="wallet-controls" aria-label="Wallet durchsuchen und filtern">
+        <div class="wallet-search-wrap"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/></svg><input id="wallet-search" type="search" placeholder="Inspirationen durchsuchen …" autocomplete="off"></div>
+        <select id="wallet-status-select" aria-label="Status filtern"><option value="saved">Gemerkt</option><option value="used">Weiterverwendet</option><option value="archived">Archiviert</option><option value="all">Alle Status</option></select>
+        <select id="wallet-platform-select" aria-label="Quelle filtern"><option value="all">Alle Quellen</option></select>
+        <select id="wallet-period-select" aria-label="Zeitraum filtern"><option value="all">Jeder Zeitraum</option><option value="7">Letzte 7 Tage</option><option value="30">Letzte 30 Tage</option><option value="90">Letzte 90 Tage</option></select>
+        <select id="wallet-sort-select" aria-label="Sortierung"><option value="newest">Neueste zuerst</option><option value="oldest">Älteste zuerst</option><option value="title">Titel A–Z</option></select>
+        <div class="wallet-view-switch" role="group" aria-label="Ansicht wählen">
+            <button class="wallet-view-button is-active" type="button" data-view="grid" aria-label="Kachelansicht" aria-pressed="true"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6"/><rect x="14" y="4" width="6" height="6"/><rect x="4" y="14" width="6" height="6"/><rect x="14" y="14" width="6" height="6"/></svg></button>
+            <button class="wallet-view-button" type="button" data-view="list" aria-label="Listenansicht" aria-pressed="false"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg></button>
+        </div>
+    </section>
+    <div class="wallet-results-meta"><span id="wallet-count"></span></div>
+    <section id="wallet-list" class="wallet-collection is-grid" aria-live="polite"></section>
+</main>
+</div>
 
-            <section class="wallet-capture module-workspace" aria-labelledby="wallet-capture-title">
-                <div class="module-toolbar wallet-capture-toolbar">
-                    <div>
-                        <h2 id="wallet-capture-title">Inspiration merken</h2>
-                        <p class="module-toolbar-copy">Ein Link reicht. Titel und Notiz sind optional.</p>
-                    </div>
-                </div>
-                <form id="wallet-capture-form" class="wallet-capture-form">
-                    <div class="form-section wallet-url-field">
-                        <label for="wallet-source-url">Link</label>
-                        <input id="wallet-source-url" name="source_url" type="url" inputmode="url" autocomplete="url" placeholder="https://instagram.com/…">
-                    </div>
-                    <div class="form-section">
-                        <label for="wallet-title">Titel <span class="field-optional">optional</span></label>
-                        <input id="wallet-title" name="title" type="text" maxlength="240" placeholder="z. B. Zitronenpasta für Freitag">
-                    </div>
-                    <div class="form-section wallet-note-field">
-                        <label for="wallet-note">Notiz <span class="field-optional">optional</span></label>
-                        <textarea id="wallet-note" name="note" rows="2" maxlength="2000" placeholder="Was möchtest du dir dazu merken?"></textarea>
-                    </div>
-                    <div class="wallet-capture-actions">
-                        <button class="primary-action-button" type="submit">
-                            <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16v13H4z"/><path d="M7 7V5h10v2"/><path d="M8 11h8M8 15h5"/></svg>
-                            <span>In Wallet speichern</span>
-                        </button>
-                    </div>
-                    <p id="wallet-form-feedback" class="intent-feedback" aria-live="polite"></p>
-                </form>
-            </section>
-
-            <section class="wallet-library" aria-labelledby="wallet-library-title">
-                <div class="wallet-library-head">
-                    <div>
-                        <h2 id="wallet-library-title">Für später gemerkt</h2>
-                        <p class="module-toolbar-copy">Dein Eingangskorb für Food-Inspiration.</p>
-                    </div>
-                    <label class="wallet-status-filter">
-                        <span>Status</span>
-                        <select id="wallet-status-select">
-                            <option value="saved">Gemerkt</option>
-                            <option value="used">Verwendet</option>
-                            <option value="archived">Archiviert</option>
-                            <option value="all">Alle</option>
-                        </select>
-                    </label>
-                </div>
-                <div id="wallet-list" class="wallet-list" aria-live="polite"></div>
-            </section>
-        </main>
-    </div>
-
-    <div id="app-toast" class="app-toast is-hidden"></div>
-    <script src="auth-shell.js"></script>
-    <script src="navigation.js"></script>
-    <script src="wallet.js"></script>
-    <script>AuthShell.guard();</script>
-</body>
-</html>
+<dialog id="wallet-dialog" class="wallet-dialog">
+<form id="wallet-capture-form" method="dialog" class="wallet-dialog-inner">
+    <div class="wallet-dialog-head"><div><p class="recipe-kicker">Capture</p><h2 id="wallet-dialog-title">Inspiration hinzufügen</h2></div><button id="wallet-dialog-close" class="wallet-icon-button" type="button" aria-label="Schließen"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
+    <input id="wallet-edit-id" type="hidden">
+    <div class="form-section"><label for="wallet-source-url">Link <span class="field-optional">optional</span></label><div class="wallet-url-row"><input id="wallet-source-url" name="source_url" type="url" inputmode="url" autocomplete="url" placeholder="https://…"><button id="wallet-preview-button" class="wallet-secondary-button" type="button">Vorschau laden</button></div></div>
+    <div id="wallet-source-preview" class="wallet-source-preview is-hidden"><div id="wallet-preview-image" class="wallet-preview-image"></div><div><span>Erkannte Quelle</span><strong id="wallet-preview-title"></strong><small id="wallet-preview-host"></small></div></div>
+    <div class="form-section"><label for="wallet-title">Titel <span class="field-optional">optional</span></label><input id="wallet-title" name="title" type="text" maxlength="240" placeholder="Worum geht es?"></div>
+    <div class="form-section"><label for="wallet-note">Notiz <span class="field-optional">optional</span></label><textarea id="wallet-note" name="note" rows="3" maxlength="2000" placeholder="Was möchtest du dir dazu merken?"></textarea></div>
+    <input id="wallet-image-url" name="source_image_url" type="hidden"><input id="wallet-page-title" name="source_page_title" type="hidden">
+    <p id="wallet-form-feedback" class="intent-feedback" aria-live="polite"></p>
+    <div class="wallet-dialog-actions"><button id="wallet-cancel-button" class="wallet-tertiary-button" type="button">Abbrechen</button><button id="wallet-save-button" class="wallet-primary-button" type="submit">Inspiration speichern</button></div>
+</form>
+</dialog>
+<div id="app-toast" class="app-toast is-hidden"></div>
+<script src="auth-shell.js"></script><script src="navigation.js"></script><script src="wallet.js"></script><script>AuthShell.guard();</script>
+</body></html>

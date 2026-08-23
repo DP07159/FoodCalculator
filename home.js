@@ -62,3 +62,16 @@ document.getElementById("intent-form")?.addEventListener("submit", event => {
     }
     if (feedback) feedback.textContent = "Dafür ist in diesem Workspace aktuell kein direkter Einstieg verfügbar. Du kannst einen der sichtbaren Wege unten wählen.";
 });
+
+function applyWalletIntentPrefill() {
+    const params = new URLSearchParams(window.location.search);
+    const walletIntent = params.get("wallet_intent");
+    const input = document.getElementById("intent-input");
+    const feedback = document.getElementById("intent-feedback");
+    if (!walletIntent || !input) return;
+    input.value = walletIntent;
+    sessionStorage.setItem("fc_wallet_source_id", params.get("wallet_id") || "");
+    if (feedback) feedback.textContent = "Inspiration aus der Wallet übernommen. Beschreibe oder ergänze den Food Moment und wähle dann den passenden Weg.";
+    input.focus();
+}
+document.addEventListener("auth:ready", applyWalletIntentPrefill, { once: true });

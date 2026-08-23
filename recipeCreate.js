@@ -240,3 +240,19 @@ window.onload = function () {
     initAutoResize();
     initIngredientAutocomplete();
 };
+
+function applyWalletRecipePrefill() {
+    const params = new URLSearchParams(window.location.search);
+    const title = params.get("wallet_title");
+    if (!title) return;
+    const name = document.getElementById("recipe-name");
+    const instructions = document.getElementById("recipe-instructions");
+    if (name && !name.value) name.value = title;
+    const note = params.get("wallet_note") || "";
+    const source = params.get("wallet_source") || "";
+    if (instructions && !instructions.value && (note || source)) {
+        instructions.value = [note, source ? `Quelle: ${source}` : ""].filter(Boolean).join("\n\n");
+        resizeTextArea(instructions);
+    }
+}
+document.addEventListener("auth:ready", applyWalletRecipePrefill, { once: true });

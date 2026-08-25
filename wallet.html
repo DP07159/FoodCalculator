@@ -52,7 +52,7 @@
         <div class="wallet-dialog-head"><div><p class="recipe-kicker">Ansicht verfeinern</p><h2>Filter & Sortierung</h2></div><button id="wallet-filter-close" class="wallet-icon-button" type="button" aria-label="Schließen"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
         <div class="wallet-filter-grid">
             <div class="form-section"><label for="wallet-status-select">Status</label><select id="wallet-status-select"><option value="saved">Gemerkt</option><option value="used">Weiterverwendet</option><option value="archived">Archiviert</option><option value="all">Alle Status</option></select></div>
-            <div class="form-section"><label for="wallet-platform-select">Quelle</label><select id="wallet-platform-select"><option value="all">Alle Quellen</option></select></div>
+            <div class="form-section"><label for="wallet-category-select">Kategorie</label><select id="wallet-category-select"><option value="all">Alle Kategorien</option><option value="recipe">Rezept / Gericht</option><option value="restaurant">Restaurant / Café</option><option value="product">Produkt / Zutat</option><option value="technique">Kochtechnik / How-to</option><option value="presentation">Anrichten / Präsentation</option><option value="shop">Shop / Markt / Produzent</option><option value="other">Sonstiges</option><option value="uncategorized">Nicht kategorisiert</option></select></div><div class="form-section"><label for="wallet-platform-select">Quelle</label><select id="wallet-platform-select"><option value="all">Alle Quellen</option></select></div>
             <div class="form-section"><label for="wallet-period-select">Zeitraum</label><select id="wallet-period-select"><option value="all">Jeder Zeitraum</option><option value="7">Letzte 7 Tage</option><option value="30">Letzte 30 Tage</option><option value="90">Letzte 90 Tage</option></select></div>
             <div class="form-section"><label for="wallet-sort-select">Sortierung</label><select id="wallet-sort-select"><option value="newest">Neueste zuerst</option><option value="oldest">Älteste zuerst</option><option value="title">Titel A–Z</option></select></div>
         </div>
@@ -66,7 +66,7 @@
     <input id="wallet-edit-id" type="hidden">
     <div class="form-section"><label for="wallet-source-url">Link <span class="field-optional">optional</span></label><div class="wallet-url-row"><input id="wallet-source-url" name="source_url" type="url" inputmode="url" autocomplete="url" placeholder="https://…"><button id="wallet-preview-button" class="wallet-secondary-button" type="button">Vorschau laden</button></div></div>
     <div id="wallet-source-preview" class="wallet-source-preview is-hidden"><div id="wallet-preview-image" class="wallet-preview-image"></div><div><span>Erkannte Quelle</span><strong id="wallet-preview-title"></strong><small id="wallet-preview-host"></small></div></div>
-    <div class="form-section"><label for="wallet-title">Titel <span class="field-optional">optional</span></label><input id="wallet-title" name="title" type="text" maxlength="240" placeholder="Worum geht es?"></div>
+    <div class="form-section"><label for="wallet-category">Was ist das? <span class="field-optional">optional</span></label><select id="wallet-category" name="category"><option value="">Nicht festlegen</option><option value="recipe">Rezept / Gericht</option><option value="restaurant">Restaurant / Café</option><option value="product">Produkt / Zutat</option><option value="technique">Kochtechnik / How-to</option><option value="presentation">Anrichten / Präsentation</option><option value="shop">Shop / Markt / Produzent</option><option value="other">Sonstiges</option></select></div><div class="form-section"><label for="wallet-title">Titel <span class="field-optional">optional</span></label><input id="wallet-title" name="title" type="text" maxlength="240" placeholder="Worum geht es?"></div>
     <div class="form-section"><label for="wallet-note">Notiz <span class="field-optional">optional</span></label><textarea id="wallet-note" name="note" rows="3" maxlength="2000" placeholder="Was möchtest du dir dazu merken?"></textarea></div>
     <input id="wallet-image-url" name="source_image_url" type="hidden"><input id="wallet-page-title" name="source_page_title" type="hidden">
     <p id="wallet-form-feedback" class="intent-feedback" aria-live="polite"></p>
@@ -80,6 +80,16 @@
         <div class="wallet-share-search"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="wallet-share-search" type="search" placeholder="Workspace suchen" aria-label="Workspace suchen"></div>
         <div id="wallet-share-list" class="wallet-share-list"></div>
         <div class="wallet-share-footer"><span id="wallet-share-state" class="wallet-share-state"></span><button id="wallet-share-done" class="wallet-primary-button" type="button">Fertig</button></div>
+    </div>
+</dialog>
+
+<dialog id="wallet-recipe-dialog" class="wallet-share-dialog wallet-recipe-dialog">
+    <div class="wallet-share-dialog-inner">
+        <div class="wallet-dialog-head"><div><p class="recipe-kicker">Inspiration verknüpfen</p><h2>Mit Rezepten verbinden</h2></div><button id="wallet-recipe-close" class="wallet-icon-button" type="button" aria-label="Schließen"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
+        <p class="wallet-recipe-dialog-copy">Die Inspiration erscheint anschließend als Quellenkachel beim verknüpften Rezept.</p>
+        <div class="wallet-share-search"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="wallet-recipe-search" type="search" placeholder="Rezept suchen" aria-label="Rezept suchen"></div>
+        <div id="wallet-recipe-list" class="wallet-share-list"></div>
+        <div class="wallet-share-footer"><span id="wallet-recipe-state" class="wallet-share-state"></span><button id="wallet-recipe-done" class="wallet-primary-button" type="button">Fertig</button></div>
     </div>
 </dialog>
 

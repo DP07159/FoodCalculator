@@ -228,6 +228,19 @@ window.createRecipe = async function() {
                 ingredientLinks: getIngredientLinksPayload()
             })
         });
+        const walletId = new URLSearchParams(window.location.search).get("wallet_id");
+        if (walletId) {
+            try {
+                await apiFetch(`${API_URL}/wallet/${encodeURIComponent(walletId)}/recipe-links`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ recipe_id: recipe.id })
+                });
+            } catch (linkError) {
+                console.error("Wallet-Verknüpfung fehlgeschlagen:", linkError);
+                showToast("Rezept gespeichert, Inspiration konnte aber nicht verknüpft werden.");
+            }
+        }
         window.location.href = `/recipeInstructions.html?id=${recipe.id}`;
     } catch (error) {
         console.error(error);

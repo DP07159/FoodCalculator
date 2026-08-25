@@ -1,4 +1,4 @@
-const CACHE_NAME = "food-moment-platform-v35-login-design";
+const CACHE_NAME = "food-moment-platform-v36-wallet-recipe-links";
 
 const FILES_TO_CACHE = [
     "/",

@@ -3,6 +3,7 @@ const API_URL = "https://foodcalculator-server.onrender.com";
 let currentRecipe = null;
 let inventoryItems = [];
 let recipeStockCheck = null;
+let recipeWalletInspirations = [];
 let basePortions = 1;
 let displayedPortions = 1;
 
@@ -89,8 +90,9 @@ async function loadRecipeInstructions() {
         currentRecipe = await apiFetch(`${API_URL}/recipes/${recipeId}`);
         basePortions = getSafePortions(currentRecipe.portions);
         displayedPortions = basePortions;
-        await loadRecipeStockCheck();
+        await Promise.all([loadRecipeStockCheck(), loadRecipeWalletInspirations()]);
         renderRecipeInstructions();
+        renderRecipeWalletInspirations();
     } catch (error) {
         console.error(error);
         showToast("Rezept konnte nicht geladen werden.");
@@ -106,6 +108,45 @@ async function loadRecipeStockCheck() {
         recipeStockCheck = null;
         showToast("Bestandsprüfung konnte nicht geladen werden.");
     }
+}
+
+
+const walletCategoryLabels = {
+    recipe: "Rezept / Gericht", restaurant: "Restaurant / Café", product: "Produkt / Zutat",
+    technique: "Kochtechnik / How-to", presentation: "Anrichten / Präsentation",
+    shop: "Shop / Markt / Produzent", other: "Sonstiges"
+};
+
+async function loadRecipeWalletInspirations() {
+    if (!currentRecipe?.id) return;
+    try {
+        recipeWalletInspirations = await apiFetch(`${API_URL}/wallet/for-recipe/${currentRecipe.id}`);
+        if (!Array.isArray(recipeWalletInspirations)) recipeWalletInspirations = [];
+    } catch (error) {
+        console.info("Keine Wallet-Inspirationen für dieses Rezept verfügbar.", error.message);
+        recipeWalletInspirations = [];
+    }
+}
+
+function getWalletSourceHost(item) {
+    try { return new URL(item.source_url).hostname.replace(/^www\./, ""); } catch (_) { return item.source_platform || "Quelle"; }
+}
+
+function renderRecipeWalletInspirations() {
+    const section = document.getElementById("recipe-inspiration-section");
+    const list = document.getElementById("recipe-inspiration-list");
+    const count = document.getElementById("recipe-inspiration-count");
+    if (!section || !list) return;
+    if (!recipeWalletInspirations.length) { section.classList.add("is-hidden"); list.innerHTML = ""; return; }
+    section.classList.remove("is-hidden");
+    if (count) count.textContent = recipeWalletInspirations.length > 1 ? `${recipeWalletInspirations.length} Quellen` : "";
+    list.innerHTML = recipeWalletInspirations.map(item => {
+        const title = item.title || item.source_page_title || "Gespeicherte Inspiration";
+        const category = walletCategoryLabels[item.category] || "Inspiration";
+        const image = item.source_image_url ? `<div class="recipe-inspiration-image"><img src="${escapeHtml(item.source_image_url)}" alt="" loading="lazy" referrerpolicy="no-referrer"></div>` : "";
+        const action = item.source_url ? `<a class="recipe-inspiration-source-link" href="${escapeHtml(item.source_url)}" target="_blank" rel="noopener noreferrer"><span>Original öffnen</span><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M20 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h5"/></svg></a>` : "";
+        return `<article class="recipe-inspiration-card">${image}<div class="recipe-inspiration-copy"><div class="recipe-inspiration-meta"><span>${escapeHtml(category)}</span><span>${escapeHtml(getWalletSourceHost(item))}</span></div><h3>${escapeHtml(title)}</h3>${item.note ? `<p>${escapeHtml(item.note)}</p>` : ""}${action}</div></article>`;
+    }).join("");
 }
 
 function getSafePortions(value) {

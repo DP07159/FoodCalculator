@@ -93,6 +93,14 @@
     </div>
 </dialog>
 
+<dialog id="wallet-linked-recipe-dialog" class="wallet-share-dialog wallet-linked-recipe-dialog">
+    <div class="wallet-share-dialog-inner">
+        <div class="wallet-dialog-head"><div><p class="recipe-kicker">Verknüpfte Rezepte</p><h2>Rezept öffnen</h2></div><button id="wallet-linked-recipe-close" class="wallet-icon-button" type="button" aria-label="Schließen"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
+        <p class="wallet-recipe-dialog-copy">Diese Inspiration ist mit mehreren Rezepten verbunden.</p>
+        <div id="wallet-linked-recipe-list" class="wallet-linked-recipe-list"></div>
+    </div>
+</dialog>
+
 <div id="app-toast" class="app-toast is-hidden"></div>
 <script src="auth-shell.js"></script><script src="navigation.js"></script><script src="wallet.js"></script><script>AuthShell.guard();</script>
 </body></html>

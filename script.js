@@ -17,6 +17,7 @@ let mealPlanDraft = createEmptyMealPlanDraft();
 let mealPlanDirty = false;
 let walletInspirations = [];
 let pickerTarget = null;
+let mealPickerType = "recipe";
 
 function showToast(message) {
     const toast = document.getElementById("app-toast");
@@ -319,12 +320,12 @@ function renderDayDetail(day) {
         if (!item) return `<div class="day-detail-meal-card is-empty"><div class="day-detail-meal-label">${meal.label}</div><button type="button" class="day-detail-add-button" onclick="openMealPicker('${day}','${meal.key}')">＋ Hinzufügen</button></div>`;
         if (item.type === "recipe") {
             const recipe = getRecipeById(item.recipeId);
-            return `<div class="day-detail-meal-card"><div class="day-detail-meal-label">${meal.label}</div><div class="day-detail-meal-value">${recipe ? `<a href="/recipeInstructions.html?id=${recipe.id}" class="day-detail-link">${escapeHtml(recipe.name)}</a>` : "Rezept nicht verfügbar"}</div><div class="day-detail-meal-calories">${recipe ? `${Number(recipe.calories)||0} kcal` : "–"}</div><button type="button" class="day-detail-item-action" onclick="openMealPicker('${day}','${meal.key}')">Ändern</button></div>`;
+            return `<div class="day-detail-meal-card"><div class="day-detail-meal-label">${meal.label}</div><div class="day-detail-meal-value">${recipe ? `<a href="/recipeInstructions.html?id=${recipe.id}" class="day-detail-link">${escapeHtml(recipe.name)}</a>` : "Rezept nicht verfügbar"}</div><div class="day-detail-meal-calories">${recipe ? `${Number(recipe.calories)||0} kcal` : "–"}</div><button type="button" class="day-detail-item-action" onclick="openMealPicker('${day}','${meal.key}')">${getIconSvg("edit")}<span>Ändern</span></button></div>`;
         }
-        return `<div class="day-detail-meal-card is-inspiration"><div class="day-detail-meal-label">${meal.label}</div><div class="day-detail-meal-value">${escapeHtml(item.title || "Inspiration")}</div><div class="day-detail-meal-calories">Inspiration${item.category ? ` · ${escapeHtml(getWalletCategoryLabel(item.category))}` : ""}</div><button type="button" class="day-detail-item-action" onclick="openMealPicker('${day}','${meal.key}')">Ändern</button></div>`;
+        return `<div class="day-detail-meal-card is-inspiration"><div class="day-detail-meal-label">${meal.label}</div><div class="day-detail-meal-value">${escapeHtml(item.title || "Inspiration")}</div><div class="day-detail-meal-calories">Inspiration${item.category ? ` · ${escapeHtml(getWalletCategoryLabel(item.category))}` : ""}</div><button type="button" class="day-detail-item-action" onclick="openMealPicker('${day}','${meal.key}')">${getIconSvg("edit")}<span>Ändern</span></button></div>`;
     }).join("");
 
-    panel.innerHTML = `<div class="day-detail-card"><div class="day-detail-header"><div class="day-detail-title-line"><button type="button" class="day-nav-button" onclick="changeSelectedDay(-1)" aria-label="Vorheriger Tag">${getIconSvg("prev")}</button><div class="day-detail-title-inline"><span class="day-detail-title-prefix">Dein Tag</span><span class="day-detail-title-day">${day}</span></div><button type="button" class="day-nav-button" onclick="changeSelectedDay(1)" aria-label="Nächster Tag">${getIconSvg("next")}</button></div><div class="day-detail-progress"><div><span>${totalCalories.toLocaleString("de-DE")} / ${DAILY_CALORIE_LIMIT.toLocaleString("de-DE")} kcal</span><small>${remaining >= 0 ? `${remaining.toLocaleString("de-DE")} kcal frei` : `${Math.abs(remaining).toLocaleString("de-DE")} kcal darüber`}</small></div><div class="meal-plan-progress-track${remaining < 0 ? " is-over" : ""}"><span style="width:${Math.min(progress,100)}%"></span></div></div></div><div class="day-detail-meals">${mealCardsHtml}</div></div>`;
+    panel.innerHTML = `<div class="day-detail-card"><div class="day-detail-header"><div class="day-detail-title-block"><span class="day-detail-eyebrow">Dein Tag</span><div class="day-detail-day-nav"><button type="button" class="day-nav-button" onclick="changeSelectedDay(-1)" aria-label="Vorheriger Tag">${getIconSvg("prev")}</button><strong class="day-detail-title-day">${day}</strong><button type="button" class="day-nav-button" onclick="changeSelectedDay(1)" aria-label="Nächster Tag">${getIconSvg("next")}</button></div></div><div class="day-detail-progress"><div><span>${totalCalories.toLocaleString("de-DE")} / ${DAILY_CALORIE_LIMIT.toLocaleString("de-DE")} kcal</span><small>${remaining >= 0 ? `${remaining.toLocaleString("de-DE")} kcal frei` : `${Math.abs(remaining).toLocaleString("de-DE")} kcal darüber`}</small></div><div class="meal-plan-progress-track${remaining < 0 ? " is-over" : ""}"><span style="width:${Math.min(progress,100)}%"></span></div></div></div><div class="day-detail-meals">${mealCardsHtml}</div></div>`;
 }
 
 function escapeHtml(value) {
@@ -346,13 +347,39 @@ async function loadWalletInspirations() {
 
 window.openMealPicker = async function(day, mealType) {
     pickerTarget = { day, mealType };
+    mealPickerType = "recipe";
     const dialog = document.getElementById("meal-picker-dialog");
     if (!dialog) return;
     document.getElementById("meal-picker-search").value = "";
+    updateMealPickerTypeUi();
     await loadWalletInspirations();
     renderMealPickerResults();
     dialog.showModal();
 };
+
+window.setMealPickerType = function(type) {
+    mealPickerType = type === "wallet" ? "wallet" : "recipe";
+    const search = document.getElementById("meal-picker-search");
+    if (search) {
+        search.value = "";
+        search.placeholder = mealPickerType === "wallet" ? "Wallet durchsuchen …" : "Rezepte durchsuchen …";
+        search.focus();
+    }
+    updateMealPickerTypeUi();
+    renderMealPickerResults();
+};
+
+function updateMealPickerTypeUi() {
+    ["recipe", "wallet"].forEach(type => {
+        const button = document.getElementById(`meal-picker-type-${type}`);
+        if (!button) return;
+        const active = mealPickerType === type;
+        button.classList.toggle("is-active", active);
+        button.setAttribute("aria-selected", String(active));
+    });
+    const search = document.getElementById("meal-picker-search");
+    if (search) search.placeholder = mealPickerType === "wallet" ? "Wallet durchsuchen …" : "Rezepte durchsuchen …";
+}
 
 window.closeMealPicker = function() { document.getElementById("meal-picker-dialog")?.close(); pickerTarget = null; };
 
@@ -360,11 +387,17 @@ function renderMealPickerResults() {
     const results = document.getElementById("meal-picker-results");
     if (!results || !pickerTarget) return;
     const term = (document.getElementById("meal-picker-search")?.value || "").trim().toLocaleLowerCase("de");
+
+    if (mealPickerType === "wallet") {
+        const matchingWallet = walletInspirations.filter(item => !term || `${item.title||""} ${item.source_page_title||""} ${item.note||""} ${getWalletCategoryLabel(item.category)}`.toLocaleLowerCase("de").includes(term));
+        results.innerHTML = `<div class="meal-picker-section meal-picker-wallet-section"><div class="meal-picker-section-heading"><h3>Deine Wallet</h3><span>${matchingWallet.length} ${matchingWallet.length === 1 ? "Inspiration" : "Inspirationen"}</span></div>${matchingWallet.length ? matchingWallet.map(inspirationPickerMarkup).join("") : '<p class="meal-picker-empty">Keine passende Inspiration in deiner Wallet gefunden.</p>'}</div>`;
+        return;
+    }
+
     const mealType = pickerTarget.mealType;
     const matchingRecipes = recipes.filter(recipe => Array.isArray(recipe.mealTypes) && recipe.mealTypes.includes(mealType) && (!term || String(recipe.name||"").toLocaleLowerCase("de").includes(term)));
-    const matchingWallet = walletInspirations.filter(item => !term || `${item.title||""} ${item.source_page_title||""} ${item.note||""}`.toLocaleLowerCase("de").includes(term));
     const favorite = matchingRecipes.filter(isFavoriteRecipe);
-    results.innerHTML = `${favorite.length ? `<div class="meal-picker-section"><h3>Favoriten</h3>${favorite.slice(0,6).map(recipePickerMarkup).join("")}</div>` : ""}<div class="meal-picker-section"><h3>Rezepte</h3>${matchingRecipes.length ? matchingRecipes.map(recipePickerMarkup).join("") : '<p class="meal-picker-empty">Keine passenden Rezepte gefunden.</p>'}</div>${matchingWallet.length ? `<div class="meal-picker-section"><h3>Inspirationen aus deiner Wallet</h3>${matchingWallet.map(inspirationPickerMarkup).join("")}</div>` : ""}`;
+    results.innerHTML = `${favorite.length ? `<div class="meal-picker-section"><h3>Favoriten</h3>${favorite.slice(0,6).map(recipePickerMarkup).join("")}</div>` : ""}<div class="meal-picker-section"><div class="meal-picker-section-heading"><h3>Passende Rezepte</h3><span>${matchingRecipes.length}</span></div>${matchingRecipes.length ? matchingRecipes.map(recipePickerMarkup).join("") : '<p class="meal-picker-empty">Keine passenden Rezepte gefunden.</p>'}</div>`;
 }
 
 function recipePickerMarkup(recipe) {

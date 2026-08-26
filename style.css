@@ -6275,3 +6275,457 @@ body.login-page {
     .meal-picker-dialog { width: 100%; max-width: none; max-height: 82vh; margin: auto 0 0; border-radius: 18px 18px 0 0; border-bottom: 0; }
     .meal-picker-shell { max-height: 82vh; }
 }
+
+/* Wochenplan UX refinement 2026-08-26 */
+.meal-plan-module .module-page-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    max-width: none;
+    margin-bottom: 12px;
+}
+.meal-plan-module .module-page-header h1 {
+    margin: 0 0 3px;
+    font-size: 30px;
+    font-weight: 600;
+    letter-spacing: -.02em;
+}
+.meal-plan-module .module-page-header .recipe-kicker { margin-bottom: 3px; }
+.meal-plan-module .module-page-header .module-intro { margin: 0; }
+
+.meal-plan-workspace .meal-plan-topbar {
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding: 5px 0 9px;
+    border-bottom: 1px solid var(--color-border);
+}
+.meal-plan-workspace .meal-plan-title-group {
+    display: grid;
+    grid-template-columns: auto minmax(220px, 390px);
+    align-items: center;
+    gap: 3px 10px;
+    min-width: 0;
+}
+.meal-plan-workspace .meal-plan-title-group .control-label {
+    grid-column: 1;
+    grid-row: 1;
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 12px;
+    font-weight: 650;
+    text-transform: none;
+    letter-spacing: 0;
+}
+.meal-plan-workspace .toolbar-plan-select {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    width: 100%;
+    min-height: 40px;
+    border-radius: 8px;
+    background: var(--color-surface);
+}
+.meal-plan-workspace .meal-plan-plan-meta {
+    grid-column: 1;
+    grid-row: 2;
+    min-width: 0;
+}
+.meal-plan-workspace #current-plan-name { display: none; }
+.meal-plan-workspace .meal-plan-save-state {
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--color-text-muted);
+    font-size: 10px;
+    font-weight: 600;
+}
+.meal-plan-workspace .meal-plan-save-state.is-dirty {
+    background: transparent;
+    color: #8A681B;
+}
+.meal-plan-workspace .meal-plan-current-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+    flex-wrap: nowrap;
+}
+.meal-plan-workspace .meal-plan-current-actions .toolbar-icon-button {
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--color-text-muted);
+}
+.meal-plan-workspace .meal-plan-current-actions .toolbar-icon-button:hover {
+    transform: none;
+    background: var(--color-primary-soft);
+    color: var(--color-primary-text);
+}
+.meal-plan-workspace .meal-plan-current-actions .toolbar-delete-button:hover {
+    background: var(--color-danger-bg);
+    color: var(--color-danger-text);
+}
+.meal-plan-workspace .meal-plan-current-actions .toolbar-update-button.has-changes {
+    border: 0;
+    background: #FFF4D8;
+    color: #71530C;
+}
+.meal-plan-workspace .primary-action-button.toolbar-toggle-save-button {
+    min-height: 40px;
+    padding: 0 12px;
+    border-radius: 8px;
+    font-size: 12px;
+}
+
+/* Day focus: consistent typography and fixed navigation geometry. */
+.meal-plan-workspace .day-detail-card {
+    margin-top: 14px;
+    padding: 18px 0 0;
+    border: 0;
+    border-top: 1px solid var(--color-border);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+.meal-plan-workspace .day-detail-card:hover { box-shadow: none; transform: none; }
+.meal-plan-workspace .day-detail-header {
+    display: grid;
+    grid-template-columns: minmax(260px, 1fr) minmax(240px, 310px);
+    align-items: end;
+    gap: 24px;
+    margin-bottom: 14px;
+    padding: 0 0 12px;
+    border-bottom: 0;
+}
+.day-detail-title-block { min-width: 0; }
+.day-detail-eyebrow {
+    display: block;
+    margin: 0 0 4px;
+    color: var(--color-text-muted);
+    font-family: var(--font-family-base);
+    font-size: 11px;
+    font-weight: 650;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+.day-detail-day-nav {
+    display: grid;
+    grid-template-columns: 36px minmax(120px, 210px) 36px;
+    align-items: center;
+    gap: 5px;
+    width: fit-content;
+}
+.day-detail-day-nav .day-nav-button {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-surface-subtle, #F1F0EB);
+    color: var(--color-text-secondary, var(--color-text));
+}
+.day-detail-day-nav .day-nav-button:hover {
+    transform: none;
+    background: var(--color-primary-soft);
+}
+.day-detail-title-day {
+    display: block;
+    min-width: 0;
+    color: var(--color-text);
+    font-family: var(--font-family-base);
+    font-size: 22px;
+    font-weight: 650;
+    line-height: 1.15;
+    text-align: center;
+    white-space: nowrap;
+}
+.day-detail-progress { justify-self: end; }
+.meal-plan-workspace .day-detail-meal-card {
+    min-height: 112px;
+    padding: 14px;
+    border-radius: 10px;
+    background: var(--color-surface);
+}
+.meal-plan-workspace .day-detail-meal-label {
+    margin-bottom: 8px;
+    color: var(--color-text-muted);
+    font-size: 10px;
+    font-weight: 750;
+    letter-spacing: .04em;
+}
+.meal-plan-workspace .day-detail-meal-value {
+    margin-bottom: 6px;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.35;
+}
+.meal-plan-workspace .day-detail-meal-calories {
+    font-size: 11px;
+    font-weight: 600;
+}
+.day-detail-item-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-height: 30px;
+    margin-top: 9px;
+    padding: 0 9px;
+    border: 1px solid var(--color-border);
+    border-radius: 7px;
+    background: var(--color-surface-subtle, #F1F0EB);
+    color: var(--color-text);
+    font-size: 11px;
+    font-weight: 700;
+}
+.day-detail-item-action .fc-icon { width: 14px; height: 14px; }
+.day-detail-item-action:hover { background: var(--color-primary-soft); color: var(--color-primary-text); }
+
+/* Picker: decide first, search second – visually based on Wallet quick tools. */
+.meal-picker-header { padding-bottom: 10px; }
+.meal-picker-type-switch {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin: 0 20px 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--color-border);
+}
+.meal-picker-type-button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    min-height: 58px;
+    padding: 9px 11px;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    background: var(--color-surface-subtle, #F1F0EB);
+    color: var(--color-text-muted);
+    text-align: left;
+}
+.meal-picker-type-button .fc-icon { width: 19px; height: 19px; flex: 0 0 19px; }
+.meal-picker-type-button > span { min-width: 0; }
+.meal-picker-type-button strong,
+.meal-picker-type-button small { display: block; }
+.meal-picker-type-button strong { margin-bottom: 1px; color: var(--color-text); font-size: 12px; font-weight: 700; }
+.meal-picker-type-button small { color: var(--color-text-muted); font-size: 10px; font-weight: 550; }
+.meal-picker-type-button:hover,
+.meal-picker-type-button.is-active {
+    border-color: var(--color-primary-border);
+    background: var(--color-primary-soft);
+    color: var(--color-primary-text);
+}
+.meal-picker-type-button.is-active strong { color: var(--color-primary-text); }
+.meal-picker-section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 0 0 6px;
+}
+.meal-picker-section-heading h3 { margin: 0; }
+.meal-picker-section-heading span { color: var(--color-text-muted); font-size: 10px; font-weight: 600; }
+.meal-picker-search-wrap input { min-height: 40px; border-radius: 8px; }
+.meal-picker-result { padding: 10px 5px; border-radius: 6px; }
+
+@media (max-width: 720px) {
+    .meal-plan-module .module-content { padding-top: 4px; }
+    .meal-plan-module .module-page-header {
+        display: block;
+        margin-bottom: 6px;
+    }
+    .meal-plan-module .module-page-header .recipe-kicker,
+    .meal-plan-module .module-page-header .module-intro { display: none; }
+    .meal-plan-module .module-page-header h1 {
+        margin: 0;
+        font-size: 27px;
+        font-weight: 600;
+    }
+    .meal-plan-workspace { padding-top: 0; }
+    .meal-plan-workspace .meal-plan-topbar {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 4px;
+        padding: 0 0 7px;
+    }
+    .meal-plan-workspace .meal-plan-title-group {
+        display: block;
+        min-width: 0;
+    }
+    .meal-plan-workspace .meal-plan-title-group .control-label { display: none; }
+    .meal-plan-workspace .toolbar-plan-select {
+        width: 100%;
+        max-width: none;
+        min-height: 38px;
+        padding-top: 6px;
+        padding-bottom: 6px;
+        font-size: 12px;
+    }
+    .meal-plan-workspace .meal-plan-plan-meta { margin-top: 2px; }
+    .meal-plan-workspace .meal-plan-current-actions {
+        display: flex;
+        gap: 1px;
+    }
+    .meal-plan-workspace .meal-plan-current-actions .toolbar-icon-button {
+        width: 36px;
+        min-width: 36px;
+        height: 36px;
+    }
+    .meal-plan-workspace .meal-plan-current-actions .toolbar-shopping-button,
+    .meal-plan-workspace .meal-plan-current-actions .toolbar-delete-button { display: none; }
+    .meal-plan-workspace .primary-action-button.toolbar-toggle-save-button {
+        width: 36px;
+        min-width: 36px;
+        height: 36px;
+        min-height: 36px;
+        padding: 0;
+    }
+    .meal-plan-workspace .primary-action-button.toolbar-toggle-save-button span { display: none; }
+    .meal-plan-workspace .plan-save-panel { margin: 6px 0 8px; }
+    .meal-plan-workspace .meal-plan-save-inline { gap: 6px; }
+    .meal-plan-workspace .toolbar-plan-name { max-width: none; min-height: 38px; font-size: 12px; }
+
+    .meal-plan-workspace .day-detail-card {
+        margin-top: 4px;
+        padding-top: 10px;
+    }
+    .meal-plan-workspace .day-detail-header {
+        display: block;
+        margin-bottom: 9px;
+        padding-bottom: 7px;
+    }
+    .day-detail-title-block { margin-bottom: 8px; }
+    .day-detail-eyebrow {
+        margin-bottom: 2px;
+        font-size: 9px;
+        text-align: center;
+    }
+    .day-detail-day-nav {
+        grid-template-columns: 34px minmax(0, 1fr) 34px;
+        gap: 6px;
+        width: 100%;
+    }
+    .day-detail-day-nav .day-nav-button {
+        width: 34px;
+        min-width: 34px;
+        height: 34px;
+    }
+    .day-detail-title-day {
+        font-size: 20px;
+        font-weight: 650;
+    }
+    .meal-plan-workspace .day-detail-progress { width: 100%; }
+    .day-detail-progress > div:first-child { margin-bottom: 4px; }
+    .day-detail-progress span { font-size: 10px; }
+    .day-detail-progress small { font-size: 9px; }
+    .meal-plan-workspace .day-detail-meals { gap: 7px; }
+    .meal-plan-workspace .day-detail-meal-card {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+            "label action"
+            "value action"
+            "meta action";
+        align-items: center;
+        min-height: 76px;
+        padding: 10px 11px;
+    }
+    .meal-plan-workspace .day-detail-meal-label { grid-area: label; margin-bottom: 3px; }
+    .meal-plan-workspace .day-detail-meal-value { grid-area: value; margin-bottom: 2px; font-size: 13px; }
+    .meal-plan-workspace .day-detail-meal-calories { grid-area: meta; font-size: 10px; }
+    .meal-plan-workspace .day-detail-item-action {
+        grid-area: action;
+        min-width: 38px;
+        height: 36px;
+        min-height: 36px;
+        margin: 0 0 0 10px;
+        padding: 0 9px;
+    }
+    .meal-plan-workspace .day-detail-item-action span { display: none; }
+    .meal-plan-workspace .day-detail-item-action .fc-icon { width: 16px; height: 16px; }
+    .meal-plan-workspace .day-detail-meal-card.is-empty {
+        grid-template-columns: 1fr;
+        grid-template-areas: "label" "value";
+        min-height: 66px;
+    }
+    .meal-plan-workspace .day-detail-add-button {
+        grid-area: value;
+        min-height: 28px;
+        text-align: left;
+    }
+
+    .meal-picker-dialog { max-height: 88vh; }
+    .meal-picker-shell { max-height: 88vh; }
+    .meal-picker-header { padding: 15px 16px 8px; }
+    .meal-picker-header .recipe-kicker { display: none; }
+    .meal-picker-header h2 { font-size: 19px; }
+    .meal-picker-type-switch {
+        gap: 6px;
+        margin: 0 16px 9px;
+        padding-bottom: 9px;
+    }
+    .meal-picker-type-button {
+        min-height: 52px;
+        padding: 7px 8px;
+        gap: 7px;
+    }
+    .meal-picker-type-button .fc-icon { width: 17px; height: 17px; flex-basis: 17px; }
+    .meal-picker-type-button strong { font-size: 11px; }
+    .meal-picker-type-button small { font-size: 9px; line-height: 1.2; }
+    .meal-picker-search-wrap { margin: 0 16px 8px; }
+    .meal-picker-results { padding: 0 16px 16px; }
+    .meal-picker-result { padding: 9px 3px; }
+}
+.meal-plan-mobile-more { display: none; position: relative; }
+.meal-plan-mobile-more summary { list-style: none; }
+.meal-plan-mobile-more summary::-webkit-details-marker { display: none; }
+.meal-plan-mobile-more-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 2150;
+    width: 190px;
+    padding: 6px;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    background: var(--color-surface);
+    box-shadow: var(--shadow-card);
+}
+.meal-plan-mobile-more-menu button {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    width: 100%;
+    min-height: 38px;
+    padding: 7px 9px;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--color-text);
+    text-align: left;
+    font-size: 12px;
+    font-weight: 650;
+}
+.meal-plan-mobile-more-menu button:hover { background: var(--color-surface-subtle, #F1F0EB); }
+.meal-plan-mobile-more-menu button.is-danger { color: var(--color-danger-text); }
+.meal-plan-mobile-more-menu .fc-icon { width: 16px; height: 16px; }
+@media (max-width: 720px) {
+    .meal-plan-mobile-more { display: block; }
+    .meal-plan-workspace .meal-plan-current-actions { position: relative; }
+    .meal-plan-mobile-more > summary.toolbar-icon-button {
+        display: inline-flex;
+        width: 36px;
+        min-width: 36px;
+        height: 36px;
+        border: 0;
+        background: transparent;
+        color: var(--color-text-muted);
+    }
+}

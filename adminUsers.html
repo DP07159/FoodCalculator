@@ -47,7 +47,10 @@
                             <p class="recipe-kicker">Accounts</p>
                             <h2>Benutzer</h2>
                         </div>
-                        <span id="access-user-count" class="access-count-badge">0</span>
+                        <div class="access-panel-actions">
+                            <span id="access-user-count" class="access-count-badge">0</span>
+                            <button id="access-create-user-button" type="button" class="access-icon-button" title="Benutzer anlegen" aria-label="Benutzer anlegen">＋</button>
+                        </div>
                     </div>
 
                     <div class="access-user-filters">
@@ -88,6 +91,72 @@
             </section>
         </main>
     </div>
+
+
+    <dialog id="access-create-user-dialog" class="access-dialog">
+        <form id="access-create-user-form" method="dialog" class="access-dialog-card">
+            <div class="access-dialog-head">
+                <div>
+                    <p class="recipe-kicker">Administration</p>
+                    <h2>Neuen Benutzer anlegen</h2>
+                </div>
+                <button type="button" id="access-create-user-close" class="access-icon-button" aria-label="Schließen">×</button>
+            </div>
+
+            <div class="access-create-grid">
+                <label>
+                    <span>Name</span>
+                    <input id="access-create-name" type="text" required maxlength="120" autocomplete="off">
+                </label>
+                <label>
+                    <span>E-Mail</span>
+                    <input id="access-create-email" type="email" required autocomplete="off">
+                </label>
+                <label>
+                    <span>Plattformrolle</span>
+                    <select id="access-create-platform-role">
+                        <option value="user">Standardnutzer</option>
+                        <option value="platform_admin">Plattformadministrator</option>
+                    </select>
+                </label>
+            </div>
+
+            <div class="access-create-workspaces">
+                <div class="access-section-heading">
+                    <div>
+                        <h3>Workspaces</h3>
+                        <p>Optional direkt mehrere Workspaces zuweisen und je Workspace eine Rolle festlegen.</p>
+                    </div>
+                </div>
+                <div id="access-create-workspace-list" class="access-workspace-picker"></div>
+            </div>
+
+            <div id="access-create-user-error" class="access-inline-error is-hidden" aria-live="polite"></div>
+            <div class="access-dialog-actions">
+                <button type="button" id="access-create-user-cancel" class="access-secondary-button">Abbrechen</button>
+                <button type="submit" class="access-primary-button">Benutzer anlegen</button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog id="access-setup-password-dialog" class="access-dialog">
+        <div class="access-dialog-card access-setup-password-card">
+            <div class="access-dialog-head">
+                <div>
+                    <p class="recipe-kicker">Benutzer angelegt</p>
+                    <h2>Setup-Passwort</h2>
+                </div>
+            </div>
+            <p>Dieses Passwort wird nur jetzt angezeigt. Übergib es dem neuen Benutzer über einen sicheren Kanal.</p>
+            <div class="access-setup-password-row">
+                <code id="access-setup-password"></code>
+                <button id="access-copy-setup-password" type="button" class="access-secondary-button">Kopieren</button>
+            </div>
+            <div class="access-dialog-actions">
+                <button id="access-close-setup-password" type="button" class="access-primary-button">Fertig</button>
+            </div>
+        </div>
+    </dialog>
 
     <div id="app-toast" class="app-toast is-hidden"></div>
 

@@ -9,6 +9,7 @@ let accessCatalog = {
 let selectedAccessUserId = "";
 let selectedAccessUser = null;
 let accessSearchTimer = null;
+let accessWorkspaces = [];
 
 function escapeHtml(value) {
     return String(value ?? "")
@@ -67,6 +68,217 @@ async function adminApi(path, options = {}) {
 
     return payload;
 }
+
+
+function roleOptions(selected = "standard_user") {
+    return accessCatalog.roles.map(role => `
+        <option value="${escapeHtml(role.code)}" ${role.code === selected ? "selected" : ""}>
+            ${escapeHtml(role.name)}
+        </option>
+    `).join("");
+}
+
+function renderCreateWorkspacePicker() {
+    const target = document.getElementById("access-create-workspace-list");
+    if (!target) return;
+
+    if (!accessWorkspaces.length) {
+        target.innerHTML = `<p class="admin-empty-state">Keine aktiven Workspaces vorhanden.</p>`;
+        return;
+    }
+
+    target.innerHTML = accessWorkspaces.map(workspace => `
+        <div class="access-workspace-picker-row">
+            <label>
+                <input type="checkbox" data-create-workspace="${escapeHtml(workspace.public_id)}">
+                <span>
+                    <strong>${escapeHtml(workspace.name)}</strong>
+                    <small>${escapeHtml(workspaceTypeLabel(workspace.workspace_type))}</small>
+                </span>
+            </label>
+            <select data-create-workspace-role="${escapeHtml(workspace.public_id)}" disabled>
+                ${roleOptions("standard_user")}
+            </select>
+        </div>
+    `).join("");
+
+    target.querySelectorAll("[data-create-workspace]").forEach(input => {
+        input.addEventListener("change", () => {
+            const select = target.querySelector(
+                `[data-create-workspace-role="${CSS.escape(input.dataset.createWorkspace)}"]`
+            );
+            if (select) select.disabled = !input.checked;
+        });
+    });
+}
+
+async function loadAccessWorkspaces() {
+    const payload = await adminApi("/workspaces");
+    accessWorkspaces = Array.isArray(payload?.workspaces) ? payload.workspaces : [];
+    renderCreateWorkspacePicker();
+}
+
+function openCreateUserDialog() {
+    const dialog = document.getElementById("access-create-user-dialog");
+    const form = document.getElementById("access-create-user-form");
+    form?.reset();
+    document.getElementById("access-create-user-error")?.classList.add("is-hidden");
+    renderCreateWorkspacePicker();
+    dialog?.showModal();
+}
+
+function closeCreateUserDialog() {
+    document.getElementById("access-create-user-dialog")?.close();
+}
+
+async function submitCreateUser(event) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const submit = form.querySelector('button[type="submit"]');
+    const errorTarget = document.getElementById("access-create-user-error");
+
+    const assignments = Array.from(
+        document.querySelectorAll("[data-create-workspace]:checked")
+    ).map(input => ({
+        workspace_public_id: input.dataset.createWorkspace,
+        role_code: document.querySelector(
+            `[data-create-workspace-role="${CSS.escape(input.dataset.createWorkspace)}"]`
+        )?.value || "standard_user"
+    }));
+
+    if (errorTarget) {
+        errorTarget.textContent = "";
+        errorTarget.classList.add("is-hidden");
+    }
+    if (submit) submit.disabled = true;
+
+    try {
+        const result = await adminApi("/users", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                display_name: document.getElementById("access-create-name")?.value.trim(),
+                email: document.getElementById("access-create-email")?.value.trim(),
+                platform_role: document.getElementById("access-create-platform-role")?.value || "user",
+                workspace_assignments: assignments
+            })
+        });
+
+        closeCreateUserDialog();
+        await loadAccessUsers();
+        if (result?.user?.public_id) await selectAccessUser(result.user.public_id);
+
+        const passwordTarget = document.getElementById("access-setup-password");
+        if (passwordTarget) passwordTarget.textContent = result?.setup_password || "";
+        document.getElementById("access-setup-password-dialog")?.showModal();
+    } catch (error) {
+        console.error(error);
+        if (errorTarget) {
+            errorTarget.textContent = error.message || "Benutzer konnte nicht angelegt werden.";
+            errorTarget.classList.remove("is-hidden");
+        }
+    } finally {
+        if (submit) submit.disabled = false;
+    }
+}
+
+function bindCreateUserEvents() {
+    document.getElementById("access-create-user-button")
+        ?.addEventListener("click", openCreateUserDialog);
+    document.getElementById("access-create-user-close")
+        ?.addEventListener("click", closeCreateUserDialog);
+    document.getElementById("access-create-user-cancel")
+        ?.addEventListener("click", closeCreateUserDialog);
+    document.getElementById("access-create-user-form")
+        ?.addEventListener("submit", submitCreateUser);
+    document.getElementById("access-close-setup-password")
+        ?.addEventListener("click", () => {
+            document.getElementById("access-setup-password-dialog")?.close();
+        });
+    document.getElementById("access-copy-setup-password")
+        ?.addEventListener("click", async () => {
+            const value = document.getElementById("access-setup-password")?.textContent || "";
+            if (!value) return;
+            try {
+                await navigator.clipboard.writeText(value);
+                showAccessToast("Setup-Passwort kopiert.");
+            } catch {
+                showAccessToast("Kopieren nicht möglich.");
+            }
+        });
+}
+
+function renderMembershipAssignmentControl(memberships) {
+    const assignedIds = new Set(
+        memberships.map(item => item.workspace?.public_id).filter(Boolean)
+    );
+    const available = accessWorkspaces.filter(
+        workspace => !assignedIds.has(workspace.public_id)
+    );
+
+    if (!available.length) {
+        return `<p class="access-help-text">Alle verfügbaren Workspaces sind bereits zugewiesen.</p>`;
+    }
+
+    return `
+        <div class="access-add-membership">
+            <select id="access-add-workspace">
+                <option value="">Workspace auswählen …</option>
+                ${available.map(workspace => `
+                    <option value="${escapeHtml(workspace.public_id)}">${escapeHtml(workspace.name)}</option>
+                `).join("")}
+            </select>
+            <select id="access-add-workspace-role">
+                ${roleOptions("standard_user")}
+            </select>
+            <button type="button" id="access-add-membership-button" class="access-primary-button">
+                Workspace zuweisen
+            </button>
+        </div>
+    `;
+}
+
+async function addSelectedMembership() {
+    if (!selectedAccessUserId) return;
+    const workspacePublicId = document.getElementById("access-add-workspace")?.value || "";
+    const roleCode = document.getElementById("access-add-workspace-role")?.value || "standard_user";
+    if (!workspacePublicId) {
+        showAccessToast("Bitte einen Workspace auswählen.");
+        return;
+    }
+
+    try {
+        await adminApi(`/users/${encodeURIComponent(selectedAccessUserId)}/memberships`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                workspace_public_id: workspacePublicId,
+                role_code: roleCode
+            })
+        });
+        await refreshSelectedAccessUser("Workspace wurde zugewiesen.");
+    } catch (error) {
+        console.error(error);
+        showAccessToast(error.message);
+    }
+}
+
+async function removeMembership(membershipId) {
+    if (!selectedAccessUserId) return;
+    if (!window.confirm("Diese Workspace-Zuweisung wirklich entfernen?")) return;
+
+    try {
+        await adminApi(
+            `/users/${encodeURIComponent(selectedAccessUserId)}/memberships/${membershipId}`,
+            { method: "DELETE" }
+        );
+        await refreshSelectedAccessUser("Workspace-Zuweisung wurde entfernt.");
+    } catch (error) {
+        console.error(error);
+        showAccessToast(error.message);
+    }
+}
+
 
 function accessStatusLabel(status) {
     return {
@@ -251,7 +463,7 @@ function renderAccessUserDetail() {
     const user = data.user;
     const self = user.public_id === getCurrentUserPublicId();
     const memberships = Array.isArray(data.memberships)
-        ? data.memberships
+        ? data.memberships.filter(item => item.status !== "left")
         : [];
 
     target.innerHTML = `
@@ -330,6 +542,8 @@ function renderAccessUserDetail() {
                 </div>
             </div>
 
+            ${renderMembershipAssignmentControl(memberships)}
+
             <div class="access-membership-list">
                 ${memberships.length
                     ? memberships.map(renderMembershipCard).join("")
@@ -358,9 +572,11 @@ function renderMembershipCard(membership) {
                         Membership ${escapeHtml(accessStatusLabel(membership.status))}
                     </p>
                 </div>
-                ${membership.is_owner
-                    ? `<span class="access-owner-pill">Owner</span>`
-                    : ""}
+                <div class="access-membership-head-actions">
+                    ${membership.is_owner
+                        ? `<span class="access-owner-pill">Owner</span>`
+                        : `<button type="button" class="access-secondary-button access-remove-membership" data-remove-membership="${Number(membership.id)}">Entfernen</button>`}
+                </div>
             </div>
 
             <div class="access-membership-block">
@@ -454,6 +670,15 @@ function bindAccessDetailEvents() {
 
     document.getElementById("access-revoke-sessions")
         ?.addEventListener("click", revokeAccessUserSessions);
+
+    document.getElementById("access-add-membership-button")
+        ?.addEventListener("click", addSelectedMembership);
+
+    document.querySelectorAll("[data-remove-membership]").forEach(button => {
+        button.addEventListener("click", () => {
+            removeMembership(Number(button.dataset.removeMembership));
+        });
+    });
 
     document.querySelectorAll("[data-membership-id]").forEach(card => {
         const membershipId = card.dataset.membershipId;
@@ -663,12 +888,14 @@ async function initAccessAdmin() {
     if (!allowed) return;
 
     bindAccessFilters();
+    bindCreateUserEvents();
 
     try {
         await Promise.all([
             loadAccessCatalog(),
-            loadAccessUsers()
+            loadAccessWorkspaces()
         ]);
+        await loadAccessUsers();
     } catch (error) {
         console.error(error);
 

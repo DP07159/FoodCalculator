@@ -275,9 +275,15 @@ function renderBurgerMenu() {
             ${links.map(link => `<a href="${link.href}"${isCurrentLink(link) ? ' aria-current="page" class="is-current"' : ""}>${escapeNavigationHtml(link.label)}</a>`).join("")}
         </div>
         <div class="platform-menu-footer">
+            <button type="button" class="navigation-tour-button" id="navigation-product-tour">Plattform-Tour starten</button>
             <button type="button" id="navigation-logout">Abmelden</button>
         </div>`;
 
+    burgerDropdown.querySelector("#navigation-product-tour")?.addEventListener("click", () => {
+        burgerDropdown.classList.add("is-hidden");
+        if (window.ProductTour?.start) window.ProductTour.start();
+        else window.location.href = "/index.html?tour=1";
+    });
     burgerDropdown.querySelector("#navigation-logout")?.addEventListener("click", () => AuthShell.logout());
     bindWorkspaceSwitchers(burgerDropdown);
 }
@@ -401,6 +407,17 @@ function initBurgerMenu() {
     });
     document.addEventListener("auth:ready", refreshNavigation);
 }
+
+function loadProductTour() {
+    if (document.querySelector('script[data-product-tour="true"]')) return;
+    const script = document.createElement("script");
+    script.src = "/product-tour.js";
+    script.defer = true;
+    script.dataset.productTour = "true";
+    document.head.appendChild(script);
+}
+
+loadProductTour();
 
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initBurgerMenu);
 else initBurgerMenu();

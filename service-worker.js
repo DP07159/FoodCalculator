@@ -1,4 +1,4 @@
-const CACHE_NAME = "food-moment-platform-v38-home-food-moment";
+const CACHE_NAME = "food-moment-platform-v39-product-tour";
 
 const FILES_TO_CACHE = [
     "/",
@@ -13,6 +13,7 @@ const FILES_TO_CACHE = [
     "/login.html",
     "/login.js",
     "/navigation.js",
+    "/product-tour.js",
     "/recipeInstructions.html",
     "/recipeInstructions.js",
     "/recipeDetails.html",

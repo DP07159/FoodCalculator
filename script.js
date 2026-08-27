@@ -13,6 +13,11 @@ let mealPlans = [];
 let selectedDay = getTodayInGerman();
 let activeMealPlanId = null;
 let activeMealPlanName = "";
+let mealPlanDraft = createEmptyMealPlanDraft();
+let mealPlanDirty = false;
+let walletInspirations = [];
+let pickerTarget = null;
+let mealPickerType = "recipe";
 
 function showToast(message) {
     const toast = document.getElementById("app-toast");
@@ -126,118 +131,175 @@ function renderMealPlanSelect() {
     });
 
     select.value = activeMealPlanId || "";
-    select.onchange = () => {
-        if (select.value) loadMealPlan(select.value);
+    select.onchange = async () => {
+        const nextId = select.value;
+        if (!nextId) return;
+        if (!confirmDiscardChanges()) { select.value = activeMealPlanId || ""; return; }
+        await loadMealPlan(nextId);
     };
 }
 
-function populateMealTable() {
-    const mealTable = document.getElementById("meal-table");
-    if (!mealTable) return;
+function createEmptyMealPlanDraft() {
+    return Object.fromEntries(WEEK_DAYS.map(day => [day, Object.fromEntries(MEAL_ROWS.map(meal => [meal.key, null]))]));
+}
 
-    mealTable.innerHTML = "";
-    mealTable.appendChild(createPlanCell("", "plan-corner-cell"));
+function normalizePlanItem(entry) {
+    if (!entry) return null;
+    if (entry.itemType === "inspiration" || entry.type === "inspiration") {
+        return {
+            type: "inspiration",
+            walletId: entry.walletId || entry.referenceId || entry.publicId || "",
+            title: entry.title || "Inspiration",
+            category: entry.category || "",
+            sourceUrl: entry.sourceUrl || ""
+        };
+    }
+    const recipeId = entry.recipeId || entry.referenceId || "";
+    return recipeId ? { type: "recipe", recipeId: String(recipeId) } : null;
+}
+
+function setMealPlanDirty(value = true) {
+    mealPlanDirty = Boolean(value);
+    const state = document.getElementById("meal-plan-save-state");
+    const updateButton = document.getElementById("meal-plan-update-button");
+    if (state) {
+        state.textContent = mealPlanDirty ? "Geändert · noch nicht gespeichert" : (activeMealPlanId ? "Gespeicherter Stand" : "Noch nicht gespeichert");
+        state.classList.toggle("is-dirty", mealPlanDirty);
+    }
+    if (updateButton) updateButton.classList.toggle("has-changes", mealPlanDirty);
+}
+
+function populateMealTable() {
+    const board = document.getElementById("meal-table");
+    if (!board) return;
+    board.innerHTML = "";
 
     WEEK_DAYS.forEach(day => {
-        const header = createPlanCell(day, "plan-day-header");
-        header.dataset.day = day;
-        header.classList.toggle("is-active", day === selectedDay);
-        header.classList.toggle("is-today", day === getTodayInGerman());
+        const column = document.createElement("section");
+        column.className = "meal-plan-day-column";
+        column.dataset.day = day;
+        column.classList.toggle("is-active", day === selectedDay);
+        column.classList.toggle("is-today", day === getTodayInGerman());
+
+        const header = document.createElement("button");
+        header.type = "button";
+        header.className = "meal-plan-day-heading";
+        header.innerHTML = `<span>${day}</span>${day === getTodayInGerman() ? '<small>Heute</small>' : ''}`;
         header.addEventListener("click", () => setSelectedDay(day));
-        mealTable.appendChild(header);
+        column.appendChild(header);
+
+        const meals = document.createElement("div");
+        meals.className = "meal-plan-day-meals";
+        MEAL_ROWS.forEach(meal => meals.appendChild(createMealSlot(day, meal)));
+        column.appendChild(meals);
+        column.appendChild(createDayCalorieProgress(day));
+        board.appendChild(column);
     });
 
-    MEAL_ROWS.forEach(meal => {
-        mealTable.appendChild(createPlanCell(meal.label, "plan-row-label"));
+    renderDayDetail(selectedDay);
+}
 
-        WEEK_DAYS.forEach(day => {
-            const cell = document.createElement("div");
-            cell.className = "plan-cell plan-input-cell";
-
-            const select = document.createElement("select");
-            select.className = "meal-select";
-            select.dataset.day = day;
-            select.dataset.mealType = meal.key;
-            select.innerHTML = `<option value="">-- Wählen --</option>`;
-
-            recipes
-                .filter(recipe => Array.isArray(recipe.mealTypes) && recipe.mealTypes.includes(meal.key))
-                .forEach(recipe => {
-                    const option = document.createElement("option");
-                    option.value = recipe.id;
-                    option.textContent = `${recipe.name} (${recipe.calories} kcal)`;
-                    select.appendChild(option);
-                });
-
-            select.addEventListener("change", () => {
-                calculateCalories();
-                renderDayDetail(selectedDay);
-            });
-
-            cell.appendChild(select);
-            mealTable.appendChild(cell);
-        });
+function createMealSlot(day, meal) {
+    const slot = document.createElement("div");
+    slot.className = "meal-plan-slot";
+    slot.dataset.day = day;
+    slot.dataset.mealType = meal.key;
+    slot.addEventListener("dragover", event => { event.preventDefault(); slot.classList.add("is-drag-over"); });
+    slot.addEventListener("dragleave", () => slot.classList.remove("is-drag-over"));
+    slot.addEventListener("drop", event => {
+        event.preventDefault();
+        slot.classList.remove("is-drag-over");
+        try {
+            const payload = JSON.parse(event.dataTransfer.getData("text/plain"));
+            movePlanItem(payload.day, payload.mealType, day, meal.key);
+        } catch (error) { console.warn("Drag & Drop konnte nicht ausgewertet werden", error); }
     });
 
-    mealTable.appendChild(createPlanCell("Gesamt", "plan-row-label plan-row-label-accent"));
-    WEEK_DAYS.forEach(day => mealTable.appendChild(createPlanValueCell(day, "total-calories")));
+    const label = document.createElement("div");
+    label.className = "meal-plan-slot-label";
+    label.textContent = meal.label;
+    slot.appendChild(label);
 
-    mealTable.appendChild(createPlanCell("Rest", "plan-row-label plan-row-label-accent"));
-    WEEK_DAYS.forEach(day => mealTable.appendChild(createPlanValueCell(day, "remaining-calories")));
+    const item = mealPlanDraft?.[day]?.[meal.key] || null;
+    if (!item) {
+        const add = document.createElement("button");
+        add.type = "button";
+        add.className = "meal-plan-add-button";
+        add.innerHTML = `<span aria-hidden="true">＋</span><span>Hinzufügen</span>`;
+        add.addEventListener("click", () => openMealPicker(day, meal.key));
+        slot.appendChild(add);
+        return slot;
+    }
 
-    calculateCalories();
+    const card = document.createElement("article");
+    card.className = `meal-plan-item-card is-${item.type}`;
+    card.draggable = true;
+    card.addEventListener("dragstart", event => {
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.setData("text/plain", JSON.stringify({ day, mealType: meal.key }));
+        card.classList.add("is-dragging");
+    });
+    card.addEventListener("dragend", () => card.classList.remove("is-dragging"));
+
+    if (item.type === "recipe") {
+        const recipe = getRecipeById(item.recipeId);
+        const title = recipe?.name || "Rezept nicht verfügbar";
+        const calories = Number(recipe?.calories) || 0;
+        card.innerHTML = `
+            <div class="meal-plan-card-copy">
+                <strong>${escapeHtml(title)}</strong>
+                <span>Rezept${calories ? ` · ${calories} kcal` : ""}</span>
+            </div>
+            <button type="button" class="meal-plan-card-menu" aria-label="Eintrag bearbeiten">•••</button>`;
+        card.querySelector(".meal-plan-card-copy")?.addEventListener("click", () => { if (recipe) location.href = `/recipeInstructions.html?id=${recipe.id}`; });
+    } else {
+        card.innerHTML = `
+            <div class="meal-plan-card-copy">
+                <strong>${escapeHtml(item.title || "Inspiration")}</strong>
+                <span>Inspiration${item.category ? ` · ${escapeHtml(getWalletCategoryLabel(item.category))}` : ""}</span>
+            </div>
+            <button type="button" class="meal-plan-card-menu" aria-label="Eintrag bearbeiten">•••</button>`;
+    }
+
+    card.querySelector(".meal-plan-card-menu")?.addEventListener("click", event => {
+        event.stopPropagation();
+        openPlanItemMenu(day, meal.key, event.currentTarget);
+    });
+    slot.appendChild(card);
+    return slot;
 }
 
-function createPlanCell(text, className) {
-    const div = document.createElement("div");
-    div.className = className;
-    div.textContent = text;
-    return div;
+function createDayCalorieProgress(day) {
+    const total = getDayCalories(day);
+    const ratio = Math.min(Math.max(total / DAILY_CALORIE_LIMIT, 0), 1);
+    const wrap = document.createElement("div");
+    wrap.className = `meal-plan-day-progress${total > DAILY_CALORIE_LIMIT ? " is-over" : ""}`;
+    wrap.innerHTML = `<div class="meal-plan-day-progress-copy"><span>${total.toLocaleString("de-DE")} / ${DAILY_CALORIE_LIMIT.toLocaleString("de-DE")} kcal</span></div><div class="meal-plan-progress-track"><span style="width:${Math.round(ratio * 100)}%"></span></div>`;
+    return wrap;
 }
 
-function createPlanValueCell(day, type) {
-    const div = document.createElement("div");
-    div.className = `plan-cell plan-value-cell ${type}`;
-    div.dataset.day = day;
-    div.dataset.type = type;
-    div.textContent = "0 kcal";
-    return div;
+function getDayCalories(day) {
+    return MEAL_ROWS.reduce((sum, meal) => {
+        const item = mealPlanDraft?.[day]?.[meal.key];
+        if (!item || item.type !== "recipe") return sum;
+        return sum + (Number(getRecipeById(item.recipeId)?.calories) || 0);
+    }, 0);
 }
 
 function calculateCalories() {
-    WEEK_DAYS.forEach(day => {
-        let total = 0;
-        document.querySelectorAll(`#meal-table select[data-day="${day}"]`).forEach(select => {
-            const recipe = getRecipeById(select.value);
-            if (recipe) total += Number(recipe.calories) || 0;
-        });
-
-        const totalCell = document.querySelector(`#meal-table .total-calories[data-day="${day}"]`);
-        const remainingCell = document.querySelector(`#meal-table .remaining-calories[data-day="${day}"]`);
-        const remaining = DAILY_CALORIE_LIMIT - total;
-
-        if (totalCell) totalCell.textContent = `${total} kcal`;
-        if (remainingCell) {
-            remainingCell.textContent = `${remaining} kcal`;
-            remainingCell.classList.toggle("is-negative", remaining < 0);
-        }
+    document.querySelectorAll(".meal-plan-day-column").forEach(column => {
+        const current = column.querySelector(".meal-plan-day-progress");
+        current?.replaceWith(createDayCalorieProgress(column.dataset.day));
     });
 }
 
 function getMealsForDay(day) {
-    const meals = {};
-    MEAL_ROWS.forEach(meal => {
-        const select = document.querySelector(`#meal-table select[data-day="${day}"][data-meal-type="${meal.key}"]`);
-        meals[meal.key] = select ? select.value : "";
-    });
-    return meals;
+    return mealPlanDraft?.[day] || {};
 }
 
 window.setSelectedDay = function(day) {
     selectedDay = day;
-    document.querySelectorAll(".plan-day-header").forEach(header => {
-        header.classList.toggle("is-active", header.dataset.day === day);
-    });
+    document.querySelectorAll(".meal-plan-day-column").forEach(column => column.classList.toggle("is-active", column.dataset.day === day));
     renderDayDetail(day);
 };
 
@@ -250,46 +312,144 @@ window.changeSelectedDay = function(direction) {
 function renderDayDetail(day) {
     const panel = document.getElementById("day-detail-panel");
     if (!panel) return;
-
-    const mealsForDay = getMealsForDay(day);
-    let totalCalories = 0;
-
+    const totalCalories = getDayCalories(day);
+    const remaining = DAILY_CALORIE_LIMIT - totalCalories;
+    const progress = Math.min(Math.max(totalCalories / DAILY_CALORIE_LIMIT, 0), 1) * 100;
     const mealCardsHtml = MEAL_ROWS.map(meal => {
-        const recipe = getRecipeById(mealsForDay[meal.key]);
-        if (recipe) totalCalories += Number(recipe.calories) || 0;
-
-        return `
-            <div class="day-detail-meal-card">
-                <div class="day-detail-meal-label">${meal.label}</div>
-                <div class="day-detail-meal-value">
-                    ${recipe ? `<a href="/recipeInstructions.html?id=${recipe.id}" class="day-detail-link">${recipe.name}</a>` : "Noch nichts gewählt"}
-                </div>
-                <div class="day-detail-meal-calories">${recipe ? `${recipe.calories} kcal` : "–"}</div>
-            </div>
-        `;
+        const item = mealPlanDraft?.[day]?.[meal.key] || null;
+        if (!item) return `<div class="day-detail-meal-card is-empty"><div class="day-detail-meal-label">${meal.label}</div><button type="button" class="day-detail-add-button" onclick="openMealPicker('${day}','${meal.key}')">＋ Hinzufügen</button></div>`;
+        if (item.type === "recipe") {
+            const recipe = getRecipeById(item.recipeId);
+            return `<div class="day-detail-meal-card"><div class="day-detail-meal-label">${meal.label}</div><div class="day-detail-meal-value">${recipe ? `<a href="/recipeInstructions.html?id=${recipe.id}" class="day-detail-link">${escapeHtml(recipe.name)}</a>` : "Rezept nicht verfügbar"}</div><div class="day-detail-meal-calories">${recipe ? `${Number(recipe.calories)||0} kcal` : "–"}</div><button type="button" class="day-detail-item-action" onclick="openMealPicker('${day}','${meal.key}')">${getIconSvg("edit")}<span>Ändern</span></button></div>`;
+        }
+        return `<div class="day-detail-meal-card is-inspiration"><div class="day-detail-meal-label">${meal.label}</div><div class="day-detail-meal-value">${escapeHtml(item.title || "Inspiration")}</div><div class="day-detail-meal-calories">Inspiration${item.category ? ` · ${escapeHtml(getWalletCategoryLabel(item.category))}` : ""}</div><button type="button" class="day-detail-item-action" onclick="openMealPicker('${day}','${meal.key}')">${getIconSvg("edit")}<span>Ändern</span></button></div>`;
     }).join("");
 
-    const remaining = DAILY_CALORIE_LIMIT - totalCalories;
+    panel.innerHTML = `<div class="day-detail-card"><div class="day-detail-header"><div class="day-detail-title-block"><span class="day-detail-eyebrow">Dein Tag</span><div class="day-detail-day-nav"><button type="button" class="day-nav-button" onclick="changeSelectedDay(-1)" aria-label="Vorheriger Tag">${getIconSvg("prev")}</button><strong class="day-detail-title-day">${day}</strong><button type="button" class="day-nav-button" onclick="changeSelectedDay(1)" aria-label="Nächster Tag">${getIconSvg("next")}</button></div></div><div class="day-detail-progress"><div><span>${totalCalories.toLocaleString("de-DE")} / ${DAILY_CALORIE_LIMIT.toLocaleString("de-DE")} kcal</span><small>${remaining >= 0 ? `${remaining.toLocaleString("de-DE")} kcal frei` : `${Math.abs(remaining).toLocaleString("de-DE")} kcal darüber`}</small></div><div class="meal-plan-progress-track${remaining < 0 ? " is-over" : ""}"><span style="width:${Math.min(progress,100)}%"></span></div></div></div><div class="day-detail-meals">${mealCardsHtml}</div></div>`;
+}
 
-    panel.innerHTML = `
-        <div class="day-detail-card">
-            <div class="day-detail-header">
-                <div class="day-detail-title-line">
-                    <button type="button" class="day-nav-button" onclick="changeSelectedDay(-1)" aria-label="Vorheriger Tag">${getIconSvg("prev")}</button>
-                    <div class="day-detail-title-inline">
-                        <span class="day-detail-title-prefix">Dein Tagesplan für</span>
-                        <span class="day-detail-title-day">${day}</span>
-                    </div>
-                    <button type="button" class="day-nav-button" onclick="changeSelectedDay(1)" aria-label="Nächster Tag">${getIconSvg("next")}</button>
-                </div>
-                <div class="day-detail-stats">
-                    <div class="day-detail-stat"><span>Gesamt</span><strong>${totalCalories} kcal</strong></div>
-                    <div class="day-detail-stat"><span>Rest</span><strong class="${remaining < 0 ? "is-negative" : "is-positive"}">${remaining} kcal</strong></div>
-                </div>
-            </div>
-            <div class="day-detail-meals">${mealCardsHtml}</div>
-        </div>
-    `;
+function escapeHtml(value) {
+    return String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
+}
+
+function getWalletCategoryLabel(category) {
+    return ({ recipe: "Rezept / Gericht", restaurant: "Restaurant / Café", product: "Produkt / Zutat", technique: "Kochtechnik / How-to", presentation: "Anrichten", shop: "Shop / Markt / Produzent", other: "Sonstiges" })[category] || category || "Inspiration";
+}
+
+async function loadWalletInspirations() {
+    try {
+        const response = await AuthShell.request(`${API_URL}/wallet`);
+        if (!response.ok) return;
+        const payload = await response.json();
+        walletInspirations = Array.isArray(payload) ? payload : [];
+    } catch (error) { console.info("Wallet ist für den Wochenplan nicht verfügbar."); }
+}
+
+window.openMealPicker = async function(day, mealType) {
+    pickerTarget = { day, mealType };
+    mealPickerType = "recipe";
+    const dialog = document.getElementById("meal-picker-dialog");
+    if (!dialog) return;
+    document.getElementById("meal-picker-search").value = "";
+    updateMealPickerTypeUi();
+    await loadWalletInspirations();
+    renderMealPickerResults();
+    dialog.showModal();
+};
+
+window.setMealPickerType = function(type) {
+    mealPickerType = type === "wallet" ? "wallet" : "recipe";
+    const search = document.getElementById("meal-picker-search");
+    if (search) {
+        search.value = "";
+        search.placeholder = mealPickerType === "wallet" ? "Wallet durchsuchen …" : "Rezepte durchsuchen …";
+        search.focus();
+    }
+    updateMealPickerTypeUi();
+    renderMealPickerResults();
+};
+
+function updateMealPickerTypeUi() {
+    ["recipe", "wallet"].forEach(type => {
+        const button = document.getElementById(`meal-picker-type-${type}`);
+        if (!button) return;
+        const active = mealPickerType === type;
+        button.classList.toggle("is-active", active);
+        button.setAttribute("aria-selected", String(active));
+    });
+    const search = document.getElementById("meal-picker-search");
+    if (search) search.placeholder = mealPickerType === "wallet" ? "Wallet durchsuchen …" : "Rezepte durchsuchen …";
+}
+
+window.closeMealPicker = function() { document.getElementById("meal-picker-dialog")?.close(); pickerTarget = null; };
+
+function renderMealPickerResults() {
+    const results = document.getElementById("meal-picker-results");
+    if (!results || !pickerTarget) return;
+    const term = (document.getElementById("meal-picker-search")?.value || "").trim().toLocaleLowerCase("de");
+
+    if (mealPickerType === "wallet") {
+        const matchingWallet = walletInspirations.filter(item => !term || `${item.title||""} ${item.source_page_title||""} ${item.note||""} ${getWalletCategoryLabel(item.category)}`.toLocaleLowerCase("de").includes(term));
+        results.innerHTML = `<div class="meal-picker-section meal-picker-wallet-section"><div class="meal-picker-section-heading"><h3>Deine Wallet</h3><span>${matchingWallet.length} ${matchingWallet.length === 1 ? "Inspiration" : "Inspirationen"}</span></div>${matchingWallet.length ? matchingWallet.map(inspirationPickerMarkup).join("") : '<p class="meal-picker-empty">Keine passende Inspiration in deiner Wallet gefunden.</p>'}</div>`;
+        return;
+    }
+
+    const mealType = pickerTarget.mealType;
+    const matchingRecipes = recipes.filter(recipe => Array.isArray(recipe.mealTypes) && recipe.mealTypes.includes(mealType) && (!term || String(recipe.name||"").toLocaleLowerCase("de").includes(term)));
+    const favorite = matchingRecipes.filter(isFavoriteRecipe);
+    results.innerHTML = `${favorite.length ? `<div class="meal-picker-section"><h3>Favoriten</h3>${favorite.slice(0,6).map(recipePickerMarkup).join("")}</div>` : ""}<div class="meal-picker-section"><div class="meal-picker-section-heading"><h3>Passende Rezepte</h3><span>${matchingRecipes.length}</span></div>${matchingRecipes.length ? matchingRecipes.map(recipePickerMarkup).join("") : '<p class="meal-picker-empty">Keine passenden Rezepte gefunden.</p>'}</div>`;
+}
+
+function recipePickerMarkup(recipe) {
+    return `<button type="button" class="meal-picker-result" onclick="chooseMealPickerItem('recipe','${String(recipe.id).replaceAll("'", "") }')"><span><strong>${escapeHtml(recipe.name)}</strong><small>Rezept · ${Number(recipe.calories)||0} kcal</small></span><span aria-hidden="true">＋</span></button>`;
+}
+function inspirationPickerMarkup(item) {
+    const title = item.title || item.source_page_title || "Gespeicherte Inspiration";
+    return `<button type="button" class="meal-picker-result" onclick="chooseMealPickerItem('inspiration','${escapeHtml(item.public_id)}')"><span><strong>${escapeHtml(title)}</strong><small>Inspiration · ${escapeHtml(getWalletCategoryLabel(item.category))}</small></span><span aria-hidden="true">＋</span></button>`;
+}
+
+window.chooseMealPickerItem = function(type, id) {
+    if (!pickerTarget) return;
+    if (type === "recipe") {
+        mealPlanDraft[pickerTarget.day][pickerTarget.mealType] = { type: "recipe", recipeId: String(id) };
+    } else {
+        const item = walletInspirations.find(entry => String(entry.public_id) === String(id));
+        if (!item) return;
+        mealPlanDraft[pickerTarget.day][pickerTarget.mealType] = { type: "inspiration", walletId: item.public_id, title: item.title || item.source_page_title || "Gespeicherte Inspiration", category: item.category || "", sourceUrl: item.source_url || "" };
+    }
+    setMealPlanDirty(true);
+    closeMealPicker();
+    populateMealTable();
+};
+
+function openPlanItemMenu(day, mealType, anchor) {
+    const existing = document.querySelector(".meal-plan-context-menu");
+    existing?.remove();
+    const menu = document.createElement("div");
+    menu.className = "meal-plan-context-menu";
+    menu.innerHTML = `<button type="button" data-action="change">Ändern</button><button type="button" data-action="remove">Entfernen</button>`;
+    const rect = anchor.getBoundingClientRect();
+    menu.style.left = `${Math.min(rect.left, window.innerWidth - 180)}px`;
+    menu.style.top = `${rect.bottom + 6}px`;
+    menu.addEventListener("click", event => {
+        const action = event.target.closest("button")?.dataset.action;
+        if (action === "change") openMealPicker(day, mealType);
+        if (action === "remove") { mealPlanDraft[day][mealType] = null; setMealPlanDirty(true); populateMealTable(); }
+        menu.remove();
+    });
+    document.body.appendChild(menu);
+    setTimeout(() => document.addEventListener("click", function close(event){ if (!menu.contains(event.target) && event.target !== anchor) { menu.remove(); document.removeEventListener("click", close); } }), 0);
+}
+
+function movePlanItem(fromDay, fromMealType, toDay, toMealType) {
+    if (!mealPlanDraft?.[fromDay] || !mealPlanDraft?.[toDay]) return;
+    const moving = mealPlanDraft[fromDay][fromMealType];
+    if (!moving) return;
+    const displaced = mealPlanDraft[toDay][toMealType];
+    mealPlanDraft[toDay][toMealType] = moving;
+    mealPlanDraft[fromDay][fromMealType] = displaced || null;
+    setMealPlanDirty(true);
+    populateMealTable();
 }
 
 function getFilteredAndSortedRecipes() {
@@ -454,19 +614,32 @@ window.deleteRecipe = async function(recipeId) {
 
 function collectMealPlanData() {
     const data = [];
-    document.querySelectorAll("#meal-table select").forEach(select => {
-        data.push({ day: select.dataset.day, mealType: select.dataset.mealType, recipeId: select.value });
-    });
+    WEEK_DAYS.forEach(day => MEAL_ROWS.forEach(meal => {
+        const item = mealPlanDraft?.[day]?.[meal.key] || null;
+        if (!item) {
+            data.push({ day, mealType: meal.key, recipeId: "" });
+        } else if (item.type === "recipe") {
+            data.push({ day, mealType: meal.key, itemType: "recipe", recipeId: item.recipeId });
+        } else {
+            data.push({ day, mealType: meal.key, itemType: "inspiration", walletId: item.walletId, title: item.title, category: item.category || "", sourceUrl: item.sourceUrl || "" });
+        }
+    }));
     return data;
 }
 
 function applyMealPlanData(data = []) {
+    mealPlanDraft = createEmptyMealPlanDraft();
     data.forEach(entry => {
-        const select = document.querySelector(`#meal-table select[data-day="${entry.day}"][data-meal-type="${entry.mealType}"]`);
-        if (select) select.value = entry.recipeId || "";
+        if (!mealPlanDraft[entry.day] || !MEAL_ROWS.some(meal => meal.key === entry.mealType)) return;
+        mealPlanDraft[entry.day][entry.mealType] = normalizePlanItem(entry);
     });
-    calculateCalories();
-    renderDayDetail(selectedDay);
+    setMealPlanDirty(false);
+    populateMealTable();
+}
+
+function confirmDiscardChanges() {
+    if (!mealPlanDirty) return true;
+    return confirm("Du hast ungespeicherte Änderungen. Wenn du fortfährst, werden sie verworfen.");
 }
 
 window.togglePlanSaveToolbar = function() {
@@ -489,6 +662,7 @@ window.saveMealPlan = async function() {
         activeMealPlanId = plan.id;
         activeMealPlanName = plan.name;
         document.getElementById("current-plan-name").textContent = `Aktueller Wochenplan: ${plan.name}`;
+        setMealPlanDirty(false);
         document.getElementById("plan-name").value = "";
         document.getElementById("plan-save-panel")?.classList.add("is-hidden");
         await loadMealPlans();
@@ -526,6 +700,7 @@ window.updateMealPlan = async function() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ name: activeMealPlanName, data: collectMealPlanData() })
         });
+        setMealPlanDirty(false);
         showToast("Wochenplan aktualisiert.");
     } catch (error) {
         console.error(error);
@@ -545,6 +720,9 @@ window.deleteMealPlan = async function() {
         activeMealPlanId = null;
         activeMealPlanName = "";
         document.getElementById("current-plan-name").textContent = "Aktueller Wochenplan: keiner";
+        mealPlanDraft = createEmptyMealPlanDraft();
+        setMealPlanDirty(false);
+        populateMealTable();
         await loadMealPlans();
         showToast("Wochenplan gelöscht.");
     } catch (error) {
@@ -559,9 +737,10 @@ function getIngredientsFromText(text) {
 
 window.shareWeeklyShoppingList = async function() {
     const selectedIds = new Set();
-    document.querySelectorAll("#meal-table select").forEach(select => {
-        if (select.value) selectedIds.add(String(select.value));
-    });
+    WEEK_DAYS.forEach(day => MEAL_ROWS.forEach(meal => {
+        const item = mealPlanDraft?.[day]?.[meal.key];
+        if (item?.type === "recipe" && item.recipeId) selectedIds.add(String(item.recipeId));
+    }));
 
     const items = [];
     selectedIds.forEach(id => {
@@ -607,6 +786,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         document.getElementById("recipe-sort")
             ?.addEventListener("change", populateRecipeList);
+
+        document.getElementById("meal-picker-search")
+            ?.addEventListener("input", renderMealPickerResults);
+
+        window.addEventListener("beforeunload", event => {
+            if (!mealPlanDirty) return;
+            event.preventDefault();
+            event.returnValue = "";
+        });
     } catch (error) {
         console.error("App-Initialisierung fehlgeschlagen:", error);
         showToast(

@@ -43,6 +43,13 @@ const HOME_PRIMARY_ACTIONS = [
 
 const HOME_SECONDARY_ACTIONS = [
     {
+        code: "create-food-moment",
+        label: "Food Moment erstellen",
+        href: "/foodMomentCreate.html",
+        capability: "food_moments",
+        icon: "moment"
+    },
+    {
         code: "search-recipe",
         label: "Rezept suchen",
         href: "/recipes.html",

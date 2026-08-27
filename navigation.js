@@ -5,6 +5,14 @@ const STATIC_NAVIGATION_LINKS = [
 
 const LEGACY_MODULE_DEFINITIONS = [
     {
+        code: "food_moments",
+        name: "Food Moments",
+        enabled: true,
+        navigation: { label: "Food Moments", short_label: "Moments", href: "/foodMoments.html", icon: "moment", primary: true, order: 10 },
+        secondary_navigation: [{ label: "Food Moment erstellen", href: "/foodMomentCreate.html", icon: "plus", order: 5 }],
+        home_actions: []
+    },
+    {
         code: "meal_plan",
         name: "Wochenplan",
         enabled: true,
@@ -54,6 +62,7 @@ const NAV_ICON_PATHS = {
     recipes: '<path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/>',
     inventory: '<path d="M4 6h16v14H4zM7 3h10v3M8 10h8M8 14h5"/>',
     wallet: '<path d="M4 7h16v13H4z"/><path d="M7 7V5h10v2"/><path d="M8 11h8M8 15h5"/>',
+    moment: '<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>',
     plus: '<path d="M12 5v14M5 12h14"/>',
     settings: '<circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.5-2.4 1A7 7 0 0 0 15 6l-.4-2.6h-4L10.2 6a7 7 0 0 0-1.6 1L6.2 6 4.2 9.5 6.1 11a7 7 0 0 0 0 2l-1.9 1.5 2 3.5 2.4-1A7 7 0 0 0 10 18l.4 2.6h4L15 18a7 7 0 0 0 1.5-1l2.4 1 2-3.5L18.9 13c.1-.3.1-.7.1-1Z"/>'
 };
@@ -214,6 +223,7 @@ function isCurrentLink(link) {
     const linkPath = link.href.split("#")[0];
     if (currentPath === linkPath || (currentPath === "/" && linkPath === "/index.html")) return true;
     if (link.capability === "recipes" && ["/recipeCreate.html", "/recipeDetails.html", "/recipeInstructions.html"].includes(currentPath)) return link.href === "/recipes.html";
+    if (link.capability === "food_moments" && ["/foodMomentCreate.html", "/foodMoment.html"].includes(currentPath)) return link.href === "/foodMoments.html";
     if (link.capability === "admin" && ["/adminTable.html", "/adminUsers.html"].includes(currentPath)) return true;
     return false;
 }

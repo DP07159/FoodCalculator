@@ -18,29 +18,38 @@
     </header>
 
     <div class="container home-container">
-        <main class="intent-home" aria-labelledby="food-moment-title">
-            <section class="intent-hero">
-                <p class="intent-eyebrow" id="home-workspace-label">Was möchtest du tun?</p>
+        <main class="food-moment-start" aria-labelledby="food-moment-title">
+            <section class="food-moment-hero">
                 <h1 id="food-moment-title">Dein Food Moment.</h1>
-                <p class="intent-lead">Sag uns, was gerade ansteht. Wir öffnen den passenden Weg – ohne dir die Module der Plattform erklären zu müssen.</p>
-
-                <form id="intent-form" class="intent-input-wrap">
-                    <label for="intent-input">Was hast du vor?</label>
-                    <div class="intent-input-row">
-                        <input id="intent-input" type="text" autocomplete="off" placeholder="z. B. Freitagabend kommen Freunde …">
-                        <button class="primary-button intent-submit" type="submit">Weiter</button>
-                    </div>
-                    <p id="intent-feedback" class="intent-feedback" aria-live="polite"></p>
-                </form>
+                <div id="food-moment-source-context" class="food-moment-source-context" hidden></div>
+                <div id="food-moment-primary-actions" class="food-moment-primary-actions" aria-label="Food-Moment-Einstiege"></div>
+                <div id="food-moment-secondary-actions" class="food-moment-secondary-actions" aria-label="Direkte Einstiege"></div>
             </section>
 
-            <section id="intent-actions" class="intent-actions" aria-label="Schnelleinstiege"></section>
-
-            <section class="home-ambient-note">
-                <p><strong>Food Moments verbinden künftig Planung, Rezepte, Inventar und Einkauf.</strong> Die detaillierte Erfassung bleibt bewusst noch offen, bis die separate Food-Moment-Fachspezifikation beschlossen ist.</p>
+            <section id="food-world-section" class="food-world-section" aria-labelledby="food-world-title">
+                <div class="home-section-heading">
+                    <p class="home-section-kicker">Direkt zu</p>
+                    <h2 id="food-world-title">Deine Food-Welt</h2>
+                </div>
+                <nav id="food-world-links" class="food-world-links" aria-label="Module"></nav>
             </section>
         </main>
     </div>
+
+    <dialog id="capture-choice-dialog" class="home-choice-dialog">
+        <div class="home-choice-dialog-inner">
+            <div class="home-choice-dialog-header">
+                <div>
+                    <p class="home-section-kicker">Etwas Neues</p>
+                    <h2>Was möchtest du festhalten?</h2>
+                </div>
+                <button id="capture-choice-close" class="home-dialog-close" type="button" aria-label="Schließen">
+                    <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+                </button>
+            </div>
+            <div id="capture-choice-options" class="capture-choice-options"></div>
+        </div>
+    </dialog>
 
     <script src="auth-shell.js"></script>
     <script src="navigation.js"></script>

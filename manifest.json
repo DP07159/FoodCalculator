@@ -5,7 +5,7 @@
     "display": "standalone",
     "background_color": "#F8F7F3",
     "theme_color": "#F8F7F3",
-    "description": "Food Moments, Wallet, Rezepte, Wochenplanung und Inventar in einem Workspace.",
+    "description": "Dein Food Moment als Einstieg in Planung, Inspiration, Rezepte und Inventar.",
     "icons": [
         {
             "src": "/icon-192.png",

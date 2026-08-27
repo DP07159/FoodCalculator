@@ -10,7 +10,7 @@ const LEGACY_MODULE_DEFINITIONS = [
         enabled: true,
         navigation: { label: "Wochenplan", short_label: "Plan", href: "/mealPlan.html", icon: "calendar", primary: true, order: 20 },
         home_actions: [
-            { code: "plan_week", label: "Woche planen", description: "Mahlzeiten intuitiv platzieren", href: "/mealPlan.html", icon: "calendar", order: 20, intent_keywords: ["woche", "wochenplan", "planen", "montag", "dienstag", "mittwoch", "donnerstag", "freitag", "samstag", "sonntag"] }
+            { code: "plan_week", label: "Planen", description: "Für später, heute Abend oder die nächsten Tage", href: "/mealPlan.html", icon: "calendar", order: 20, intent_keywords: ["woche", "wochenplan", "planen", "montag", "dienstag", "mittwoch", "donnerstag", "freitag", "samstag", "sonntag"] }
         ]
     },
     {
@@ -22,7 +22,7 @@ const LEGACY_MODULE_DEFINITIONS = [
             { label: "Rezept anlegen", href: "/recipeCreate.html", icon: "plus", order: 10 }
         ],
         home_actions: [
-            { code: "cook_now", label: "Jetzt kochen", description: "Ein passendes Rezept finden", href: "/recipes.html", icon: "recipes", order: 10, intent_keywords: ["rezept", "kochen", "essen", "gericht", "dinner", "mittag", "frühstück", "fruehstueck"] },
+            { code: "cook_now", label: "Jetzt etwas", description: "Finde etwas Passendes für jetzt", href: "/recipes.html", icon: "recipes", order: 10, intent_keywords: ["rezept", "kochen", "essen", "gericht", "dinner", "mittag", "frühstück", "fruehstueck"] },
             { code: "create_recipe", label: "Rezept anlegen", description: "Ein eigenes Rezept erfassen", href: "/recipeCreate.html", icon: "plus", order: 40, intent_keywords: ["rezept anlegen", "rezept erfassen", "eigenes rezept"] }
         ]
     },
@@ -33,7 +33,7 @@ const LEGACY_MODULE_DEFINITIONS = [
         required_privilege: "inventory.view",
         navigation: { label: "Inventar", short_label: "Inventar", href: "/inventory.html", icon: "inventory", primary: true, order: 40 },
         home_actions: [
-            { code: "maintain_inventory", label: "Inventar pflegen", description: "Sehen, was da ist", href: "/inventory.html", icon: "inventory", order: 30, intent_keywords: ["inventar", "vorrat", "lager", "kühlschrank", "kuehlschrank", "vorhanden"] }
+            { code: "maintain_inventory", label: "Was da ist", description: "Mach etwas aus dem, was du schon hast", href: "/inventory.html", icon: "inventory", order: 30, intent_keywords: ["inventar", "vorrat", "lager", "kühlschrank", "kuehlschrank", "vorhanden"] }
         ]
     }
 ];

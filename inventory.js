@@ -1152,3 +1152,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 });
+
+function setupInventoryQuickbar(){
+    const bind=(buttonId,panelId)=>document.getElementById(buttonId)?.addEventListener('click',()=>{const panel=document.getElementById(panelId);if(!panel)return;const open=panel.classList.toggle('is-hidden')===false;document.getElementById(buttonId)?.classList.toggle('is-active',open);if(open)panel.querySelector('input,select')?.focus();});
+    bind('inventory-search-toggle','inventory-search-panel');bind('inventory-filter-toggle','inventory-filter-panel');
+}
+document.addEventListener('DOMContentLoaded',setupInventoryQuickbar);

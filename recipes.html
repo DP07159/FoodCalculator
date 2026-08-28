@@ -18,45 +18,21 @@
     </header>
     <div class="container module-container">
         <main class="page-content module-content">
-            <header class="page-header module-page-header">
-                <p class="recipe-kicker">Rezepte</p>
-                <h1>Rezeptbuch</h1>
-                <p class="module-intro">Finde, verwalte und öffne Rezepte unabhängig vom aktuellen Food-Moment-Kontext.</p>
+            <header class="page-header module-page-header compact-module-header">
+                <div><p class="recipe-kicker">Rezepte</p><h1>Rezeptbuch</h1><p class="module-intro">Finde, verwalte und öffne Rezepte unabhängig vom aktuellen Food-Moment-Kontext.</p></div>
+                <button type="button" class="wallet-add-button module-header-add" onclick="toggleRecipeToolbar()"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Rezept hinzufügen</span></button>
             </header>
             <section class="recipe-book-box module-workspace recipes-workspace">
                 <div id="recipe-book">
-                    <div class="recipe-book-topbar module-toolbar">
-                        <p class="module-toolbar-copy">Durchsuche deine Sammlung oder lege ein neues Rezept an.</p>
-                        <button type="button" class="primary-action-button recipe-toolbar-toggle-button" onclick="toggleRecipeToolbar()"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Rezept hinzufügen</span></button>
-                    </div>
-
-                    <div id="recipe-add-panel" class="recipe-add-panel is-hidden">
-                        <div class="recipe-book-toolbar">
-                            <div class="recipe-checkboxes recipe-toolbar-checkboxes">
-                                <label><input type="checkbox" value="breakfast"> Frühstück</label>
-                                <label><input type="checkbox" value="lunch"> Mittagessen</label>
-                                <label><input type="checkbox" value="dinner"> Abendessen</label>
-                                <label><input type="checkbox" value="snack"> Snack</label>
-                            </div>
-                            <input type="text" id="recipe-name" class="recipe-toolbar-name" placeholder="Rezeptname">
-                            <input type="text" id="recipe-calories" class="recipe-toolbar-calories" placeholder="Kalorien" inputmode="numeric" pattern="[0-9]*">
-                            <input type="number" id="recipe-portions" class="recipe-toolbar-portions" placeholder="Portionen" min="1" step="1">
-                            <button type="button" class="recipe-toolbar-save-button" onclick="addRecipe()" title="Rezept speichern" aria-label="Rezept speichern"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h12l2 2v14H5z"/><path d="M8 4v6h8V4"/><path d="M8 20v-6h8v6"/></svg></button>
+                    <section class="module-quickbar" aria-label="Rezept-Werkzeuge">
+                        <div class="module-quickbar-primary">
+                            <button id="recipe-search-toggle" class="module-tool-button" type="button" aria-expanded="false"><svg class="fc-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/></svg><span>Suche</span></button>
+                            <button id="recipe-filter-toggle" class="module-tool-button" type="button" aria-expanded="false"><svg class="fc-icon" viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"/></svg><span>Filter</span></button>
                         </div>
-                    </div>
-
-                    <div class="recipe-book-controls">
-                        <input type="text" id="recipe-search" class="recipe-search-input" placeholder="Rezepte durchsuchen ...">
-                        <select id="recipe-sort" class="recipe-sort-select">
-                            <option value="name-asc">Name A–Z</option>
-                            <option value="name-desc">Name Z–A</option>
-                            <option value="favorites">Favoriten</option>
-                            <option value="breakfast">Nur Frühstück</option>
-                            <option value="lunch">Nur Mittagessen</option>
-                            <option value="dinner">Nur Abendessen</option>
-                            <option value="snack">Nur Snack</option>
-                        </select>
-                    </div>
+                    </section>
+                    <div id="recipe-search-panel" class="module-inline-panel is-hidden"><input type="search" id="recipe-search" class="recipe-search-input" placeholder="Rezepte durchsuchen ..."></div>
+                    <div id="recipe-filter-panel" class="module-inline-panel is-hidden"><select id="recipe-sort" class="recipe-sort-select"><option value="name-asc">Name A–Z</option><option value="name-desc">Name Z–A</option><option value="favorites">Favoriten</option><option value="breakfast">Nur Frühstück</option><option value="lunch">Nur Mittagessen</option><option value="dinner">Nur Abendessen</option><option value="snack">Nur Snack</option></select></div>
+                    <div id="recipe-add-panel" class="recipe-add-panel is-hidden"><div class="recipe-book-toolbar"><div class="recipe-checkboxes recipe-toolbar-checkboxes"><label><input type="checkbox" value="breakfast"> Frühstück</label><label><input type="checkbox" value="lunch"> Mittagessen</label><label><input type="checkbox" value="dinner"> Abendessen</label><label><input type="checkbox" value="snack"> Snack</label></div><input type="text" id="recipe-name" class="recipe-toolbar-name" placeholder="Rezeptname"><input type="text" id="recipe-calories" class="recipe-toolbar-calories" placeholder="Kalorien" inputmode="numeric" pattern="[0-9]*"><input type="number" id="recipe-portions" class="recipe-toolbar-portions" placeholder="Portionen" min="1" step="1"><button type="button" class="recipe-toolbar-save-button" onclick="addRecipe()" title="Rezept speichern" aria-label="Rezept speichern"><svg class="fc-icon" viewBox="0 0 24 24"><path d="M5 4h12l2 2v14H5z"/><path d="M8 4v6h8V4"/><path d="M8 20v-6h8v6"/></svg></button></div></div>
 
                     <ul id="recipe-list"></ul>
                 </div>

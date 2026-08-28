@@ -661,6 +661,7 @@ window.saveMealPlan = async function() {
         });
         activeMealPlanId = plan.id;
         activeMealPlanName = plan.name;
+        localStorage.setItem("fc_active_meal_plan_id", String(plan.id));
         document.getElementById("current-plan-name").textContent = `Aktueller Wochenplan: ${plan.name}`;
         setMealPlanDirty(false);
         document.getElementById("plan-name").value = "";
@@ -678,6 +679,7 @@ window.loadMealPlan = async function(planId) {
         const plan = await apiFetch(`${API_URL}/meal_plans/${planId}`);
         activeMealPlanId = plan.id;
         activeMealPlanName = plan.name;
+        localStorage.setItem("fc_active_meal_plan_id", String(plan.id));
         document.getElementById("current-plan-name").textContent = `Aktueller Wochenplan: ${plan.name}`;
         applyMealPlanData(plan.data);
         renderMealPlanSelect();
@@ -719,6 +721,7 @@ window.deleteMealPlan = async function() {
         await apiFetch(`${API_URL}/meal_plans/${activeMealPlanId}`, { method: "DELETE" });
         activeMealPlanId = null;
         activeMealPlanName = "";
+        localStorage.removeItem("fc_active_meal_plan_id");
         document.getElementById("current-plan-name").textContent = "Aktueller Wochenplan: keiner";
         mealPlanDraft = createEmptyMealPlanDraft();
         setMealPlanDirty(false);
@@ -809,3 +812,9 @@ if ("serviceWorker" in navigator) {
         navigator.serviceWorker.register("/service-worker.js").catch(console.error);
     });
 }
+
+function setupRecipeQuickbar(){
+    const bind=(buttonId,panelId)=>document.getElementById(buttonId)?.addEventListener('click',()=>{const panel=document.getElementById(panelId);if(!panel)return;const open=panel.classList.toggle('is-hidden')===false;document.getElementById(buttonId)?.classList.toggle('is-active',open);document.getElementById(buttonId)?.setAttribute('aria-expanded',String(open));if(open)panel.querySelector('input,select')?.focus();});
+    bind('recipe-search-toggle','recipe-search-panel');bind('recipe-filter-toggle','recipe-filter-panel');
+}
+document.addEventListener('DOMContentLoaded',setupRecipeQuickbar);

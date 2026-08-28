@@ -19,41 +19,15 @@
 
     <div class="container module-container">
         <main class="page-content module-content inventory-page">
-            <header class="page-header module-page-header inventory-header">
-                <p class="recipe-kicker">Bestand</p>
-                <h1>Inventar</h1>
-                <p class="module-intro">Sieh, was im Workspace vorhanden ist, wo es liegt und was als Nächstes Aufmerksamkeit braucht.</p>
+            <header class="page-header module-page-header inventory-header compact-module-header">
+                <div><p class="recipe-kicker">Bestand</p><h1>Inventar</h1><p class="module-intro">Sieh, was im Workspace vorhanden ist, wo es liegt und was als Nächstes Aufmerksamkeit braucht.</p></div>
+                <button type="button" class="wallet-add-button module-header-add" onclick="toggleInventoryAddPanel()"><svg class="fc-icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>Lebensmittel hinzufügen</span></button>
             </header>
 
             <section class="module-workspace inventory-list-card inventory-workspace">
-                <div class="recipe-book-topbar inventory-list-topbar module-toolbar">
-                    <div>
-                        <h2>Bestand</h2>
-                        <p class="module-toolbar-copy">Suche, filtere und pflege die aktuell vorhandenen Lebensmittel.</p>
-                    </div>
-                    <button type="button" class="primary-action-button recipe-toolbar-toggle-button" onclick="toggleInventoryAddPanel()">
-                        <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Lebensmittel hinzufügen</span>
-                    </button>
-                </div>
-
-                <div class="recipe-book-controls inventory-controls inventory-filter-controls">
-                    <input type="text" id="inventory-search" class="recipe-search-input" placeholder="Inventar durchsuchen ...">
-                    <select id="inventory-sort" class="inventory-filter-select" aria-label="Inventar sortieren">
-                        <option value="name-asc">Name A–Z</option>
-                        <option value="name-desc">Name Z–A</option>
-                        <option value="expiry-asc">Ablaufdatum aufsteigend</option>
-                        <option value="expiry-desc">Ablaufdatum absteigend</option>
-                        <option value="location-asc">Lagerort A–Z</option>
-                    </select>
-                    <select id="inventory-location-filter" class="inventory-filter-select" aria-label="Nach Lagerort filtern">
-                        <option value="">Alle Lagerorte</option>
-                    </select>
-                    <select id="inventory-stock-filter" class="inventory-filter-select" aria-label="Nach Bestand filtern">
-                        <option value="all">Alle Bestände</option>
-                        <option value="in-stock">Bestände &gt; 0</option>
-                        <option value="empty">Leerbestände</option>
-                    </select>
-                </div>
+                <section class="module-quickbar" aria-label="Inventar-Werkzeuge"><div class="module-quickbar-primary"><button id="inventory-search-toggle" class="module-tool-button" type="button"><svg class="fc-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/></svg><span>Suche</span></button><button id="inventory-filter-toggle" class="module-tool-button" type="button"><svg class="fc-icon" viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"/></svg><span>Filter</span></button></div></section>
+                <div id="inventory-search-panel" class="module-inline-panel is-hidden"><input type="search" id="inventory-search" class="recipe-search-input" placeholder="Inventar durchsuchen ..."></div>
+                <div id="inventory-filter-panel" class="module-inline-panel module-filter-grid is-hidden"><select id="inventory-sort" class="inventory-filter-select" aria-label="Inventar sortieren"><option value="name-asc">Name A–Z</option><option value="name-desc">Name Z–A</option><option value="expiry-asc">Ablaufdatum aufsteigend</option><option value="expiry-desc">Ablaufdatum absteigend</option><option value="location-asc">Lagerort A–Z</option></select><select id="inventory-location-filter" class="inventory-filter-select" aria-label="Nach Lagerort filtern"><option value="">Alle Lagerorte</option></select><select id="inventory-stock-filter" class="inventory-filter-select" aria-label="Nach Bestand filtern"><option value="all">Alle Bestände</option><option value="in-stock">Bestände &gt; 0</option><option value="empty">Leerbestände</option></select></div>
 
                 <div id="inventory-list" class="inventory-list inventory-list-detailed"></div>
             </section>

@@ -5,6 +5,7 @@ let inventoryItems = [];
 let recipeStockCheck = null;
 let recipeWalletInspirations = [];
 let recipeFoodMoments = [];
+let allRecipeFoodMoments = [];
 let basePortions = 1;
 let displayedPortions = 1;
 
@@ -153,20 +154,32 @@ function renderRecipeFoodMomentContext() {
     const badge = document.getElementById("recipe-food-moments-badge");
     const list = document.getElementById("recipe-food-moments-list");
     if (!button || !list) return;
-    button.classList.toggle("is-hidden", recipeFoodMoments.length === 0);
-    if (badge) badge.textContent = recipeFoodMoments.length > 1 ? String(recipeFoodMoments.length) : "";
-    list.innerHTML = recipeFoodMoments.length ? recipeFoodMoments.map(moment => `
-        <a class="recipe-context-item" href="/foodMoment.html?id=${encodeURIComponent(moment.public_id)}">
-            <span><strong>${escapeHtml(moment.title || "Food Moment")}</strong><small>${escapeHtml(formatRecipeFoodMomentDate(moment))}</small></span>
-            <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
-        </a>`).join("") : '<p class="recipe-context-empty">Dieses Rezept ist aktuell mit keinem Food Moment verknüpft.</p>';
+    button.classList.remove("is-hidden");
+    if (badge) badge.textContent = recipeFoodMoments.length ? String(recipeFoodMoments.length) : "";
+    renderRecipeFoodMomentPicker();
 }
 
-function openRecipeFoodMoments() {
+async function openRecipeFoodMoments() {
     const dialog = document.getElementById("recipe-food-moments-dialog");
-    renderRecipeFoodMomentContext();
+    try { allRecipeFoodMoments = await apiFetch(`${API_URL}/food-moments`); } catch (_) { allRecipeFoodMoments = [...recipeFoodMoments]; }
+    renderRecipeFoodMomentPicker();
     if (dialog?.showModal) dialog.showModal();
 }
+function renderRecipeFoodMomentPicker() {
+    const list=document.getElementById("recipe-food-moments-list"); if(!list) return;
+    const q=(document.getElementById("recipe-food-moments-search")?.value||"").trim().toLocaleLowerCase("de");
+    const linked=new Set(recipeFoodMoments.map(m=>m.public_id));
+    const source=(allRecipeFoodMoments.length?allRecipeFoodMoments:recipeFoodMoments).filter(m=>String(m.title||"").toLocaleLowerCase("de").includes(q));
+    list.innerHTML=source.length?source.map(m=>`<label class="recipe-context-option"><span><strong>${escapeHtml(m.title||"Food Moment")}</strong><small>${escapeHtml(formatRecipeFoodMomentDate(m))}</small></span><input type="checkbox" data-moment-id="${escapeHtml(m.public_id)}" ${linked.has(m.public_id)?"checked":""}></label>`).join(""):'<p class="recipe-context-empty">Keine passenden Food Moments gefunden.</p>';
+}
+async function saveRecipeFoodMomentLinks(){
+    const state=document.getElementById("recipe-food-moments-state"); const boxes=[...document.querySelectorAll("#recipe-food-moments-list input[data-moment-id]")];
+    const desired=new Set(boxes.filter(b=>b.checked).map(b=>b.dataset.momentId)); const currently=new Set(recipeFoodMoments.map(m=>m.public_id));
+    const changed=[...new Set([...desired,...currently])].filter(id=>desired.has(id)!==currently.has(id));
+    if(!changed.length){ closeRecipeFoodMoments(); return; }
+    try{ if(state)state.textContent="Wird gespeichert …"; for(const id of changed){ const m=allRecipeFoodMoments.find(x=>x.public_id===id)||recipeFoodMoments.find(x=>x.public_id===id); if(!m)continue; const ids=(m.recipes||[]).map(r=>Number(r.id)).filter(Boolean); const next=desired.has(id)?[...new Set([...ids,Number(currentRecipe.id)])]:ids.filter(x=>x!==Number(currentRecipe.id)); await apiFetch(`${API_URL}/food-moments/${encodeURIComponent(id)}`,{method:"PATCH",body:JSON.stringify({recipe_ids:next})}); } await loadRecipeFoodMoments(); renderRecipeFoodMomentContext(); closeRecipeFoodMoments(); showToast("Food-Moment-Verknüpfungen aktualisiert"); }catch(e){ if(state)state.textContent=e.message; }
+}
+function createFoodMomentFromRecipe(){ location.href=`/foodMomentCreate.html?recipe_id=${encodeURIComponent(currentRecipe.id)}`; }
 function closeRecipeFoodMoments() { document.getElementById("recipe-food-moments-dialog")?.close(); }
 
 function getWalletSourceHost(item) {
@@ -983,7 +996,9 @@ function setupButtons() {
     document.getElementById("share-ingredients-button")?.addEventListener("click", shareIngredientsList);
     document.getElementById("recipe-food-moments-button")?.addEventListener("click", openRecipeFoodMoments);
     document.getElementById("recipe-food-moments-close")?.addEventListener("click", closeRecipeFoodMoments);
-    document.getElementById("recipe-food-moments-done")?.addEventListener("click", closeRecipeFoodMoments);
+    document.getElementById("recipe-food-moments-done")?.addEventListener("click", saveRecipeFoodMomentLinks);
+    document.getElementById("recipe-food-moment-create")?.addEventListener("click", createFoodMomentFromRecipe);
+    document.getElementById("recipe-food-moments-search")?.addEventListener("input", renderRecipeFoodMomentPicker);
     document.getElementById("edit-recipe-button")?.addEventListener("click", () => {
         if (currentRecipe?.id) window.location.href = `/recipeDetails.html?id=${currentRecipe.id}`;
     });

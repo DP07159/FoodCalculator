@@ -48,7 +48,7 @@
                         </svg>
                     </button>
                     <button type="button" id="share-ingredients-button" class="header-icon-button" title="Zutatenliste teilen" aria-label="Zutatenliste teilen"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M20 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h5"/></svg></button>
-                    <button type="button" id="recipe-food-moments-button" class="header-icon-button is-hidden" title="Verknüpfte Food Moments" aria-label="Verknüpfte Food Moments"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg><span id="recipe-food-moments-badge" class="recipe-context-badge"></span></button>
+                    <button type="button" id="recipe-food-moments-button" class="header-icon-button" title="Food Moments verwalten" aria-label="Food Moments verwalten"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg><span id="recipe-food-moments-badge" class="recipe-context-badge"></span></button>
                     <button type="button" id="edit-recipe-button" class="primary-action-button recipe-edit-primary"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l11-11a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg><span>Rezept bearbeiten</span></button>
                 </div>
             </header>
@@ -104,8 +104,11 @@
     <dialog id="recipe-food-moments-dialog" class="recipe-context-dialog">
         <div class="recipe-context-dialog-shell">
             <header><div><p class="recipe-kicker">Food Moments</p><h2>Verknüpfte Momente</h2></div><button type="button" id="recipe-food-moments-close" class="header-icon-button" aria-label="Schließen"><svg class="fc-icon" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></header>
+            <p class="recipe-context-copy">Verknüpfe dieses Rezept mit bestehenden Food Moments oder erstelle direkt einen neuen.</p>
+            <div class="recipe-context-actions"><button type="button" id="recipe-food-moment-create" class="primary-action-button"><svg class="fc-icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>Neuen Food Moment erstellen</span></button></div>
+            <div class="recipe-context-search"><input id="recipe-food-moments-search" type="search" placeholder="Food Moments suchen …"></div>
             <div id="recipe-food-moments-list" class="recipe-context-list"></div>
-            <footer><button type="button" id="recipe-food-moments-done" class="secondary-action-button">Schließen</button></footer>
+            <footer><span id="recipe-food-moments-state" class="recipe-workspace-save-state"></span><button type="button" id="recipe-food-moments-done" class="primary-action-button">Fertig</button></footer>
         </div>
     </dialog>
     <div id="app-toast" class="app-toast is-hidden"></div>

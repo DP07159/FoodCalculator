@@ -7387,3 +7387,16 @@ body.login-page {
     .moment-section-date { grid-template-columns:1fr 120px; }
     .editor-form-actions,.moment-builder-actions { align-items:stretch; }
 }
+
+/* R4 — consistent module mastheads + recipe ↔ Food Moment workflow */
+.wallet-v3-header.compact-module-header{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;max-width:none;margin-bottom:12px}
+.meal-plan-module .module-page-header.compact-module-header{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;max-width:none;margin:0 0 12px;padding:0;border:0;background:transparent}
+.meal-plan-module .module-page-header.compact-module-header h1{margin:0 0 3px;font-family:var(--font-family-editorial);font-size:clamp(32px,4vw,44px);font-weight:500;line-height:1.08}
+.recipe-context-copy{margin:0;color:var(--color-text-secondary);font-size:13px;line-height:1.5}.recipe-context-actions{display:flex;justify-content:flex-start}.recipe-context-search input{min-height:42px;border-radius:8px}.recipe-context-option{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:11px 10px;border-radius:8px;cursor:pointer}.recipe-context-option:hover{background:var(--color-surface-subtle)}.recipe-context-option>span{display:grid;gap:2px;min-width:0}.recipe-context-option small{color:var(--color-text-muted);font-size:11px}.recipe-context-option input{width:18px;height:18px;min-height:0;accent-color:var(--wallet-accent,#56633f)}
+/* Mobile wallet menu: viewport anchored bottom sheet, independent of card/list geometry. */
+@media(max-width:700px){
+ .wallet-v3 .wallet-item-menu{position:fixed!important;left:12px!important;right:12px!important;top:auto!important;bottom:calc(72px + env(safe-area-inset-bottom,0px))!important;width:auto!important;max-width:calc(100vw - 24px)!important;margin:0!important;transform:none!important;z-index:5000!important;box-sizing:border-box}
+ .wallet-v3 .wallet-card,.wallet-v3 .wallet-row,.wallet-v3 .wallet-collection{transform:none!important}
+ .wallet-v3-header.compact-module-header{display:grid;grid-template-columns:minmax(0,1fr) 44px;align-items:start;gap:8px 12px;margin-bottom:8px}
+ .meal-plan-module .module-page-header.compact-module-header{display:block;margin-bottom:12px}
+}

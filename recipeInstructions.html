@@ -48,6 +48,7 @@
                         </svg>
                     </button>
                     <button type="button" id="share-ingredients-button" class="header-icon-button" title="Zutatenliste teilen" aria-label="Zutatenliste teilen"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M20 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h5"/></svg></button>
+                    <button type="button" id="recipe-food-moments-button" class="header-icon-button is-hidden" title="Verknüpfte Food Moments" aria-label="Verknüpfte Food Moments"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg><span id="recipe-food-moments-badge" class="recipe-context-badge"></span></button>
                     <button type="button" id="edit-recipe-button" class="primary-action-button recipe-edit-primary"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l11-11a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg><span>Rezept bearbeiten</span></button>
                 </div>
             </header>
@@ -99,6 +100,14 @@
         </div>
     </div>
 
+
+    <dialog id="recipe-food-moments-dialog" class="recipe-context-dialog">
+        <div class="recipe-context-dialog-shell">
+            <header><div><p class="recipe-kicker">Food Moments</p><h2>Verknüpfte Momente</h2></div><button type="button" id="recipe-food-moments-close" class="header-icon-button" aria-label="Schließen"><svg class="fc-icon" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></header>
+            <div id="recipe-food-moments-list" class="recipe-context-list"></div>
+            <footer><button type="button" id="recipe-food-moments-done" class="secondary-action-button">Schließen</button></footer>
+        </div>
+    </dialog>
     <div id="app-toast" class="app-toast is-hidden"></div>
     <script src="auth-shell.js"></script>
     <script>AuthShell.guard();</script>

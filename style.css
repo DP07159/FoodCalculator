@@ -7246,3 +7246,144 @@ body.login-page {
 /* Mehrfachauswahl im Food-Moment-Builder. */
 .moment-selected-content{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 10px}.moment-selected-content>span{display:inline-flex;align-items:center;gap:7px;min-height:30px;padding:4px 6px 4px 10px;border:1px solid var(--color-border);border-radius:999px;background:var(--color-surface);font-size:11px;font-weight:650}.moment-selected-content>span button{display:grid;place-items:center;width:22px;height:22px;padding:0;border:0;border-radius:999px;background:var(--color-surface-subtle,#f1f0eb);color:var(--color-text-muted);font-size:16px;line-height:1}.moment-selected-content small{color:var(--color-text-muted)}
 .moment-linked-list{display:grid;gap:0}.moment-linked-item{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid var(--color-border-soft)}.moment-linked-item:last-child{border-bottom:0}.moment-linked-item h3{margin:0 0 3px;font-size:16px}.moment-linked-item p{margin:0;color:var(--color-text-muted);font-size:12px}.moment-linked-item a{flex:0 0 auto;font-size:12px}
+
+/* Reifegrad Fixes R3 · 2026-08-29 */
+/* Einheitliche Modul-Headlines nach Rezeptbuch-Vorlage */
+.module-page-header,
+.wallet-v3-header,
+.moments-list-header.module-page-header {
+    max-width: none;
+    margin: 0 0 12px;
+}
+.module-page-header h1,
+.wallet-v3-header h1,
+.moments-list-header.module-page-header h1,
+.meal-plan-module .module-page-header h1 {
+    margin: 0 0 6px;
+    font-family: var(--font-family-editorial);
+    font-size: clamp(32px, 4vw, 44px);
+    font-weight: 500;
+    line-height: 1.08;
+    letter-spacing: -.025em;
+}
+.module-page-header .recipe-kicker,
+.wallet-v3-header .recipe-kicker,
+.moments-list-header .recipe-kicker { margin-bottom: 4px; }
+.moments-list-header { align-items: flex-end; }
+.moments-list-header .module-intro { max-width: 720px; }
+
+/* Saubere Abbruch-Aktionen in Editoren */
+.editor-form-actions,
+.moment-builder-actions { display:flex; align-items:center; justify-content:flex-end; gap:10px; }
+.secondary-action-button {
+    display:inline-flex; align-items:center; justify-content:center; min-height:42px; padding:9px 14px;
+    border:1px solid var(--color-border); border-radius:10px; background:transparent;
+    color:var(--color-text-secondary,#62645e); font-weight:700;
+}
+.secondary-action-button:hover { background:var(--color-surface-soft); color:var(--color-text); }
+.plan-save-cancel { min-height:40px; white-space:nowrap; }
+
+/* Food Moment Detail · dynamische Kacheln und direkte Bearbeitung */
+.moment-add-bubbles { display:flex; justify-content:flex-end; flex-wrap:wrap; gap:7px; min-height:34px; margin:24px 0 10px; }
+.moment-add-bubble {
+    display:inline-flex; align-items:center; gap:5px; min-height:32px; padding:6px 10px;
+    border:1px dashed var(--color-border); border-radius:999px; background:transparent;
+    color:var(--color-text-muted); font-size:12px; font-weight:700;
+}
+.moment-add-bubble:hover { border-style:solid; border-color:var(--color-primary-border); background:var(--color-primary-soft); color:var(--color-primary-text); }
+.moment-add-bubble span { font-size:15px; line-height:1; }
+.moment-dynamic-grid { display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:14px; align-items:start; }
+.moment-content-card {
+    position:relative; grid-column:span 4; min-width:0; padding:20px;
+    border:1px solid var(--color-border-soft); border-radius:16px; background:var(--color-surface);
+}
+.moment-card-wide { grid-column:span 8; }
+.moment-card-compact h2 { margin:7px 0 2px; font-family:var(--font-family-editorial); font-size:25px; font-weight:500; line-height:1.15; }
+.moment-card-compact>p:last-child,.moment-card-note { margin:7px 0 0; color:var(--color-text-muted); font-size:13px; line-height:1.55; }
+.moment-card-head { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:30px; }
+.moment-card-head .home-section-kicker { margin:0; }
+.moment-card-menu { display:inline-grid; place-items:center; width:32px; height:32px; padding:0; border:0; border-radius:8px; background:transparent; color:var(--color-text-muted); }
+.moment-card-menu:hover { background:var(--color-primary-soft); color:var(--color-primary-text); }
+.moment-card-menu .fc-icon { width:17px; height:17px; }
+.moment-content-card .moment-linked-item { padding:12px 0; border-bottom:1px solid var(--color-border-soft); }
+.moment-content-card .moment-linked-item:last-child { border-bottom:0; padding-bottom:0; }
+.moment-content-card .moment-linked-item h3 { margin:0 0 3px; font-size:15px; }
+.moment-content-card .moment-linked-item p { margin:0; color:var(--color-text-muted); font-size:12px; }
+.moment-inspiration-list { display:grid; gap:12px; margin-top:10px; }
+.moment-inspiration-item { display:grid; grid-template-columns:120px minmax(0,1fr); gap:14px; align-items:center; }
+.moment-inspiration-image { width:120px; aspect-ratio:4/3; overflow:hidden; border-radius:10px; background:var(--color-surface-soft); }
+.moment-inspiration-image img { width:100%; height:100%; object-fit:cover; }
+.moment-inspiration-copy h3 { margin:0 0 4px; font-size:16px; }
+.moment-inspiration-copy p { margin:0 0 6px; color:var(--color-text-muted); font-size:12px; }
+.moment-inspiration-copy a { color:var(--color-primary-text); font-size:12px; font-weight:700; text-decoration:none; }
+
+.moment-section-editor { width:min(620px,calc(100% - 32px)); max-height:82vh; padding:0; border:1px solid var(--color-border); border-radius:16px; background:var(--color-surface); }
+.moment-section-editor::backdrop { background:rgba(35,39,31,.28); backdrop-filter:blur(2px); }
+.moment-section-editor-shell { padding:20px; }
+.moment-section-editor-shell>header { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; padding-bottom:14px; border-bottom:1px solid var(--color-border-soft); }
+.moment-section-editor-shell h2 { margin:2px 0 0; font-family:var(--font-family-editorial); font-size:28px; font-weight:500; }
+.moment-section-editor-body { padding:18px 0 4px; }
+.moment-section-editor-shell>footer { display:flex; justify-content:flex-end; gap:9px; padding-top:14px; border-top:1px solid var(--color-border-soft); }
+.moment-section-editor-options { display:flex; flex-wrap:wrap; gap:8px; }
+.moment-section-editor-options button { min-height:40px; padding:8px 12px; border:1px solid var(--color-border); border-radius:999px; background:var(--color-surface); color:var(--color-text); font-weight:700; }
+.moment-section-editor-options button.is-selected { border-color:var(--color-primary-border); background:var(--color-primary-soft); color:var(--color-primary-text); }
+.moment-section-date { display:grid; grid-template-columns:1fr 140px; gap:9px; margin-top:12px; }
+.moment-section-date.is-hidden { display:none; }
+.moment-edit-people { display:grid; grid-template-columns:auto 120px; align-items:center; justify-content:start; gap:12px; margin-top:14px; color:var(--color-text-muted); font-size:12px; font-weight:700; }
+.moment-section-search { margin-bottom:10px; }
+.moment-section-picker { max-height:46vh; overflow:auto; border-top:1px solid var(--color-border-soft); }
+.moment-section-picker-item { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 4px; border-bottom:1px solid var(--color-border-soft); cursor:pointer; }
+.moment-section-picker-item>span { display:flex; align-items:center; gap:10px; min-width:0; }
+.moment-section-picker-item img { width:54px; height:42px; object-fit:cover; border-radius:7px; background:var(--color-surface-soft); }
+.moment-section-picker-item strong,.moment-section-picker-item small { display:block; }
+.moment-section-picker-item strong { font-size:13px; }
+.moment-section-picker-item small { margin-top:2px; color:var(--color-text-muted); font-size:11px; }
+.moment-section-picker-item input { width:17px; height:17px; flex:0 0 auto; }
+
+/* Rezept -> Food Moments als unaufdringlicher Kontext im Header */
+#recipe-food-moments-button { position:relative; }
+.recipe-context-badge { position:absolute; right:-4px; top:-5px; display:grid; place-items:center; min-width:17px; height:17px; padding:0 4px; border-radius:999px; background:var(--color-primary-text); color:#fff; font-size:9px; font-weight:800; line-height:1; }
+.recipe-context-badge:empty { display:none; }
+.recipe-context-dialog { width:min(480px,calc(100% - 32px)); padding:0; border:1px solid var(--color-border); border-radius:16px; background:var(--color-surface); }
+.recipe-context-dialog::backdrop { background:rgba(35,39,31,.26); backdrop-filter:blur(2px); }
+.recipe-context-dialog-shell { padding:20px; }
+.recipe-context-dialog-shell>header { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; padding-bottom:13px; border-bottom:1px solid var(--color-border-soft); }
+.recipe-context-dialog-shell h2 { margin:2px 0 0; font-family:var(--font-family-editorial); font-size:27px; font-weight:500; }
+.recipe-context-list { max-height:52vh; overflow:auto; }
+.recipe-context-item { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:13px 2px; border-bottom:1px solid var(--color-border-soft); color:var(--color-text); text-decoration:none; }
+.recipe-context-item strong,.recipe-context-item small { display:block; }
+.recipe-context-item strong { font-size:14px; }
+.recipe-context-item small { margin-top:3px; color:var(--color-text-muted); font-size:11px; }
+.recipe-context-item .fc-icon { width:17px; height:17px; color:var(--color-text-muted); }
+.recipe-context-dialog-shell>footer { display:flex; justify-content:flex-end; padding-top:14px; }
+
+/* Wallet: Aktionsmenü auf Mobile sicher innerhalb des Viewports */
+@media(max-width:700px){
+    .wallet-v3 .wallet-item-menu,
+    .wallet-v3 .wallet-row .wallet-item-menu {
+        position:fixed !important;
+        left:12px !important;
+        right:12px !important;
+        top:auto !important;
+        bottom:76px !important;
+        width:auto !important;
+        max-width:calc(100vw - 24px) !important;
+        transform:none !important;
+        z-index:5000 !important;
+    }
+    .wallet-v3 .wallet-item-menu-wrap { z-index:5001; }
+    .module-page-header h1,
+    .wallet-v3-header h1,
+    .moments-list-header.module-page-header h1,
+    .meal-plan-module .module-page-header h1 { font-size:28px; }
+    .module-page-header .module-intro,
+    .wallet-v3-header .module-intro { display:none; }
+    .moment-add-bubbles { justify-content:flex-start; margin-top:16px; }
+    .moment-dynamic-grid { grid-template-columns:1fr; }
+    .moment-content-card,.moment-card-wide { grid-column:auto; }
+    .moment-inspiration-item { grid-template-columns:86px minmax(0,1fr); }
+    .moment-inspiration-image { width:86px; }
+    .moment-section-editor,.recipe-context-dialog { width:100%; max-width:none; max-height:88vh; margin:auto 0 0; border-radius:16px 16px 0 0; border-bottom:0; }
+    .moment-section-date { grid-template-columns:1fr 120px; }
+    .editor-form-actions,.moment-builder-actions { align-items:stretch; }
+}

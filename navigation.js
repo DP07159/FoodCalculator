@@ -416,6 +416,7 @@ function initBurgerMenu() {
         if (event.key === "Escape") burgerDropdown.classList.add("is-hidden");
     });
     document.addEventListener("auth:ready", refreshNavigation);
+    if (window.AuthShell?.isReady?.()) refreshNavigation();
 }
 
 function loadProductTour() {

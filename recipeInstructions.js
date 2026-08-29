@@ -4,6 +4,7 @@ let currentRecipe = null;
 let inventoryItems = [];
 let recipeStockCheck = null;
 let recipeWalletInspirations = [];
+let recipeFoodMoments = [];
 let basePortions = 1;
 let displayedPortions = 1;
 
@@ -90,9 +91,10 @@ async function loadRecipeInstructions() {
         currentRecipe = await apiFetch(`${API_URL}/recipes/${recipeId}`);
         basePortions = getSafePortions(currentRecipe.portions);
         displayedPortions = basePortions;
-        await Promise.all([loadRecipeStockCheck(), loadRecipeWalletInspirations()]);
+        await Promise.all([loadRecipeStockCheck(), loadRecipeWalletInspirations(), loadRecipeFoodMoments()]);
         renderRecipeInstructions();
         renderRecipeWalletInspirations();
+        renderRecipeFoodMomentContext();
     } catch (error) {
         console.error(error);
         showToast("Rezept konnte nicht geladen werden.");
@@ -127,6 +129,45 @@ async function loadRecipeWalletInspirations() {
         recipeWalletInspirations = [];
     }
 }
+
+async function loadRecipeFoodMoments() {
+    if (!currentRecipe?.id) return;
+    try {
+        recipeFoodMoments = await apiFetch(`${API_URL}/food-moments/recipe/${currentRecipe.id}`);
+        if (!Array.isArray(recipeFoodMoments)) recipeFoodMoments = [];
+    } catch (error) {
+        console.info("Keine Food-Moment-Verknüpfungen für dieses Rezept verfügbar.", error.message);
+        recipeFoodMoments = [];
+    }
+}
+
+function formatRecipeFoodMomentDate(moment) {
+    if (!moment?.moment_date) return "Ohne festes Datum";
+    const date = new Date(`${moment.moment_date}T12:00:00`);
+    const label = date.toLocaleDateString("de-DE", { weekday: "short", day: "2-digit", month: "2-digit" });
+    return `${label}${moment.moment_time ? ` · ${moment.moment_time}` : ""}`;
+}
+
+function renderRecipeFoodMomentContext() {
+    const button = document.getElementById("recipe-food-moments-button");
+    const badge = document.getElementById("recipe-food-moments-badge");
+    const list = document.getElementById("recipe-food-moments-list");
+    if (!button || !list) return;
+    button.classList.toggle("is-hidden", recipeFoodMoments.length === 0);
+    if (badge) badge.textContent = recipeFoodMoments.length > 1 ? String(recipeFoodMoments.length) : "";
+    list.innerHTML = recipeFoodMoments.length ? recipeFoodMoments.map(moment => `
+        <a class="recipe-context-item" href="/foodMoment.html?id=${encodeURIComponent(moment.public_id)}">
+            <span><strong>${escapeHtml(moment.title || "Food Moment")}</strong><small>${escapeHtml(formatRecipeFoodMomentDate(moment))}</small></span>
+            <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+        </a>`).join("") : '<p class="recipe-context-empty">Dieses Rezept ist aktuell mit keinem Food Moment verknüpft.</p>';
+}
+
+function openRecipeFoodMoments() {
+    const dialog = document.getElementById("recipe-food-moments-dialog");
+    renderRecipeFoodMomentContext();
+    if (dialog?.showModal) dialog.showModal();
+}
+function closeRecipeFoodMoments() { document.getElementById("recipe-food-moments-dialog")?.close(); }
 
 function getWalletSourceHost(item) {
     try { return new URL(item.source_url).hostname.replace(/^www\./, ""); } catch (_) { return item.source_platform || "Quelle"; }
@@ -940,6 +981,9 @@ async function shareIngredientsList() {
 function setupButtons() {
     document.getElementById("favorite-recipe-button")?.addEventListener("click", toggleCurrentRecipeFavorite);
     document.getElementById("share-ingredients-button")?.addEventListener("click", shareIngredientsList);
+    document.getElementById("recipe-food-moments-button")?.addEventListener("click", openRecipeFoodMoments);
+    document.getElementById("recipe-food-moments-close")?.addEventListener("click", closeRecipeFoodMoments);
+    document.getElementById("recipe-food-moments-done")?.addEventListener("click", closeRecipeFoodMoments);
     document.getElementById("edit-recipe-button")?.addEventListener("click", () => {
         if (currentRecipe?.id) window.location.href = `/recipeDetails.html?id=${currentRecipe.id}`;
     });

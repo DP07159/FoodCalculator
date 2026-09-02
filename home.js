@@ -253,26 +253,8 @@ async function renderUpcomingMoments() {
         const dated = (Array.isArray(moments) ? moments : [])
             .filter(m => m.moment_date && homeDateValue(m.moment_date) >= today.getTime())
             .map(m => ({...m, source:"moment"}));
-        const planned = [];
-        if (capabilityAvailable("meal_plan")) {
-            try {
-                const [plansResponse, recipesResponse] = await Promise.all([AuthShell.request("/meal_plans"), capabilityAvailable("recipes") ? AuthShell.request("/recipes") : Promise.resolve(null)]);
-                const plans = plansResponse.ok ? await plansResponse.json() : [];
-                const recipeItems = recipesResponse?.ok ? await recipesResponse.json() : [];
-                const recipeById = new Map((Array.isArray(recipeItems) ? recipeItems : []).map(recipe => [String(recipe.id), recipe]));
-                const storedId = localStorage.getItem("fc_active_meal_plan_id");
-                const plan = (Array.isArray(plans) ? plans : []).find(p => String(p.id) === String(storedId)) || (Array.isArray(plans) ? plans[0] : null);
-                if (plan?.data) {
-                    const mealLabels = {breakfast:"Frühstück",lunch:"Mittagessen",dinner:"Abendessen",snack:"Snack"};
-                    plan.data.filter(entry => entry.day === homeTodayKey() && (entry.recipeId || entry.walletId)).forEach(entry => {
-                        const isInspiration = entry.itemType === "inspiration" || entry.type === "inspiration";
-                        const recipe = !isInspiration ? recipeById.get(String(entry.recipeId || "")) : null;
-                        planned.push({ source:"plan", mealLabel:mealLabels[entry.mealType] || "Food Moment", title:isInspiration ? (entry.title || "Inspiration") : (recipe?.name || "Geplantes Rezept"), detail:isInspiration ? "Inspiration im Wochenplan" : "Rezept im Wochenplan", href:"/mealPlan.html" });
-                    });
-                }
-            } catch (_) {}
-        }
-        const items = [...dated.sort((a,b)=>homeDateValue(a.moment_date)-homeDateValue(b.moment_date)), ...planned].slice(0,5);
+        // Paket 2: konkrete Planung ist bereits als Food Moment in `dated` enthalten.
+        const items = dated.sort((a,b)=>homeDateValue(a.moment_date)-homeDateValue(b.moment_date)).slice(0,5);
         section.hidden = items.length === 0;
         list.innerHTML = items.map(item => `<a class="home-upcoming-item" href="${escapeHomeHtml(item.href || `/foodMoment.html?id=${encodeURIComponent(item.public_id)}`)}"><span class="home-upcoming-when">${escapeHomeHtml(upcomingMomentLabel(item))}</span><span class="home-upcoming-copy"><strong>${escapeHomeHtml(item.title)}</strong><small>${escapeHomeHtml(item.detail || item.recipes?.[0]?.name || item.inspirations?.[0]?.title || "Food Moment")}</small></span><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a>`).join("");
     } catch (_) { section.hidden = true; }

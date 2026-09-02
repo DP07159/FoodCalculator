@@ -18,6 +18,10 @@ let mealPlanDirty = false;
 let walletInspirations = [];
 let pickerTarget = null;
 let mealPickerType = "recipe";
+let planningView = "week";
+let currentWeekStart = getMonday(new Date());
+let currentCalendarDate = new Date();
+let calendarMoments = [];
 
 function showToast(message) {
     const toast = document.getElementById("app-toast");
@@ -36,6 +40,38 @@ function showToast(message) {
         toast.classList.add("is-hidden");
     }, 2600);
 }
+
+function getMonday(value) {
+    const d = new Date(value); d.setHours(12,0,0,0); const day = d.getDay() || 7; d.setDate(d.getDate() - day + 1); return d;
+}
+function localDateKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
+function dateForDayName(day) { const i=WEEK_DAYS.indexOf(day); const d=new Date(currentWeekStart); d.setDate(d.getDate()+Math.max(i,0)); return d; }
+function formatShortDate(d){ return d.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"}); }
+function mealTimeLabel(key){ return ({breakfast:"Frühstück",lunch:"Mittagessen",dinner:"Abendessen",snack:"Snack"})[key]||"Food Moment"; }
+function itemFromPlanningMoment(moment){
+    if(!moment) return null;
+    if(moment.recipes?.[0]) return {type:"recipe",recipeId:String(moment.recipes[0].id),momentPublicId:moment.public_id};
+    if(moment.inspirations?.[0]) { const w=moment.inspirations[0]; return {type:"inspiration",walletId:w.public_id,title:w.title||moment.title,category:w.category||"",sourceUrl:w.source_url||"",momentPublicId:moment.public_id}; }
+    return {type:"moment",title:moment.title,momentPublicId:moment.public_id};
+}
+async function loadPlanningWeek(){
+    const start=localDateKey(currentWeekStart); const moments=await apiFetch(`${API_URL}/planning/week?start=${start}`);
+    mealPlanDraft=createEmptyMealPlanDraft();
+    (moments||[]).forEach(m=>{ const dayIndex=Math.round((new Date(`${m.planning_date}T12:00:00`)-currentWeekStart)/86400000); const day=WEEK_DAYS[dayIndex]; if(day&&MEAL_ROWS.some(x=>x.key===m.meal_type)) mealPlanDraft[day][m.meal_type]=itemFromPlanningMoment(m); });
+    setMealPlanDirty(false); populateMealTable(); updatePlanningPeriodLabel();
+}
+async function persistPlanningSlot(day,mealType,item){
+    const date=localDateKey(dateForDayName(day));
+    if(!item){ await apiFetch(`${API_URL}/planning/slot?date=${date}&meal_type=${mealType}`,{method:"DELETE"}); return; }
+    const body={date,meal_type:mealType}; if(item.type==="recipe")body.recipe_id=Number(item.recipeId); else if(item.type==="inspiration")body.wallet_public_id=item.walletId;
+    return apiFetch(`${API_URL}/planning/slot`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+}
+function updatePlanningPeriodLabel(){ const el=document.getElementById("planning-period-label"); if(!el)return; if(planningView==="week"){const end=new Date(currentWeekStart);end.setDate(end.getDate()+6);el.textContent=`${formatShortDate(currentWeekStart)} – ${formatShortDate(end)} ${end.getFullYear()}`;}else el.textContent=currentCalendarDate.toLocaleDateString("de-DE",{month:"long",year:"numeric"}); }
+window.setPlanningView=async function(view){ planningView=view==="calendar"?"calendar":"week"; document.getElementById("planning-week-tab")?.classList.toggle("is-active",planningView==="week");document.getElementById("planning-calendar-tab")?.classList.toggle("is-active",planningView==="calendar");document.getElementById("planning-week-view")?.classList.toggle("is-hidden",planningView!=="week");document.getElementById("planning-calendar-view")?.classList.toggle("is-hidden",planningView!=="calendar");updatePlanningPeriodLabel();if(planningView==="calendar")await loadPlanningCalendar();};
+window.changePlanningPeriod=async function(direction){ if(planningView==="week"){currentWeekStart.setDate(currentWeekStart.getDate()+direction*7);selectedDay=WEEK_DAYS[0];await loadPlanningWeek();}else{currentCalendarDate=new Date(currentCalendarDate.getFullYear(),currentCalendarDate.getMonth()+direction,1,12);await loadPlanningCalendar();} };
+window.goPlanningToday=async function(){currentWeekStart=getMonday(new Date());currentCalendarDate=new Date();selectedDay=getTodayInGerman();if(planningView==="week")await loadPlanningWeek();else await loadPlanningCalendar();};
+async function loadPlanningCalendar(){ const first=new Date(currentCalendarDate.getFullYear(),currentCalendarDate.getMonth(),1,12);const gridStart=getMonday(first);const gridEnd=new Date(gridStart);gridEnd.setDate(gridEnd.getDate()+42);calendarMoments=await apiFetch(`${API_URL}/food-moments?from=${localDateKey(gridStart)}T00:00:00&to=${localDateKey(gridEnd)}T00:00:00`);renderPlanningCalendar(gridStart);updatePlanningPeriodLabel(); }
+function renderPlanningCalendar(gridStart){ const grid=document.getElementById("planning-calendar-grid");if(!grid)return;grid.innerHTML=WEEK_DAYS.map(d=>`<div class="planning-calendar-weekday">${d.slice(0,2)}</div>`).join("");for(let i=0;i<42;i++){const d=new Date(gridStart);d.setDate(d.getDate()+i);const key=localDateKey(d);const moments=(calendarMoments||[]).filter(m=>String(m.starts_at||"").slice(0,10)===key);const cell=document.createElement("div");cell.className=`planning-calendar-day${d.getMonth()!==currentCalendarDate.getMonth()?" is-outside":""}${key===localDateKey(new Date())?" is-today":""}`;cell.innerHTML=`<div class="planning-calendar-day-number">${d.getDate()}</div>${moments.map(m=>`<button type="button" class="planning-calendar-moment" onclick="location.href='/foodMoment.html?id=${encodeURIComponent(m.public_id)}'">${escapeHtml(m.title)}</button>`).join("")}`;grid.appendChild(cell);} }
 
 function getTodayInGerman() {
     const days = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
@@ -122,7 +158,7 @@ function renderMealPlanSelect() {
     const select = document.getElementById("plan-list");
     if (!select) return;
 
-    select.innerHTML = `<option value="">Wochenplan laden ...</option>`;
+    select.innerHTML = `<option value="">Wochenvorlage auswählen ...</option>`;
     mealPlans.forEach(plan => {
         const option = document.createElement("option");
         option.value = plan.id;
@@ -134,8 +170,9 @@ function renderMealPlanSelect() {
     select.onchange = async () => {
         const nextId = select.value;
         if (!nextId) return;
-        if (!confirmDiscardChanges()) { select.value = activeMealPlanId || ""; return; }
-        await loadMealPlan(nextId);
+        const plan=mealPlans.find(p=>String(p.id)===String(nextId));
+        if (!confirm(`Vorlage „${plan?.name||"Wochenplan"}“ auf die angezeigte Woche anwenden? Bestehende belegte Slots werden ersetzt.`)) { select.value=activeMealPlanId||""; return; }
+        try { await apiFetch(`${API_URL}/meal_plans/${nextId}/apply`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({start_date:localDateKey(currentWeekStart)})});activeMealPlanId=Number(nextId);activeMealPlanName=plan?.name||"";localStorage.setItem("fc_active_meal_plan_id",String(nextId));document.getElementById("current-plan-name").textContent=`Vorlage: ${activeMealPlanName}`;await loadPlanningWeek();showToast("Vorlage auf die Woche angewendet."); } catch(e){showToast(e.message||"Vorlage konnte nicht angewendet werden.");}
     };
 }
 
@@ -179,12 +216,12 @@ function populateMealTable() {
         column.className = "meal-plan-day-column";
         column.dataset.day = day;
         column.classList.toggle("is-active", day === selectedDay);
-        column.classList.toggle("is-today", day === getTodayInGerman());
+        column.classList.toggle("is-today", localDateKey(dateForDayName(day)) === localDateKey(new Date()));
 
         const header = document.createElement("button");
         header.type = "button";
         header.className = "meal-plan-day-heading";
-        header.innerHTML = `<span>${day}</span>${day === getTodayInGerman() ? '<small>Heute</small>' : ''}`;
+        const slotDate=dateForDayName(day); header.innerHTML = `<span>${day}</span><small class="planning-date">${formatShortDate(slotDate)}</small>${localDateKey(slotDate) === localDateKey(new Date()) ? '<small>Heute</small>' : ''}`;
         header.addEventListener("click", () => setSelectedDay(day));
         column.appendChild(header);
 
@@ -408,18 +445,14 @@ function inspirationPickerMarkup(item) {
     return `<button type="button" class="meal-picker-result" onclick="chooseMealPickerItem('inspiration','${escapeHtml(item.public_id)}')"><span><strong>${escapeHtml(title)}</strong><small>Inspiration · ${escapeHtml(getWalletCategoryLabel(item.category))}</small></span><span aria-hidden="true">＋</span></button>`;
 }
 
-window.chooseMealPickerItem = function(type, id) {
+window.chooseMealPickerItem = async function(type, id) {
     if (!pickerTarget) return;
-    if (type === "recipe") {
-        mealPlanDraft[pickerTarget.day][pickerTarget.mealType] = { type: "recipe", recipeId: String(id) };
-    } else {
-        const item = walletInspirations.find(entry => String(entry.public_id) === String(id));
-        if (!item) return;
-        mealPlanDraft[pickerTarget.day][pickerTarget.mealType] = { type: "inspiration", walletId: item.public_id, title: item.title || item.source_page_title || "Gespeicherte Inspiration", category: item.category || "", sourceUrl: item.source_url || "" };
-    }
-    setMealPlanDirty(true);
+    const target={...pickerTarget}; let next;
+    if (type === "recipe") next={type:"recipe",recipeId:String(id)};
+    else { const item=walletInspirations.find(entry=>String(entry.public_id)===String(id)); if(!item)return; next={type:"inspiration",walletId:item.public_id,title:item.title||item.source_page_title||"Gespeicherte Inspiration",category:item.category||"",sourceUrl:item.source_url||""}; }
     closeMealPicker();
-    populateMealTable();
+    try { const moment=await persistPlanningSlot(target.day,target.mealType,next); mealPlanDraft[target.day][target.mealType]=itemFromPlanningMoment(moment); populateMealTable(); showToast("Food Moment eingeplant."); }
+    catch(error){console.error(error);showToast(error.message||"Planung konnte nicht gespeichert werden.");}
 };
 
 function openPlanItemMenu(day, mealType, anchor) {
@@ -434,22 +467,18 @@ function openPlanItemMenu(day, mealType, anchor) {
     menu.addEventListener("click", event => {
         const action = event.target.closest("button")?.dataset.action;
         if (action === "change") openMealPicker(day, mealType);
-        if (action === "remove") { mealPlanDraft[day][mealType] = null; setMealPlanDirty(true); populateMealTable(); }
+        if (action === "remove") { persistPlanningSlot(day,mealType,null).then(()=>{mealPlanDraft[day][mealType]=null;populateMealTable();showToast("Food Moment aus der Planung entfernt.");}).catch(e=>showToast(e.message)); }
         menu.remove();
     });
     document.body.appendChild(menu);
     setTimeout(() => document.addEventListener("click", function close(event){ if (!menu.contains(event.target) && event.target !== anchor) { menu.remove(); document.removeEventListener("click", close); } }), 0);
 }
 
-function movePlanItem(fromDay, fromMealType, toDay, toMealType) {
+async function movePlanItem(fromDay, fromMealType, toDay, toMealType) {
     if (!mealPlanDraft?.[fromDay] || !mealPlanDraft?.[toDay]) return;
-    const moving = mealPlanDraft[fromDay][fromMealType];
-    if (!moving) return;
-    const displaced = mealPlanDraft[toDay][toMealType];
-    mealPlanDraft[toDay][toMealType] = moving;
-    mealPlanDraft[fromDay][fromMealType] = displaced || null;
-    setMealPlanDirty(true);
-    populateMealTable();
+    const moving=mealPlanDraft[fromDay][fromMealType]; if(!moving)return; const displaced=mealPlanDraft[toDay][toMealType];
+    try { await persistPlanningSlot(toDay,toMealType,moving); await persistPlanningSlot(fromDay,fromMealType,displaced||null); mealPlanDraft[toDay][toMealType]=moving;mealPlanDraft[fromDay][fromMealType]=displaced||null;await loadPlanningWeek(); }
+    catch(e){showToast(e.message||"Food Moment konnte nicht verschoben werden.");}
 }
 
 function getFilteredAndSortedRecipes() {
@@ -662,7 +691,7 @@ window.saveMealPlan = async function() {
         activeMealPlanId = plan.id;
         activeMealPlanName = plan.name;
         localStorage.setItem("fc_active_meal_plan_id", String(plan.id));
-        document.getElementById("current-plan-name").textContent = `Aktueller Wochenplan: ${plan.name}`;
+        document.getElementById("current-plan-name").textContent = `Vorlage: ${plan.name}`;
         setMealPlanDirty(false);
         document.getElementById("plan-name").value = "";
         document.getElementById("plan-save-panel")?.classList.add("is-hidden");
@@ -680,7 +709,7 @@ window.loadMealPlan = async function(planId) {
         activeMealPlanId = plan.id;
         activeMealPlanName = plan.name;
         localStorage.setItem("fc_active_meal_plan_id", String(plan.id));
-        document.getElementById("current-plan-name").textContent = `Aktueller Wochenplan: ${plan.name}`;
+        document.getElementById("current-plan-name").textContent = `Vorlage: ${plan.name}`;
         applyMealPlanData(plan.data);
         renderMealPlanSelect();
         showToast("Wochenplan geladen.");
@@ -722,7 +751,7 @@ window.deleteMealPlan = async function() {
         activeMealPlanId = null;
         activeMealPlanName = "";
         localStorage.removeItem("fc_active_meal_plan_id");
-        document.getElementById("current-plan-name").textContent = "Aktueller Wochenplan: keiner";
+        document.getElementById("current-plan-name").textContent = "Keine Vorlage angewendet";
         mealPlanDraft = createEmptyMealPlanDraft();
         setMealPlanDirty(false);
         populateMealTable();
@@ -779,7 +808,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const hasRecipeModule = Boolean(document.getElementById("recipe-list"));
 
         const initialLoads = [];
-        if (hasMealPlanModule) initialLoads.push(loadMealPlans());
+        if (hasMealPlanModule) { initialLoads.push(loadMealPlans()); initialLoads.push(loadPlanningWeek()); }
         // Meal Planning needs recipe choices as well; recipe-only pages obviously need recipes too.
         if (hasMealPlanModule || hasRecipeModule) initialLoads.push(loadRecipes());
         await Promise.all(initialLoads);

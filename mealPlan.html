@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wochenplan · Food Moment Platform</title>
+    <title>Planung · Food Moment Platform</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#F8F7F3">
@@ -19,16 +19,28 @@
     <div class="container module-container">
         <main class="page-content module-content">
             <header class="page-header module-page-header compact-module-header">
-                <div><p class="recipe-kicker">Planung</p><h1>Wochenplan</h1><p class="module-intro">Plane deine Woche als eigenständiges Werkzeug – oder im Kontext deiner Food Moments.</p></div>
+                <div><p class="recipe-kicker">Planung</p><h1>Planung</h1><p class="module-intro">Woche und Kalender zeigen dieselben terminierten Food Moments.</p></div>
             </header>
             <section id="meal-plan" class="module-workspace meal-plan-workspace">
+                <div class="planning-viewbar">
+                    <div class="planning-view-switch" role="tablist" aria-label="Planungsansicht">
+                        <button id="planning-week-tab" type="button" class="planning-view-button is-active" onclick="setPlanningView('week')">Woche</button>
+                        <button id="planning-calendar-tab" type="button" class="planning-view-button" onclick="setPlanningView('calendar')">Kalender</button>
+                    </div>
+                    <div class="planning-period-nav">
+                        <button type="button" class="day-nav-button" onclick="changePlanningPeriod(-1)" aria-label="Vorheriger Zeitraum">‹</button>
+                        <button type="button" class="planning-today-button" onclick="goPlanningToday()">Heute</button>
+                        <button type="button" class="day-nav-button" onclick="changePlanningPeriod(1)" aria-label="Nächster Zeitraum">›</button>
+                        <strong id="planning-period-label"></strong>
+                    </div>
+                </div>
                 <div class="meal-plan-topbar">
                     <div class="meal-plan-title-group">
-                        <label class="control-label" for="plan-list">Plan auswählen</label>
+                        <label class="control-label" for="plan-list">Wochenvorlage auswählen</label>
                         <select id="plan-list" class="toolbar-plan-select"></select>
                         <div class="meal-plan-plan-meta">
-                            <p id="current-plan-name" class="module-meta">Aktueller Wochenplan: keiner</p>
-                            <span id="meal-plan-save-state" class="meal-plan-save-state">Noch nicht gespeichert</span>
+                            <p id="current-plan-name" class="module-meta">Keine Vorlage angewendet</p>
+                            <span id="meal-plan-save-state" class="meal-plan-save-state">Aktuelle Woche</span>
                         </div>
                     </div>
 
@@ -37,7 +49,7 @@
                         <button type="button" id="meal-plan-update-button" class="toolbar-icon-button toolbar-update-button" onclick="updateMealPlan()" title="Plan aktualisieren" aria-label="Plan aktualisieren"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5"/><path d="M20 12a8 8 0 1 1-2.3-5.7L20 8"/></svg></button>
                         <button type="button" id="meal-plan-workspaces-button" class="toolbar-icon-button" onclick="openMealPlanWorkspaces()" title="Workspaces zuordnen" aria-label="Workspaces zuordnen"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="7" height="7" rx="1.5"/><rect x="14" y="4" width="7" height="7" rx="1.5"/><rect x="3" y="15" width="7" height="6" rx="1.5"/><path d="M17.5 15v6M14.5 18h6"/></svg></button>
                         <button type="button" class="toolbar-icon-button toolbar-delete-button" onclick="deleteMealPlan()" title="Plan löschen" aria-label="Plan löschen"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 14h10l1-14"/><path d="M9 7V4h6v3"/></svg></button>
-                        <button type="button" class="primary-action-button toolbar-toggle-save-button" onclick="togglePlanSaveToolbar()"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Als neuen Plan speichern</span></button>
+                        <button type="button" class="primary-action-button toolbar-toggle-save-button" onclick="togglePlanSaveToolbar()"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Woche als Vorlage speichern</span></button>
                         <details class="meal-plan-mobile-more">
                             <summary class="toolbar-icon-button" aria-label="Weitere Plan-Aktionen"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/></svg></summary>
                             <div class="meal-plan-mobile-more-menu">
@@ -50,14 +62,14 @@
 
                 <div id="plan-save-panel" class="plan-save-panel is-hidden">
                     <div class="meal-plan-save-inline">
-                        <input type="text" id="plan-name" class="toolbar-plan-name" placeholder="Name für die neue Plan-Variante">
+                        <input type="text" id="plan-name" class="toolbar-plan-name" placeholder="Name für die Wochenvorlage">
                         <button type="button" class="secondary-action-button plan-save-cancel" onclick="togglePlanSaveToolbar()">Abbrechen</button>
                         <button type="button" class="toolbar-icon-button toolbar-save-button" onclick="saveMealPlan()" title="Neuen Plan speichern" aria-label="Neuen Plan speichern"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h12l2 2v14H5z"/><path d="M8 4v6h8V4"/><path d="M8 20v-6h8v6"/></svg></button>
                     </div>
                 </div>
 
-                <div class="weekly-plan-board" id="meal-table"></div>
-                <div id="day-detail-panel" class="day-detail-panel"></div>
+                <div id="planning-week-view"><div class="weekly-plan-board" id="meal-table"></div><div id="day-detail-panel" class="day-detail-panel"></div></div>
+                <div id="planning-calendar-view" class="planning-calendar-view is-hidden"><div id="planning-calendar-grid" class="planning-calendar-grid"></div></div>
             </section>
         </main>
     </div>

@@ -16,7 +16,7 @@ const LEGACY_MODULE_DEFINITIONS = [
         code: "meal_plan",
         name: "Wochenplan",
         enabled: true,
-        navigation: { label: "Wochenplan", short_label: "Plan", href: "/mealPlan.html", icon: "calendar", primary: true, order: 20 },
+        navigation: { label: "Planung", short_label: "Plan", href: "/mealPlan.html", icon: "calendar", primary: true, order: 20 },
         home_actions: [
             { code: "plan_week", label: "Planen", description: "Für später, heute Abend oder die nächsten Tage", href: "/mealPlan.html", icon: "calendar", order: 20, intent_keywords: ["woche", "wochenplan", "planen", "montag", "dienstag", "mittwoch", "donnerstag", "freitag", "samstag", "sonntag"] }
         ]

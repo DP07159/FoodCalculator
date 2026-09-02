@@ -7400,3 +7400,18 @@ body.login-page {
  .wallet-v3-header.compact-module-header{display:grid;grid-template-columns:minmax(0,1fr) 44px;align-items:start;gap:8px 12px;margin-bottom:8px}
  .meal-plan-module .module-page-header.compact-module-header{display:block;margin-bottom:12px}
 }
+
+/* Paket 2 · Planung Woche + Kalender */
+.planning-viewbar{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--color-border-soft,#e7edf5)}
+.planning-view-switch{display:inline-flex;padding:4px;border:1px solid var(--color-border,#d9e1ea);border-radius:14px;background:var(--color-surface-soft,#f8fbfd)}
+.planning-view-button{border:0;background:transparent;padding:8px 15px;border-radius:10px;font-weight:800;color:var(--color-text-muted,#6b778c)}
+.planning-view-button.is-active{background:#fff;color:var(--color-primary-text,#1f4f96);box-shadow:0 2px 8px rgba(17,24,39,.08)}
+.planning-period-nav{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.planning-period-nav strong{min-width:190px;margin-left:4px}
+.planning-today-button{min-height:40px;padding:0 12px;border:1px solid var(--color-border,#d9e1ea);border-radius:12px;background:#fff;font-weight:800;color:var(--color-text,#25324a)}
+.meal-plan-day-heading small.planning-date{display:block;font-weight:600;color:var(--color-text-muted,#6b778c);margin-top:2px}
+.planning-calendar-view.is-hidden{display:none}.planning-calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(110px,1fr));gap:8px}
+.planning-calendar-weekday{padding:6px 8px;font-size:12px;font-weight:900;color:var(--color-text-muted,#6b778c);text-transform:uppercase}
+.planning-calendar-day{min-height:126px;padding:10px;border:1px solid var(--color-border-soft,#e7edf5);border-radius:16px;background:#fff}.planning-calendar-day.is-outside{opacity:.45}.planning-calendar-day.is-today{border-color:var(--color-primary,#1f6feb)}
+.planning-calendar-day-number{font-weight:900;margin-bottom:8px}.planning-calendar-moment{display:block;width:100%;margin:5px 0;padding:6px 8px;border:0;border-radius:9px;background:var(--color-primary-soft,#eef5ff);color:var(--color-primary-text,#1f4f96);text-align:left;font-size:12px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meal-plan-plan-meta .template-hint{font-size:12px;color:var(--color-text-muted,#6b778c)}
+@media(max-width:768px){.planning-viewbar{align-items:stretch;flex-direction:column}.planning-period-nav strong{min-width:0;flex:1}.planning-calendar-grid{grid-template-columns:repeat(7,minmax(72px,1fr));overflow-x:auto}.planning-calendar-day{min-height:100px;padding:7px}.planning-calendar-moment{font-size:11px;padding:5px}}

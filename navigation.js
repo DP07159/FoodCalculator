@@ -35,13 +35,12 @@ const LEGACY_MODULE_DEFINITIONS = [
         ]
     },
     {
-        code: "inventory",
-        name: "Inventar",
+        code: "shopping",
+        name: "Einkauf",
         enabled: true,
-        required_privilege: "inventory.view",
-        navigation: { label: "Inventar", short_label: "Inventar", href: "/inventory.html", icon: "inventory", primary: true, order: 40 },
+        navigation: { label: "Einkauf", short_label: "Einkauf", href: "/shopping.html", icon: "shopping", primary: true, order: 40 },
         home_actions: [
-            { code: "maintain_inventory", label: "Was da ist", description: "Mach etwas aus dem, was du schon hast", href: "/inventory.html", icon: "inventory", order: 30, intent_keywords: ["inventar", "vorrat", "lager", "kühlschrank", "kuehlschrank", "vorhanden"] }
+            { code: "shopping_list", label: "Einkaufen", description: "Was brauchst du für deine Food Moments?", href: "/shopping.html", icon: "shopping", order: 40, intent_keywords: ["einkauf", "einkaufen", "einkaufsliste", "besorgen", "zutaten"] }
         ]
     }
 ];
@@ -61,6 +60,7 @@ const NAV_ICON_PATHS = {
     calendar: '<path d="M5 3v3M19 3v3M4 8h16M5 5h14v15H5z"/><path d="M8 12h3M13 12h3M8 16h3"/>',
     recipes: '<path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/>',
     inventory: '<path d="M4 6h16v14H4zM7 3h10v3M8 10h8M8 14h5"/>',
+    shopping: '<path d="M4 5h2l2 10h9l2-7H7"/><circle cx="10" cy="19" r="1"/><circle cx="17" cy="19" r="1"/>',
     wallet: '<path d="M4 7h16v13H4z"/><path d="M7 7V5h10v2"/><path d="M8 11h8M8 15h5"/>',
     moment: '<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>',
     plus: '<path d="M12 5v14M5 12h14"/>',

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="de" class="auth-pending">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Einkauf · Food Moment Platform</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#F8F7F3">
+</head>
+<body class="module-page shopping-module">
+    <header class="app-header platform-header">
+        <button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen"><svg class="fc-icon" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+        <a class="app-header-title platform-wordmark" href="/index.html">Food Moment</a>
+        <div id="burger-dropdown" class="burger-dropdown is-hidden"></div>
+    </header>
+    <div class="container module-container">
+        <main class="page-content module-content shopping-page">
+            <header class="page-header module-page-header compact-module-header shopping-header">
+                <div><p class="recipe-kicker">Einkauf</p><h1>Deine Einkaufsliste</h1><p class="module-intro">Alles, was ihr im aktuellen Workspace braucht – aus Food Moments, Rezepten und manuellen Einträgen.</p></div>
+                <button id="shopping-add-toggle" type="button" class="wallet-add-button module-header-add"><svg class="fc-icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>Hinzufügen</span></button>
+            </header>
+
+            <section id="shopping-add-panel" class="shopping-add-panel section-card is-hidden" aria-label="Einkaufsartikel hinzufügen">
+                <form id="shopping-add-form" class="shopping-add-form">
+                    <input id="shopping-name" type="text" placeholder="Was brauchst du?" autocomplete="off" required>
+                    <input id="shopping-amount" type="number" min="0" step="any" placeholder="Menge" inputmode="decimal">
+                    <input id="shopping-unit" type="text" placeholder="Einheit, z. B. g">
+                    <button class="primary-action-button" type="submit">Zur Liste</button>
+                </form>
+            </section>
+
+            <section class="shopping-list-shell">
+                <div id="shopping-active" class="shopping-list"></div>
+                <div id="shopping-empty" class="moments-empty is-hidden"><h2>Noch nichts zu besorgen.</h2><p>Füge etwas manuell hinzu oder übernimm die Zutaten aus einem Rezept oder Food Moment.</p></div>
+            </section>
+
+            <section id="shopping-completed-section" class="shopping-completed-section is-hidden">
+                <div class="shopping-section-heading"><div><p class="recipe-kicker">Erledigt</p><h2>Schon im Wagen</h2></div><button id="shopping-clear-completed" class="secondary-action-button" type="button">Erledigte entfernen</button></div>
+                <div id="shopping-completed" class="shopping-list shopping-list-completed"></div>
+            </section>
+        </main>
+    </div>
+    <div id="shopping-source-popover" class="shopping-source-popover is-hidden" role="dialog" aria-modal="true"><div class="shopping-source-card"><div class="shopping-source-head"><h2>Kommt von</h2><button id="shopping-source-close" class="header-icon-button" aria-label="Schließen">×</button></div><div id="shopping-source-list"></div></div></div>
+    <div id="app-toast" class="app-toast is-hidden"></div>
+    <script src="auth-shell.js"></script><script src="navigation.js"></script><script src="shopping.js"></script><script>AuthShell.guard();</script>
+</body>
+</html>

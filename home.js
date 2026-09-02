@@ -7,38 +7,11 @@ function escapeHomeHtml(value) {
 }
 
 const HOME_PRIMARY_ACTIONS = [
-    {
-        code: "now",
-        label: "Jetzt etwas",
-        description: "Finde etwas Passendes für jetzt.",
-        href: "/recipes.html",
-        capability: "recipes",
-        icon: "recipes"
-    },
-    {
-        code: "use-what-is-there",
-        label: "Was da ist",
-        description: "Mach etwas aus dem, was du schon hast.",
-        href: "/inventory.html",
-        capability: "inventory",
-        icon: "inventory"
-    },
-    {
-        code: "inspiration",
-        label: "Inspiration",
-        description: "Stöbere durch Ideen für deinen Moment.",
-        href: "/wallet.html",
-        capability: "wallet",
-        icon: "wallet"
-    },
-    {
-        code: "plan",
-        label: "Planen",
-        description: "Für später, heute Abend oder die nächsten Tage.",
-        href: "/mealPlan.html",
-        capability: "meal_plan",
-        icon: "calendar"
-    }
+    { code: "today", label: "Was koche ich heute?", description: "Schau in deine Rezepte und finde etwas für heute.", href: "/recipes.html", capability: "recipes", icon: "recipes" },
+    { code: "visitors", label: "Besuch kommt", description: "Halte den Anlass fest – Details dürfen später kommen.", href: "/foodMomentCreate.html?intent=visitors", capability: "food_moments", icon: "moment" },
+    { code: "capture", label: "Etwas festhalten", description: "Rezept oder Inspiration sichern, bevor sie verloren geht.", action: "capture", capabilities: ["recipes", "wallet"], icon: "plus" },
+    { code: "plan-week", label: "Was steht diese Woche an?", description: "Plane deine Food Moments für die nächsten Tage.", href: "/mealPlan.html", capability: "meal_plan", icon: "calendar" },
+    { code: "no-idea", label: "Keine Idee", description: "Stöbere in deinen Rezepten und Inspirationen.", href: "/wallet.html", capability: "wallet", icon: "wallet" }
 ];
 
 const HOME_SECONDARY_ACTIONS = [
@@ -84,17 +57,11 @@ function renderPrimaryActions() {
     if (!container) return;
 
     const actions = HOME_PRIMARY_ACTIONS.filter(actionAvailable);
-    container.innerHTML = actions.map((action, index) => `
-        <a class="food-moment-entry food-moment-entry-${escapeHomeHtml(action.code)}" href="${escapeHomeHtml(action.href)}" data-nav-capability="${escapeHomeHtml(action.capability)}">
-            <span class="food-moment-entry-number" aria-hidden="true">0${index + 1}</span>
-            <span class="food-moment-entry-copy">
-                <strong>${escapeHomeHtml(action.label)}</strong>
-                <small>${escapeHomeHtml(action.description)}</small>
-            </span>
-            <span class="food-moment-entry-icon">${iconMarkup(action.icon)}</span>
-            <svg class="fc-icon food-moment-entry-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
-        </a>
-    `).join("");
+    container.innerHTML = actions.map((action, index) => {
+        const inner = `<span class="food-moment-entry-number" aria-hidden="true">0${index + 1}</span><span class="food-moment-entry-copy"><strong>${escapeHomeHtml(action.label)}</strong><small>${escapeHomeHtml(action.description)}</small></span><span class="food-moment-entry-icon">${iconMarkup(action.icon)}</span><svg class="fc-icon food-moment-entry-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>`;
+        if (action.action === "capture") return `<button class="food-moment-entry food-moment-entry-${escapeHomeHtml(action.code)}" type="button" data-home-action="capture">${inner}</button>`;
+        return `<a class="food-moment-entry food-moment-entry-${escapeHomeHtml(action.code)}" href="${escapeHomeHtml(action.href)}" data-nav-capability="${escapeHomeHtml(action.capability||'')}">${inner}</a>`;
+    }).join("");
 }
 
 function renderSecondaryActions() {
@@ -254,8 +221,9 @@ async function renderUpcomingMoments() {
             .filter(m => m.moment_date && homeDateValue(m.moment_date) >= today.getTime())
             .map(m => ({...m, source:"moment"}));
         // Paket 2: konkrete Planung ist bereits als Food Moment in `dated` enthalten.
-        const items = dated.sort((a,b)=>homeDateValue(a.moment_date)-homeDateValue(b.moment_date)).slice(0,5);
+        const open = (Array.isArray(moments) ? moments : []).filter(m => !m.moment_date).slice(0,2).map(m => ({...m, source:"moment"}));
+        const items = [...dated.sort((a,b)=>homeDateValue(a.moment_date)-homeDateValue(b.moment_date)).slice(0,4), ...open].slice(0,5);
         section.hidden = items.length === 0;
-        list.innerHTML = items.map(item => `<a class="home-upcoming-item" href="${escapeHomeHtml(item.href || `/foodMoment.html?id=${encodeURIComponent(item.public_id)}`)}"><span class="home-upcoming-when">${escapeHomeHtml(upcomingMomentLabel(item))}</span><span class="home-upcoming-copy"><strong>${escapeHomeHtml(item.title)}</strong><small>${escapeHomeHtml(item.detail || item.recipes?.[0]?.name || item.inspirations?.[0]?.title || "Food Moment")}</small></span><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a>`).join("");
+        list.innerHTML = items.map(item => `<a class="home-upcoming-item ${item.moment_date?'':'is-open'}" href="${escapeHomeHtml(item.href || `/foodMoment.html?id=${encodeURIComponent(item.public_id)}`)}"><span class="home-upcoming-when">${escapeHomeHtml(upcomingMomentLabel(item))}</span><span class="home-upcoming-copy"><strong>${escapeHomeHtml(item.title)}</strong><small>${escapeHomeHtml(item.detail || item.recipes?.[0]?.name || item.inspirations?.[0]?.title || (item.moment_date?"Food Moment":"Kann später weitergedacht werden"))}</small></span><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a>`).join("");
     } catch (_) { section.hidden = true; }
 }

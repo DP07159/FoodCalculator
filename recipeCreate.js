@@ -209,8 +209,8 @@ window.createRecipe = async function() {
     const instructions = document.getElementById("recipe-instructions").value;
     const mealTypes = Array.from(document.querySelectorAll(".recipe-checkboxes input:checked")).map(input => input.value);
 
-    if (!name || !calories || !portions || mealTypes.length === 0) {
-        showToast("Bitte Name, Kalorien, Portionen und mindestens eine Mahlzeit angeben.");
+    if (!name || !portions || !ingredients.trim() || !instructions.trim()) {
+        showToast("Bitte Name, Portionen, Zutaten und Anleitung angeben.");
         return;
     }
 
@@ -252,6 +252,8 @@ window.onload = function () {
     if (typeof initBurgerMenu === "function") initBurgerMenu();
     initAutoResize();
     initIngredientAutocomplete();
+    applyRecipePrefill();
+    applyWalletRecipePrefill();
 };
 
 function applyWalletRecipePrefill() {
@@ -269,3 +271,15 @@ function applyWalletRecipePrefill() {
     }
 }
 document.addEventListener("auth:ready", applyWalletRecipePrefill, { once: true });
+
+function applyRecipePrefill() {
+    const params = new URLSearchParams(window.location.search);
+    const name = params.get("prefill_name");
+    const portions = params.get("prefill_portions");
+    const calories = params.get("prefill_calories");
+    if (name && !document.getElementById("recipe-name").value) document.getElementById("recipe-name").value = name;
+    if (portions && !document.getElementById("recipe-portions").value) document.getElementById("recipe-portions").value = portions;
+    if (calories && !document.getElementById("recipe-calories").value) document.getElementById("recipe-calories").value = calories;
+    const types = new Set(params.getAll("prefill_meal_type"));
+    document.querySelectorAll(".recipe-checkboxes input").forEach(input => { if (types.has(input.value)) input.checked = true; });
+}

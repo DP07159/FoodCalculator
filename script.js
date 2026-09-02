@@ -603,27 +603,16 @@ window.toggleRecipeToolbar = function() {
 };
 
 window.addRecipe = async function() {
-    const name = document.getElementById("recipe-name")?.value.trim();
-    const calories = document.getElementById("recipe-calories")?.value.trim();
-    const portions = document.getElementById("recipe-portions")?.value.trim();
+    const name = document.getElementById("recipe-name")?.value.trim() || "";
+    const portions = document.getElementById("recipe-portions")?.value.trim() || "";
+    const calories = document.getElementById("recipe-calories")?.value.trim() || "";
     const mealTypes = Array.from(document.querySelectorAll(".recipe-toolbar-checkboxes input:checked")).map(input => input.value);
-
-    if (!name || !calories || !portions || mealTypes.length === 0) {
-        showToast("Bitte Name, Kalorien, Portionen und mindestens eine Mahlzeit angeben.");
-        return;
-    }
-
-    try {
-        const recipe = await apiFetch(`${API_URL}/recipes`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name, calories, portions, mealTypes, ingredients: "", instructions: "" })
-        });
-        window.location.href = `/recipeDetails.html?id=${recipe.id}`;
-    } catch (error) {
-        console.error(error);
-        showToast("Rezept konnte nicht gespeichert werden.");
-    }
+    const params = new URLSearchParams();
+    if (name) params.set("prefill_name", name);
+    if (portions) params.set("prefill_portions", portions);
+    if (calories) params.set("prefill_calories", calories);
+    mealTypes.forEach(type => params.append("prefill_meal_type", type));
+    window.location.href = `/recipeCreate.html${params.toString() ? `?${params}` : ""}`;
 };
 
 window.deleteRecipe = async function(recipeId) {

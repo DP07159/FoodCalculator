@@ -44,7 +44,7 @@ function upcomingPreview(items){
 function searchable(m,q){return !q||`${m.title||''} ${(m.recipes||[]).map(r=>r.name).join(' ')} ${(m.inspirations||[]).map(i=>i.title).join(' ')} ${m.notes||''}`.toLocaleLowerCase('de').includes(q);}
 function render(){
     const q=(document.getElementById('moments-search')?.value||'').trim().toLocaleLowerCase('de');
-    const visible=allMoments.filter(isVisibleFoodMoment).filter(m=>searchable(m,q));
+    const visible=allMoments.filter(m=>!m.is_component).filter(isVisibleFoodMoment).filter(m=>searchable(m,q));
     const upcoming=upcomingPreview(visible);
     const past=visible.filter(m=>dateValue(m)&&dateValue(m)<todayDate()).sort((a,b)=>dateValue(b)-dateValue(a)).slice(0,50);
     const count=document.getElementById('moments-count');

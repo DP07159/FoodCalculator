@@ -165,11 +165,19 @@ async function openRecipeFoodMoments() {
     renderRecipeFoodMomentPicker();
     if (dialog?.showModal) dialog.showModal();
 }
+function isRecipeOnlyMomentForLinking(m) {
+    const hasRecipe=(m.recipes?.length||0)>0;
+    const hasInspiration=(m.inspirations?.length||0)>0;
+    const hasContext=Boolean(String(m.notes||"").trim()) || Number(m.people_count||0)>0 || (m.audience_code&&m.audience_code!=="open") || Boolean(m.moment_date||m.starts_at);
+    return hasRecipe && !hasInspiration && !hasContext;
+}
 function renderRecipeFoodMomentPicker() {
     const list=document.getElementById("recipe-food-moments-list"); if(!list) return;
     const q=(document.getElementById("recipe-food-moments-search")?.value||"").trim().toLocaleLowerCase("de");
     const linked=new Set(recipeFoodMoments.map(m=>m.public_id));
-    const source=(allRecipeFoodMoments.length?allRecipeFoodMoments:recipeFoodMoments).filter(m=>String(m.title||"").toLocaleLowerCase("de").includes(q));
+    const source=(allRecipeFoodMoments.length?allRecipeFoodMoments:recipeFoodMoments)
+        .filter(m=>linked.has(m.public_id)||!isRecipeOnlyMomentForLinking(m))
+        .filter(m=>String(m.title||"").toLocaleLowerCase("de").includes(q));
     list.innerHTML=source.length?source.map(m=>`<label class="recipe-context-option"><span><strong>${escapeHtml(m.title||"Food Moment")}</strong><small>${escapeHtml(formatRecipeFoodMomentDate(m))}</small>${linked.has(m.public_id)?`<a class="recipe-context-open" href="/foodMoment.html?id=${encodeURIComponent(m.public_id)}">Moment öffnen</a>`:''}</span><input type="checkbox" data-moment-id="${escapeHtml(m.public_id)}" ${linked.has(m.public_id)?"checked":""}></label>`).join(""):'<p class="recipe-context-empty">Keine passenden Food Moments gefunden.</p>';
 }
 async function saveRecipeFoodMomentLinks(){

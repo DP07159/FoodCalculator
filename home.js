@@ -12,7 +12,7 @@ const HOME_PRIMARY_ACTIONS = [
     { code: "capture", label: "Etwas festhalten", description: "Rezept oder Inspiration sichern, bevor sie verloren geht.", action: "capture", capabilities: ["recipes", "wallet"], icon: "plus" },
     { code: "plan-week", label: "Was steht diese Woche an?", description: "Plane deine Food Moments für die nächsten Tage.", href: "/mealPlan.html", capability: "meal_plan", icon: "calendar" },
     { code: "shopping", label: "Was muss ich einkaufen?", description: "Öffne die gemeinsame Liste für deinen Workspace.", href: "/shopping.html", capability: "shopping", icon: "shopping" },
-    { code: "no-idea", label: "Keine Idee", description: "Stöbere in deinen Rezepten und Inspirationen.", href: "/wallet.html", capability: "wallet", icon: "wallet" }
+    { code: "no-idea", label: "Keine Idee", description: "Stöbere in Rezepten oder Inspirationen.", action: "ideas", capabilities: ["recipes", "wallet"], icon: "sparkles" }
 ];
 
 const HOME_SECONDARY_ACTIONS = [
@@ -60,7 +60,7 @@ function renderPrimaryActions() {
     const actions = HOME_PRIMARY_ACTIONS.filter(actionAvailable);
     container.innerHTML = actions.map((action, index) => {
         const inner = `<span class="food-moment-entry-number" aria-hidden="true">0${index + 1}</span><span class="food-moment-entry-copy"><strong>${escapeHomeHtml(action.label)}</strong><small>${escapeHomeHtml(action.description)}</small></span><span class="food-moment-entry-icon">${iconMarkup(action.icon)}</span><svg class="fc-icon food-moment-entry-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>`;
-        if (action.action === "capture") return `<button class="food-moment-entry food-moment-entry-${escapeHomeHtml(action.code)}" type="button" data-home-action="capture">${inner}</button>`;
+        if (action.action) return `<button class="food-moment-entry food-moment-entry-${escapeHomeHtml(action.code)}" type="button" data-home-action="${escapeHomeHtml(action.action)}">${inner}</button>`;
         return `<a class="food-moment-entry food-moment-entry-${escapeHomeHtml(action.code)}" href="${escapeHomeHtml(action.href)}" data-nav-capability="${escapeHomeHtml(action.capability||'')}">${inner}</a>`;
     }).join("");
 }
@@ -134,6 +134,25 @@ function renderCaptureDialog() {
     `).join("");
 }
 
+function ideaOptions() {
+    const options = [];
+    if (capabilityAvailable("recipes")) options.push({ label: "Rezepte", description: "Durch deine Rezeptsammlung stöbern.", href: "/recipes.html", capability: "recipes", icon: "recipes" });
+    if (capabilityAvailable("wallet")) options.push({ label: "Inspirationen", description: "Gespeicherte Ideen und Fundstücke ansehen.", href: "/wallet.html", capability: "wallet", icon: "wallet" });
+    return options;
+}
+
+function renderIdeaDialog() {
+    const container = document.getElementById("idea-choice-options");
+    if (!container) return;
+    container.innerHTML = ideaOptions().map(option => `
+        <a class="capture-choice-option" href="${escapeHomeHtml(option.href)}" data-nav-capability="${escapeHomeHtml(option.capability)}">
+            <span class="capture-choice-icon">${iconMarkup(option.icon)}</span>
+            <span class="capture-choice-copy"><strong>${escapeHomeHtml(option.label)}</strong><small>${escapeHomeHtml(option.description)}</small></span>
+            <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+        </a>
+    `).join("");
+}
+
 function openCaptureDialog() {
     const dialog = document.getElementById("capture-choice-dialog");
     renderCaptureDialog();
@@ -143,6 +162,18 @@ function openCaptureDialog() {
 
 function closeCaptureDialog() {
     const dialog = document.getElementById("capture-choice-dialog");
+    if (dialog?.open) dialog.close();
+}
+
+function openIdeaDialog() {
+    const dialog = document.getElementById("idea-choice-dialog");
+    renderIdeaDialog();
+    if (!dialog || !ideaOptions().length) return;
+    if (typeof dialog.showModal === "function") dialog.showModal();
+}
+
+function closeIdeaDialog() {
+    const dialog = document.getElementById("idea-choice-dialog");
     if (dialog?.open) dialog.close();
 }
 
@@ -169,20 +200,25 @@ function renderHome() {
     renderFoodWorld();
     renderUpcomingMoments();
     renderCaptureDialog();
+    renderIdeaDialog();
     applySourceContext();
 }
 
 document.addEventListener("click", event => {
-    const captureButton = event.target.closest('[data-home-action="capture"]');
-    if (captureButton) {
-        event.preventDefault();
-        openCaptureDialog();
-    }
+    const actionButton = event.target.closest('[data-home-action]');
+    if (!actionButton) return;
+    const action = actionButton.dataset.homeAction;
+    if (action === "capture") { event.preventDefault(); openCaptureDialog(); }
+    if (action === "ideas") { event.preventDefault(); openIdeaDialog(); }
 });
 
 document.getElementById("capture-choice-close")?.addEventListener("click", closeCaptureDialog);
 document.getElementById("capture-choice-dialog")?.addEventListener("click", event => {
     if (event.target === event.currentTarget) closeCaptureDialog();
+});
+document.getElementById("idea-choice-close")?.addEventListener("click", closeIdeaDialog);
+document.getElementById("idea-choice-dialog")?.addEventListener("click", event => {
+    if (event.target === event.currentTarget) closeIdeaDialog();
 });
 
 document.addEventListener("platform:navigation-ready", renderHome);
@@ -198,6 +234,20 @@ function homeDateValue(dateString) {
     if (!dateString) return Number.MAX_SAFE_INTEGER;
     const d = new Date(`${dateString}T12:00:00`);
     return Number.isNaN(d.getTime()) ? Number.MAX_SAFE_INTEGER : d.getTime();
+}
+function homeMomentAttributeCount(m) {
+    let count = 0;
+    if ((m.recipes?.length || 0) > 0) count++;
+    if ((m.inspirations?.length || 0) > 0) count++;
+    if (String(m.notes || "").trim()) count++;
+    if (Number(m.people_count || 0) > 0 || (m.audience_code && m.audience_code !== "open")) count++;
+    if (m.moment_date || m.starts_at) count++;
+    return count;
+}
+function homeMomentIsRelevant(m) {
+    if (!m.source_code || m.source_code === "manual" || m.source_code === "home") return true;
+    if (homeMomentAttributeCount(m) > 2) return true;
+    return m.source_code === "planning_slot" && (m.inspirations?.length || 0) > 0;
 }
 function upcomingMomentLabel(item) {
     if (item.source === "plan") return `Heute · ${item.mealLabel}`;
@@ -218,11 +268,11 @@ async function renderUpcomingMoments() {
         const response = await AuthShell.request("/food-moments");
         const moments = response.ok ? await response.json() : [];
         const today = new Date(); today.setHours(0,0,0,0);
-        const dated = (Array.isArray(moments) ? moments : [])
+        const relevantMoments = (Array.isArray(moments) ? moments : []).filter(homeMomentIsRelevant);
+        const dated = relevantMoments
             .filter(m => m.moment_date && homeDateValue(m.moment_date) >= today.getTime())
             .map(m => ({...m, source:"moment"}));
-        // Paket 2: konkrete Planung ist bereits als Food Moment in `dated` enthalten.
-        const open = (Array.isArray(moments) ? moments : []).filter(m => !m.moment_date).slice(0,2).map(m => ({...m, source:"moment"}));
+        const open = relevantMoments.filter(m => !m.moment_date).slice(0,2).map(m => ({...m, source:"moment"}));
         const items = [...dated.sort((a,b)=>homeDateValue(a.moment_date)-homeDateValue(b.moment_date)).slice(0,4), ...open].slice(0,5);
         section.hidden = items.length === 0;
         list.innerHTML = items.map(item => `<a class="home-upcoming-item ${item.moment_date?'':'is-open'}" href="${escapeHomeHtml(item.href || `/foodMoment.html?id=${encodeURIComponent(item.public_id)}`)}"><span class="home-upcoming-when">${escapeHomeHtml(upcomingMomentLabel(item))}</span><span class="home-upcoming-copy"><strong>${escapeHomeHtml(item.title)}</strong><small>${escapeHomeHtml(item.detail || item.recipes?.[0]?.name || item.inspirations?.[0]?.title || (item.moment_date?"Food Moment":"Kann später weitergedacht werden"))}</small></span><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a>`).join("");

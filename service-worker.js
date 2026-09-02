@@ -1,4 +1,4 @@
-const CACHE_NAME = "food-moment-platform-v45-shopping";
+const CACHE_NAME = "food-moment-platform-v46-pretest-home-moments";
 
 const FILES_TO_CACHE = [
     "/",

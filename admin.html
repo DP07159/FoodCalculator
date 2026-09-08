@@ -26,6 +26,7 @@
             </header>
 
             <section class="admin-hub-grid" aria-label="Admin-Bereiche">
+                <a class="admin-hub-card" href="/adminAnalytics.html"><span>Testphase</span><strong>Test-Auswertung</strong><small>Nutzung, Sessions, Kern-Journeys und Connection Layer auswerten.</small></a>
                 <a class="admin-hub-card admin-hub-card-access" href="/adminUsers.html">
                     <span>Zugriff</span>
                     <strong>Benutzer & Rechte</strong>
@@ -76,9 +77,9 @@
                         <h2>Backup</h2>
                         <p>Exportiert den aktuellen Datenbestand als JSON-Datei. Restore/Import kann später ergänzt werden.</p>
                     </div>
-                    <button type="button" class="recipe-toolbar-toggle-button" onclick="downloadAdminBackup()" title="Backup herunterladen" aria-label="Backup herunterladen">
+                    <a class="recipe-toolbar-toggle-button" href="https://foodcalculator-server.onrender.com/admin/backup/export" title="Backup herunterladen" aria-label="Backup herunterladen">
                         <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
-                    </button>
+                    </a>
                 </div>
                 <p class="admin-result-note">Das Backup enthält Tabelleninhalte wie Rezepte, Wochenpläne, Inventar, Lebensmittel-Stammdaten, Aliase und Rezept-Zutaten-Verknüpfungen.</p>
             </section>

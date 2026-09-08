@@ -92,7 +92,7 @@ async function loadRecipeInstructions() {
         currentRecipe = await apiFetch(`${API_URL}/recipes/${recipeId}`);
         basePortions = getSafePortions(currentRecipe.portions);
         displayedPortions = basePortions;
-        await Promise.all([loadRecipeStockCheck(), loadRecipeWalletInspirations(), loadRecipeFoodMoments()]);
+        await Promise.all([loadRecipeWalletInspirations(), loadRecipeFoodMoments()]);
         renderRecipeInstructions();
         renderRecipeWalletInspirations();
         renderRecipeFoodMomentContext();
@@ -165,12 +165,20 @@ async function openRecipeFoodMoments() {
     renderRecipeFoodMomentPicker();
     if (dialog?.showModal) dialog.showModal();
 }
+function isRecipeOnlyMomentForLinking(m) {
+    const hasRecipe=(m.recipes?.length||0)>0;
+    const hasInspiration=(m.inspirations?.length||0)>0;
+    const hasContext=Boolean(String(m.notes||"").trim()) || Number(m.people_count||0)>0 || (m.audience_code&&m.audience_code!=="open") || Boolean(m.moment_date||m.starts_at);
+    return hasRecipe && !hasInspiration && !hasContext;
+}
 function renderRecipeFoodMomentPicker() {
     const list=document.getElementById("recipe-food-moments-list"); if(!list) return;
     const q=(document.getElementById("recipe-food-moments-search")?.value||"").trim().toLocaleLowerCase("de");
     const linked=new Set(recipeFoodMoments.map(m=>m.public_id));
-    const source=(allRecipeFoodMoments.length?allRecipeFoodMoments:recipeFoodMoments).filter(m=>String(m.title||"").toLocaleLowerCase("de").includes(q));
-    list.innerHTML=source.length?source.map(m=>`<label class="recipe-context-option"><span><strong>${escapeHtml(m.title||"Food Moment")}</strong><small>${escapeHtml(formatRecipeFoodMomentDate(m))}</small></span><input type="checkbox" data-moment-id="${escapeHtml(m.public_id)}" ${linked.has(m.public_id)?"checked":""}></label>`).join(""):'<p class="recipe-context-empty">Keine passenden Food Moments gefunden.</p>';
+    const source=(allRecipeFoodMoments.length?allRecipeFoodMoments:recipeFoodMoments)
+        .filter(m=>linked.has(m.public_id)||!isRecipeOnlyMomentForLinking(m))
+        .filter(m=>String(m.title||"").toLocaleLowerCase("de").includes(q));
+    list.innerHTML=source.length?source.map(m=>`<label class="recipe-context-option"><span><strong>${escapeHtml(m.title||"Food Moment")}</strong><small>${escapeHtml(formatRecipeFoodMomentDate(m))}</small>${linked.has(m.public_id)?`<a class="recipe-context-open" href="/foodMoment.html?id=${encodeURIComponent(m.public_id)}">Moment öffnen</a>`:''}</span><input type="checkbox" data-moment-id="${escapeHtml(m.public_id)}" ${linked.has(m.public_id)?"checked":""}></label>`).join(""):'<p class="recipe-context-empty">Keine passenden Food Moments gefunden.</p>';
 }
 async function saveRecipeFoodMomentLinks(){
     const state=document.getElementById("recipe-food-moments-state"); const boxes=[...document.querySelectorAll("#recipe-food-moments-list input[data-moment-id]")];
@@ -879,31 +887,10 @@ function renderRecipeInstructions() {
 
     const ingredientsList = document.getElementById("display-recipe-ingredients");
     const ingredientLines = (currentRecipe.ingredients || "").split("\n");
-    const stockEntries = Array.isArray(recipeStockCheck?.ingredients) ? recipeStockCheck.ingredients : [];
-    
     ingredientsList.innerHTML = ingredientLines
-        .map((line, lineIndex) => {
-            if (!line.trim()) return `<li class="empty-line">&nbsp;</li>`;
-
-            const entry = stockEntries.find(
-                item => Number(item.line_index) === Number(lineIndex)
-            ) || null;
-
-            const status = entry?.status || "unknown";
-            const label = entry?.label || "Nicht prüfbar";
-            const displayText = entry?.display_text || scaleIngredientLine(line.trim());
-
-            const lookupName = entry?.food_name || displayText;
-            const lookupItemId = entry?.item_id ? Number(entry.item_id) : "";
-            return `
-                <li class="recipe-ingredient-stock-row recipe-stock-${status}">
-                    <button type="button" class="recipe-ingredient-row-button" onclick="openIngredientInventoryOverlay('${escapeJsString(lookupName)}', '${lookupItemId}')" title="Inventar zu ${escapeHtml(displayText)} anzeigen">
-                        <span class="recipe-ingredient-text">${escapeHtml(displayText)}</span>
-                        <span class="recipe-stock-flag" title="${escapeHtml(label)}" aria-label="${escapeHtml(label)}"></span>
-                    </button>
-                </li>
-            `;
-        })
+        .map(line => line.trim()
+            ? `<li><span class="recipe-ingredient-text">${escapeHtml(scaleIngredientLine(line.trim()))}</span></li>`
+            : `<li class="empty-line">&nbsp;</li>`)
         .join("");
 
 
@@ -943,7 +930,6 @@ async function adjustDisplayedPortions(delta) {
     const nextValue = Math.max(1, displayedPortions + delta);
     if (nextValue === displayedPortions) return;
     displayedPortions = nextValue;
-    await loadRecipeStockCheck();
     renderRecipeInstructions();
 }
 
@@ -975,6 +961,21 @@ function getIngredientsTextForSharing() {
     return `${recipeName}\n\n${ingredients.map(item => `• ${item}`).join("\n")}`;
 }
 
+async function addRecipeToShoppingList() {
+    if (!currentRecipe?.id) return;
+    try {
+        const result = await apiFetch(`${API_URL}/shopping-list/import/recipe/${currentRecipe.id}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ portions: displayedPortions })
+        });
+        showToast(`${Number(result?.added)||0} Zutaten zur Einkaufsliste hinzugefügt.`);
+    } catch (error) {
+        console.error(error);
+        showToast(error.message || "Einkaufsliste konnte nicht ergänzt werden.");
+    }
+}
+
 async function shareIngredientsList() {
     const text = getIngredientsTextForSharing();
     if (!text) {
@@ -995,6 +996,7 @@ function setupButtons() {
     document.getElementById("favorite-recipe-button")?.addEventListener("click", toggleCurrentRecipeFavorite);
     document.getElementById("share-ingredients-button")?.addEventListener("click", shareIngredientsList);
     document.getElementById("recipe-food-moments-button")?.addEventListener("click", openRecipeFoodMoments);
+    document.getElementById("recipe-shopping-button")?.addEventListener("click", addRecipeToShoppingList);
     document.getElementById("recipe-food-moments-close")?.addEventListener("click", closeRecipeFoodMoments);
     document.getElementById("recipe-food-moments-done")?.addEventListener("click", saveRecipeFoodMomentLinks);
     document.getElementById("recipe-food-moment-create")?.addEventListener("click", createFoodMomentFromRecipe);

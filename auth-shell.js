@@ -1,12 +1,32 @@
 const AUTH_API_URL = "https://foodcalculator-server.onrender.com";
 const AUTH_TOKEN_KEY = "fc_auth_token";
 const WORKSPACE_KEY = "fc_workspace_public_id";
+const PRODUCT_SESSION_KEY = "fc_product_session_id";
 
 const AuthShell = (() => {
     let currentUser = null;
     let currentWorkspace = null;
     let workspaces = [];
     let ready = false;
+
+
+    function getProductSessionId() {
+        let id = sessionStorage.getItem(PRODUCT_SESSION_KEY);
+        if (!id) {
+            id = `ps_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,10)}`;
+            sessionStorage.setItem(PRODUCT_SESSION_KEY, id);
+        }
+        return id;
+    }
+
+    function track(eventName, properties = {}) {
+        if (!ready || !currentWorkspace) return Promise.resolve();
+        return request('/analytics/events', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ event_name: eventName, path: window.location.pathname + window.location.search, properties })
+        }).catch(() => null);
+    }
 
     function getToken() {
         return localStorage.getItem(AUTH_TOKEN_KEY) || "";
@@ -37,6 +57,7 @@ const AuthShell = (() => {
         if (workspaceId && !headers.has("X-Workspace-Id")) {
             headers.set("X-Workspace-Id", workspaceId);
         }
+        if (!headers.has("X-Product-Session-Id")) headers.set("X-Product-Session-Id", getProductSessionId());
 
         const targetUrl = /^https?:\/\//i.test(String(path || ""))
             ? String(path)
@@ -197,6 +218,7 @@ const AuthShell = (() => {
             document.documentElement.classList.remove("auth-pending");
             renderUserControls();
             document.dispatchEvent(new CustomEvent("auth:ready", { detail: { user: currentUser } }));
+            track("page_view", { title: document.title }).catch(() => null);
             return true;
         } catch (error) {
             if (error?.status === 401) clearToken();
@@ -233,7 +255,9 @@ const AuthShell = (() => {
         getWorkspace,
         getWorkspaces,
         getWorkspacePublicId,
-        isReady
+        isReady,
+        track,
+        getProductSessionId
     };
 })();
 

@@ -255,8 +255,8 @@ window.updateRecipe = async function() {
     const instructions = document.getElementById("recipe-instructions").value;
     const mealTypes = Array.from(document.querySelectorAll(".recipe-checkboxes input:checked")).map(input => input.value);
 
-    if (!name || !calories || mealTypes.length === 0) {
-        showToast("Bitte Name, Kalorien und mindestens eine Mahlzeit angeben.");
+    if (!name || !portions || !ingredients.trim() || !instructions.trim()) {
+        showToast("Bitte Name, Portionen, Zutaten und Anleitung angeben.");
         return;
     }
 

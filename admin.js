@@ -35,11 +35,43 @@ function setAdminMessage(message, type = "error") {
 }
 
 async function apiFetch(url, options = {}) {
-    const response = await fetch(url, options);
+    const request = window.AuthShell?.request
+        ? window.AuthShell.request.bind(window.AuthShell)
+        : fetch;
+    const response = await request(url, options);
     let payload = null;
     try { payload = await response.json(); } catch { payload = null; }
-    if (!response.ok) throw new Error(payload?.error || "Serverfehler");
+    if (!response.ok) {
+        const error = new Error(payload?.error || "Serverfehler");
+        error.status = response.status;
+        throw error;
+    }
     return payload;
+}
+
+async function downloadAdminBackup() {
+    try {
+        const response = await AuthShell.request(`${API_URL}/admin/backup/export`);
+        if (!response.ok) {
+            const payload = await response.json().catch(() => null);
+            throw new Error(payload?.error || "Backup konnte nicht erstellt werden.");
+        }
+        const blob = await response.blob();
+        const disposition = response.headers.get("Content-Disposition") || "";
+        const match = disposition.match(/filename=\"?([^\";]+)\"?/i);
+        const filename = match?.[1] || `foodcalculator-backup-${new Date().toISOString().slice(0, 10)}.json`;
+        const objectUrl = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = objectUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(objectUrl);
+    } catch (error) {
+        console.error(error);
+        showToast(error.message || "Backup konnte nicht erstellt werden.");
+    }
 }
 
 

@@ -16,7 +16,7 @@ const LEGACY_MODULE_DEFINITIONS = [
         code: "meal_plan",
         name: "Wochenplan",
         enabled: true,
-        navigation: { label: "Planung", short_label: "Plan", href: "/mealPlan.html", icon: "calendar", primary: true, order: 20 },
+        navigation: { label: "Wochenplan", short_label: "Plan", href: "/mealPlan.html", icon: "calendar", primary: true, order: 20 },
         home_actions: [
             { code: "plan_week", label: "Planen", description: "Für später, heute Abend oder die nächsten Tage", href: "/mealPlan.html", icon: "calendar", order: 20, intent_keywords: ["woche", "wochenplan", "planen", "montag", "dienstag", "mittwoch", "donnerstag", "freitag", "samstag", "sonntag"] }
         ]
@@ -35,12 +35,13 @@ const LEGACY_MODULE_DEFINITIONS = [
         ]
     },
     {
-        code: "shopping",
-        name: "Einkauf",
+        code: "inventory",
+        name: "Inventar",
         enabled: true,
-        navigation: { label: "Einkauf", short_label: "Einkauf", href: "/shopping.html", icon: "shopping", primary: true, order: 40 },
+        required_privilege: "inventory.view",
+        navigation: { label: "Inventar", short_label: "Inventar", href: "/inventory.html", icon: "inventory", primary: true, order: 40 },
         home_actions: [
-            { code: "shopping_list", label: "Einkaufen", description: "Was brauchst du für deine Food Moments?", href: "/shopping.html", icon: "shopping", order: 40, intent_keywords: ["einkauf", "einkaufen", "einkaufsliste", "besorgen", "zutaten"] }
+            { code: "maintain_inventory", label: "Was da ist", description: "Mach etwas aus dem, was du schon hast", href: "/inventory.html", icon: "inventory", order: 30, intent_keywords: ["inventar", "vorrat", "lager", "kühlschrank", "kuehlschrank", "vorhanden"] }
         ]
     }
 ];
@@ -60,10 +61,8 @@ const NAV_ICON_PATHS = {
     calendar: '<path d="M5 3v3M19 3v3M4 8h16M5 5h14v15H5z"/><path d="M8 12h3M13 12h3M8 16h3"/>',
     recipes: '<path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/>',
     inventory: '<path d="M4 6h16v14H4zM7 3h10v3M8 10h8M8 14h5"/>',
-    shopping: '<path d="M4 5h2l2 10h9l2-7H7"/><circle cx="10" cy="19" r="1"/><circle cx="17" cy="19" r="1"/>',
     wallet: '<path d="M4 7h16v13H4z"/><path d="M7 7V5h10v2"/><path d="M8 11h8M8 15h5"/>',
     moment: '<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>',
-    sparkles: '<path d="m12 3 1.2 3.3L16.5 7.5l-3.3 1.2L12 12l-1.2-3.3-3.3-1.2 3.3-1.2L12 3Z"/><path d="m18 13 .8 2.2L21 16l-2.2.8L18 19l-.8-2.2L15 16l2.2-.8L18 13Z"/><path d="m6 13 .7 1.8 1.8.7-1.8.7L6 18l-.7-1.8-1.8-.7 1.8-.7L6 13Z"/>',
     plus: '<path d="M12 5v14M5 12h14"/>',
     settings: '<circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.5-2.4 1A7 7 0 0 0 15 6l-.4-2.6h-4L10.2 6a7 7 0 0 0-1.6 1L6.2 6 4.2 9.5 6.1 11a7 7 0 0 0 0 2l-1.9 1.5 2 3.5 2.4-1A7 7 0 0 0 10 18l.4 2.6h4L15 18a7 7 0 0 0 1.5-1l2.4 1 2-3.5L18.9 13c.1-.3.1-.7.1-1Z"/>'
 };

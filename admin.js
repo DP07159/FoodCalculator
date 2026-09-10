@@ -1967,3 +1967,10 @@ async function loadAdminTablePage() {
         setAdminTableMessage(error.message || "Tabelle konnte nicht geladen werden.");
     }
 }
+
+
+// Analytics is a Platform-Admin-only capability, not a Workspace-Admin capability.
+document.addEventListener("platform:navigation-ready", (event) => {
+    const card = document.getElementById("admin-analytics-card");
+    if (card) card.hidden = event.detail?.platformAdmin !== true;
+});

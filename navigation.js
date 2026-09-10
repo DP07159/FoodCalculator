@@ -225,7 +225,7 @@ function isCurrentLink(link) {
     if (currentPath === linkPath || (currentPath === "/" && linkPath === "/index.html")) return true;
     if (link.capability === "recipes" && ["/recipeCreate.html", "/recipeDetails.html", "/recipeInstructions.html"].includes(currentPath)) return link.href === "/recipes.html";
     if (link.capability === "food_moments" && ["/foodMomentCreate.html", "/foodMoment.html"].includes(currentPath)) return link.href === "/foodMoments.html";
-    if (link.capability === "admin" && ["/adminTable.html", "/adminUsers.html"].includes(currentPath)) return true;
+    if (link.capability === "admin" && ["/adminTable.html", "/adminUsers.html", "/adminAnalytics.html"].includes(currentPath)) return true;
     return false;
 }
 

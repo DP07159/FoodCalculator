@@ -166,14 +166,7 @@ async function openRecipeFoodMoments() {
     if (dialog?.showModal) dialog.showModal();
 }
 function isLargeFoodMomentForLinking(m) {
-    let dimensions=0;
-    if((m.recipes?.length||0)>0)dimensions++;
-    if((m.inspirations?.length||0)>0)dimensions++;
-    if(String(m.notes||"").trim())dimensions++;
-    if(Number(m.people_count||0)>0 || (m.audience_code&&m.audience_code!=="open"))dimensions++;
-    if(m.moment_date||m.starts_at)dimensions++;
-    const explicitlyCreated=!m.source_code||m.source_code==="manual"||m.source_code==="home";
-    return explicitlyCreated || dimensions>2;
+    return !["recipe", "planning_slot"].includes(String(m?.source_code || "manual"));
 }
 function renderRecipeFoodMomentPicker() {
     const list=document.getElementById("recipe-food-moments-list"); if(!list) return;
@@ -185,11 +178,18 @@ function renderRecipeFoodMomentPicker() {
     list.innerHTML=source.length?source.map(m=>`<label class="recipe-context-option"><span><strong>${escapeHtml(m.title||"Food Moment")}</strong><small>${escapeHtml(formatRecipeFoodMomentDate(m))}</small>${linked.has(m.public_id)?`<a class="recipe-context-open" href="/foodMoment.html?id=${encodeURIComponent(m.public_id)}">Moment öffnen</a>`:''}</span><input type="checkbox" data-moment-id="${escapeHtml(m.public_id)}" ${linked.has(m.public_id)?"checked":""}></label>`).join(""):'<p class="recipe-context-empty">Keine passenden Food Moments gefunden.</p>';
 }
 async function saveRecipeFoodMomentLinks(){
-    const state=document.getElementById("recipe-food-moments-state"); const boxes=[...document.querySelectorAll("#recipe-food-moments-list input[data-moment-id]")];
-    const desired=new Set(boxes.filter(b=>b.checked).map(b=>b.dataset.momentId)); const currently=new Set(recipeFoodMoments.map(m=>m.public_id));
-    const changed=[...new Set([...desired,...currently])].filter(id=>desired.has(id)!==currently.has(id));
-    if(!changed.length){ closeRecipeFoodMoments(); return; }
-    try{ if(state)state.textContent="Wird gespeichert …"; for(const id of changed){ const m=allRecipeFoodMoments.find(x=>x.public_id===id)||recipeFoodMoments.find(x=>x.public_id===id); if(!m)continue; const ids=(m.recipes||[]).map(r=>Number(r.id)).filter(Boolean); const next=desired.has(id)?[...new Set([...ids,Number(currentRecipe.id)])]:ids.filter(x=>x!==Number(currentRecipe.id)); await apiFetch(`${API_URL}/food-moments/${encodeURIComponent(id)}`,{method:"PATCH",body:JSON.stringify({recipe_ids:next})}); } await loadRecipeFoodMoments(); renderRecipeFoodMomentContext(); closeRecipeFoodMoments(); showToast("Food-Moment-Verknüpfungen aktualisiert"); }catch(e){ if(state)state.textContent=e.message; }
+    const state=document.getElementById("recipe-food-moments-state");
+    const boxes=[...document.querySelectorAll("#recipe-food-moments-list input[data-moment-id]")];
+    const selected=boxes.filter(b=>b.checked).map(b=>b.dataset.momentId);
+    try{
+        if(state) state.textContent="Wird gespeichert …";
+        const result=await apiFetch(`${API_URL}/food-moments/recipe/${currentRecipe.id}/links`,{method:"PUT",body:JSON.stringify({food_moment_public_ids:selected})});
+        recipeFoodMoments=Array.isArray(result?.food_moments)?result.food_moments:[];
+        allRecipeFoodMoments=Array.isArray(result?.available_food_moments)?result.available_food_moments:allRecipeFoodMoments;
+        renderRecipeFoodMomentContext();
+        closeRecipeFoodMoments();
+        showToast("Food-Moment-Verknüpfungen aktualisiert");
+    }catch(e){ if(state) state.textContent=e.message; }
 }
 function createFoodMomentFromRecipe(){ location.href=`/foodMomentCreate.html?recipe_id=${encodeURIComponent(currentRecipe.id)}`; }
 function closeRecipeFoodMoments() { document.getElementById("recipe-food-moments-dialog")?.close(); }

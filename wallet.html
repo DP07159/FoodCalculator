@@ -74,12 +74,20 @@
 </form>
 </dialog>
 
-<dialog id="wallet-share-dialog" class="wallet-share-dialog">
-    <div class="wallet-share-dialog-inner">
-        <div class="wallet-dialog-head"><div><p class="recipe-kicker">Inspiration freigeben</p><h2>Mit Workspaces teilen</h2></div><button id="wallet-share-close" class="wallet-icon-button" type="button" aria-label="Schließen"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
-        <div class="wallet-share-search"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="wallet-share-search" type="search" placeholder="Workspace suchen" aria-label="Workspace suchen"></div>
-        <div id="wallet-share-list" class="wallet-share-list"></div>
-        <div class="wallet-share-footer"><span id="wallet-share-state" class="wallet-share-state"></span><button id="wallet-share-done" class="wallet-primary-button" type="button">Fertig</button></div>
+<dialog id="wallet-share-dialog" class="selection-modal-dialog wallet-share-selection-dialog">
+    <div class="selection-modal wallet-share-selection-modal">
+        <div class="selection-modal-head">
+            <div><p class="recipe-kicker">Inspiration freigeben</p><h2>Mit Workspaces teilen</h2></div>
+            <button id="wallet-share-close" class="selection-modal-close" type="button" aria-label="Schließen"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+        </div>
+        <div class="selection-modal-body">
+            <div class="selection-modal-main">
+                <label class="selection-modal-search"><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="wallet-share-search" type="search" placeholder="Workspace suchen" aria-label="Workspace suchen"></label>
+                <div id="wallet-share-list" class="selection-modal-list wallet-share-list"></div>
+            </div>
+            <aside class="selection-modal-preview"><div class="selection-preview-icon">⌂</div><strong>Workspace auswählen</strong><p>Wähle die Workspaces, in denen diese Inspiration verfügbar sein soll. Dein persönlicher Workspace kann ebenfalls ausgewählt werden.</p></aside>
+        </div>
+        <div class="selection-modal-footer"><span id="wallet-share-state" class="wallet-share-state"></span><button id="wallet-share-done" class="wallet-primary-button" type="button">Fertig</button></div>
     </div>
 </dialog>
 

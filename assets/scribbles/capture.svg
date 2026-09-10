@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 160" fill="none" stroke="#285b86" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M77 20h93c8 0 13 6 13 14v102H86c-6 0-9-4-9-10V20Z" fill="#fff9"/>
+  <path d="M91 20v116m15-91h55m-55 20h47m-47 20h51m-51 20h43"/>
+  <path d="M127 93l11 10 24-31" stroke="#41572f"/>
+  <path d="M66 29c-14 8-17 23-12 44m7-14-12-5m16 1 4-12"/>
+  <text x="109" y="52" font-family="cursive" font-size="17" fill="#285b86" stroke="none">Idee für später:</text>
+</svg>

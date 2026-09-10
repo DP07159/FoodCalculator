@@ -54,16 +54,29 @@ function iconMarkup(name) {
 }
 
 function homeScribbleMarkup(code) {
-    const common = `class="food-moment-scribble" viewBox="0 0 160 120" aria-hidden="true"`;
-    const art = {
-        today: `<svg ${common}><path d="M42 72c8 17 29 25 50 17 11-4 18-11 22-20H38c1 1 2 2 4 3Z"/><path d="M48 60c7-18 18-30 28-35M72 58c4-20 15-35 26-43M91 60c8-15 19-23 31-27"/><path d="M59 43c-8-1-14 2-18 9 9 1 15-2 18-9Zm33-18c-7 0-12 3-15 9 8 0 13-3 15-9Zm24 17c-7-1-13 2-17 8 8 1 14-2 17-8Z"/><path d="M39 69h78"/><text x="105" y="24" class="scribble-note">mmm…</text></svg>`,
-        visitors: `<svg ${common}><path d="M28 81c18-11 34-15 52-14 20 1 36 7 53 17"/><ellipse cx="55" cy="64" rx="23" ry="8"/><path d="M78 64h34M95 64v24M85 88h20"/><path d="M38 25c0 17 5 27 14 31M66 25c0 17-5 27-14 31M36 25h32"/><path d="M106 28c0 14 4 23 12 28M130 28c0 14-4 23-12 28M105 28h26"/><path d="M52 56v16M118 56v16"/></svg>`,
-        capture: `<svg ${common}><path d="M42 22h66c6 0 10 4 10 10v65c0 5-4 8-9 8H48c-5 0-8-3-8-8V30c0-4 1-6 2-8Z"/><path d="M53 22v83M66 41h39M66 56h32M66 71h36"/><path d="M88 81l8 8 17-20"/><path d="M36 28c-8 5-10 14-7 26"/><text x="74" y="111" class="scribble-note">Idee!</text></svg>`,
-        'plan-week': `<svg ${common}><rect x="30" y="26" width="101" height="74" rx="10"/><path d="M30 48h101M52 20v13M108 20v13M50 61h12M73 61h12M96 61h12M50 78h12M73 78h12M96 78h12"/><path d="M114 78l7 7 12-17"/></svg>`,
-        shopping: `<svg ${common}><path d="M37 49h86l-9 46H48Z"/><path d="M57 50c3-18 12-28 24-28s21 10 24 28"/><path d="M62 62v20M80 62v20M98 62v20"/><path d="M43 52c-7 3-11 8-14 15M116 52c8 2 13 7 17 14"/></svg>`,
-        'no-idea': `<svg ${common}><path d="M80 18c-20 0-35 14-35 32 0 13 7 22 17 29 6 4 8 10 8 16h20c0-7 3-12 9-17 9-7 16-15 16-28 0-18-15-32-35-32Z"/><path d="M69 101h22M71 109h18M65 51c8-8 21-8 30 0M80 37v20"/><path d="M30 35l-12-8M128 35l12-8M27 62H12M133 62h15"/><text x="89" y="111" class="scribble-note">Idee!</text></svg>`
+    const assetMap = {
+        today: "/assets/scribbles/cook.svg",
+        visitors: "/assets/scribbles/visit.svg",
+        capture: "/assets/scribbles/capture.svg",
+        "plan-week": "/assets/scribbles/week.svg",
+        shopping: "/assets/scribbles/shop.svg",
+        "no-idea": "/assets/scribbles/idea.svg"
     };
-    return `<span class="food-moment-entry-visual" aria-hidden="true">${art[code] || art['no-idea']}</span>`;
+    const src = assetMap[code] || assetMap["no-idea"];
+    return `<span class="food-moment-entry-visual" aria-hidden="true"><img src="${src}" alt=""></span>`;
+}
+
+function homeBubbleMarkup(index) {
+    const paths = [
+        "M25 84C31 31 85 12 151 18C206 23 225 7 286 15C348 23 377 58 373 105C369 151 326 177 271 172C213 166 195 185 132 178C72 172 17 145 25 84Z",
+        "M20 91C17 43 58 18 115 18C171 18 195 5 257 16C321 27 373 50 378 98C384 149 334 177 279 174C220 171 193 187 130 177C70 168 23 141 20 91Z",
+        "M27 82C38 34 88 12 147 19C205 26 234 8 294 19C350 29 382 65 373 111C363 158 316 177 259 170C203 163 170 187 110 176C55 166 16 132 27 82Z",
+        "M21 98C21 45 66 17 124 18C183 19 211 4 273 17C335 30 378 59 378 104C378 151 330 176 278 174C219 171 189 186 130 177C69 168 20 145 21 98Z",
+        "M25 89C30 39 74 18 133 18C195 18 221 4 284 17C345 30 381 63 373 110C365 157 320 178 265 171C209 164 179 184 119 177C60 170 20 140 25 89Z",
+        "M22 91C20 43 64 17 121 19C177 21 207 5 267 16C332 28 377 56 379 103C381 153 333 177 277 174C220 171 191 187 129 177C69 167 25 141 22 91Z"
+    ];
+    const path = paths[index % paths.length];
+    return `<svg class="food-moment-bubble-bg" viewBox="0 0 400 200" preserveAspectRatio="none" aria-hidden="true"><path d="${path}"></path></svg>`;
 }
 
 function renderPrimaryActions() {
@@ -72,7 +85,7 @@ function renderPrimaryActions() {
 
     const actions = HOME_PRIMARY_ACTIONS.filter(actionAvailable);
     container.innerHTML = actions.map((action, index) => {
-        const inner = `<span class="food-moment-entry-copy"><strong>${escapeHomeHtml(action.label)}</strong><small>${escapeHomeHtml(action.description)}</small></span><span class="food-moment-entry-icon">${iconMarkup(action.icon)}</span>${homeScribbleMarkup(action.code)}<span class="food-moment-entry-go" aria-hidden="true"><svg class="fc-icon" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></span>`;
+        const inner = `${homeBubbleMarkup(index)}<span class="food-moment-entry-copy"><strong>${escapeHomeHtml(action.label)}</strong><small>${escapeHomeHtml(action.description)}</small></span><span class="food-moment-entry-icon">${iconMarkup(action.icon)}</span>${homeScribbleMarkup(action.code)}<span class="food-moment-entry-go" aria-hidden="true"><svg class="fc-icon" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></span>`;
         if (action.action) return `<button class="food-moment-entry food-moment-entry-${escapeHomeHtml(action.code)}" type="button" data-home-action="${escapeHomeHtml(action.action)}">${inner}</button>`;
         return `<a class="food-moment-entry food-moment-entry-${escapeHomeHtml(action.code)}" href="${escapeHomeHtml(action.href)}" data-nav-capability="${escapeHomeHtml(action.capability||'')}">${inner}</a>`;
     }).join("");

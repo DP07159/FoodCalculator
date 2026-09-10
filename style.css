@@ -7627,3 +7627,57 @@ body.login-page {
 @media(max-width:720px){.module-page .module-container,.food-moments-module .moments-list-shell{padding-top:18px!important}.module-page .module-page-header.compact-module-header{display:grid!important;grid-template-columns:minmax(0,1fr) 44px!important;align-items:start!important;min-height:auto!important;gap:8px 12px!important}.module-page .module-page-header.compact-module-header .module-intro{display:none!important}.food-moment-primary-actions{grid-template-columns:1fr!important;gap:13px!important}.food-moment-entry{min-height:176px!important;padding:54px 43% 52px 20px!important;border-radius:29% 25% 27% 24% / 23% 27% 24% 31%!important}.food-moment-entry-copy strong{font-size:25px!important}.food-moment-entry-copy small{font-size:12px!important}.food-moment-entry-icon{left:20px!important;top:17px!important;width:36px!important;height:36px!important}.food-moment-entry-go{left:20px!important;bottom:15px!important;width:36px!important;height:36px!important}.food-moment-entry-visual{right:6px!important;width:42%!important;height:68%!important}.recipe-workspace-overlay{padding:0!important;align-items:flex-end!important}.selection-modal,.recipe-context-dialog-shell.selection-modal,.selection-modal-dialog{width:100%!important;max-width:none!important;max-height:90vh!important;margin:auto 0 0!important;border-radius:20px 20px 0 0!important}.selection-modal-body{display:block!important;min-height:0!important;padding:0 16px 10px!important}.selection-modal-head{padding:18px 16px 12px!important}.recipe-context-actions{padding:0 16px 10px!important}.selection-modal-preview{display:none!important}.selection-modal-list{max-height:52vh!important}.selection-modal-footer{padding:11px 16px calc(11px + env(safe-area-inset-bottom))!important}.selection-option{min-height:62px!important}.selection-modal-dialog{overflow:hidden!important}}
 #shopping-empty[hidden],#shopping-empty.is-hidden{display:none!important}
 .food-moment-scribble .scribble-note{fill:currentColor!important;stroke:none!important;font-family:"Comic Sans MS","Segoe Print",cursive!important;font-size:12px!important;font-style:italic!important}
+
+/* === Visual system R4: true SVG entry bubbles + unified workspace selection dialogs === */
+.food-moment-primary-actions{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:16px 18px!important}
+.food-moment-entry{position:relative!important;display:block!important;min-height:250px!important;padding:58px 49% 58px 30px!important;overflow:visible!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;isolation:isolate!important;color:var(--color-text)!important;text-decoration:none!important;transition:transform .18s ease!important}
+.food-moment-entry::before{display:none!important}
+.food-moment-bubble-bg{position:absolute!important;inset:0!important;z-index:-2!important;width:100%!important;height:100%!important;filter:drop-shadow(0 12px 20px rgba(49,55,42,.065))!important;overflow:visible!important;pointer-events:none!important}
+.food-moment-bubble-bg path{fill:#edf5e8!important;stroke:rgba(255,255,255,.95)!important;stroke-width:3!important;vector-effect:non-scaling-stroke!important}
+.food-moment-entry:nth-child(2) .food-moment-bubble-bg path{fill:#fff0e8!important}
+.food-moment-entry:nth-child(3) .food-moment-bubble-bg path{fill:#edf5fd!important}
+.food-moment-entry:nth-child(4) .food-moment-bubble-bg path{fill:#fff5dc!important}
+.food-moment-entry:nth-child(5) .food-moment-bubble-bg path{fill:#eef5e7!important}
+.food-moment-entry:nth-child(6) .food-moment-bubble-bg path{fill:#f4effb!important}
+.food-moment-entry:hover{transform:translateY(-4px)!important;box-shadow:none!important}
+.food-moment-entry:hover .food-moment-bubble-bg{filter:drop-shadow(0 17px 24px rgba(49,55,42,.11))!important}
+.food-moment-entry-copy{position:relative!important;z-index:3!important;display:flex!important;flex-direction:column!important;gap:7px!important;max-width:280px!important;padding:0!important}
+.food-moment-entry-copy strong{margin:0!important;font-family:var(--font-family-editorial)!important;font-size:clamp(25px,2.25vw,34px)!important;font-weight:500!important;line-height:1.02!important;letter-spacing:-.025em!important}
+.food-moment-entry-copy small{margin:0!important;max-width:255px!important;color:#5d6258!important;font-size:13px!important;line-height:1.45!important}
+.food-moment-entry-icon{position:absolute!important;left:30px!important;top:25px!important;z-index:4!important;display:grid!important;place-items:center!important;width:42px!important;height:42px!important;border-radius:50%!important;background:rgba(255,255,255,.52)!important;color:#40502f!important}
+.food-moment-entry:nth-child(2) .food-moment-entry-icon{background:#ffd7c5!important;color:#7a4f36!important}.food-moment-entry:nth-child(3) .food-moment-entry-icon{background:#cfe3fa!important;color:#285b86!important}.food-moment-entry:nth-child(4) .food-moment-entry-icon{background:#ffe59a!important;color:#6e6128!important}.food-moment-entry:nth-child(5) .food-moment-entry-icon{background:#cfe5bf!important;color:#40502f!important}.food-moment-entry:nth-child(6) .food-moment-entry-icon{background:#dfd0ef!important;color:#4d3b66!important}
+.food-moment-entry-icon .fc-icon{width:21px!important;height:21px!important}
+.food-moment-entry-visual{position:absolute!important;right:18px!important;top:50%!important;z-index:2!important;width:47%!important;height:76%!important;transform:translateY(-50%)!important;opacity:1!important;pointer-events:none!important}
+.food-moment-entry-visual img{display:block!important;width:100%!important;height:100%!important;object-fit:contain!important;object-position:center!important}
+.food-moment-entry-go{position:absolute!important;left:30px!important;bottom:24px!important;z-index:4!important;display:grid!important;place-items:center!important;width:40px!important;height:40px!important;border-radius:50%!important;background:#fff!important;box-shadow:0 7px 18px rgba(35,38,31,.08)!important;color:#26311d!important;transition:transform .16s ease!important}
+.food-moment-entry:hover .food-moment-entry-go{transform:translateX(3px)!important}
+.food-moment-entry-arrow,.food-moment-entry-number{display:none!important}
+
+/* Inspiration sharing deliberately reuses the same selection-modal system as recipe sharing. */
+.wallet-share-selection-dialog{padding:0!important;border:0!important;background:transparent!important;overflow:visible!important}
+.wallet-share-selection-dialog::backdrop{background:rgba(31,35,27,.42)!important;backdrop-filter:blur(3px)!important}
+.wallet-share-selection-modal{width:min(860px,calc(100vw - 48px))!important;max-width:860px!important;max-height:min(760px,calc(100vh - 48px))!important;margin:auto!important}
+.wallet-share-selection-modal .wallet-share-list{display:block!important;max-height:420px!important;overflow-y:auto!important;overflow-x:hidden!important;padding:7px 1px 0!important}
+.wallet-share-selection-modal .wallet-share-option{margin:0!important}
+.wallet-share-selection-modal .selection-option-icon{font-family:var(--font-family-base)!important;font-weight:700!important}
+.wallet-share-selection-modal .wallet-share-state{font-size:12px!important;color:var(--color-text-muted)!important}
+.wallet-share-selection-modal .wallet-share-state.is-error{color:var(--color-danger-text)!important}
+.wallet-share-selection-modal .wallet-primary-button{min-height:42px!important;padding:8px 18px!important;border:0!important;border-radius:10px!important;background:var(--color-primary)!important;color:#fff!important;font-weight:800!important}
+
+@media(max-width:1000px){
+  .food-moment-primary-actions{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .food-moment-entry{min-height:225px!important;padding-right:46%!important}
+}
+@media(max-width:720px){
+  .food-moment-primary-actions{grid-template-columns:1fr!important;gap:10px!important}
+  .food-moment-entry{min-height:178px!important;padding:51px 43% 50px 20px!important}
+  .food-moment-entry-copy strong{font-size:25px!important}.food-moment-entry-copy small{font-size:12px!important}
+  .food-moment-entry-icon{left:20px!important;top:17px!important;width:36px!important;height:36px!important}
+  .food-moment-entry-go{left:20px!important;bottom:16px!important;width:36px!important;height:36px!important}
+  .food-moment-entry-visual{right:5px!important;width:43%!important;height:72%!important}
+  .wallet-share-selection-dialog{width:100%!important;max-width:none!important;margin:auto 0 0!important}
+  .wallet-share-selection-modal{width:100%!important;max-width:none!important;max-height:90vh!important;margin:auto 0 0!important;border-radius:20px 20px 0 0!important}
+  .wallet-share-selection-modal .selection-modal-body{display:block!important;min-height:0!important;padding:0 16px 10px!important}
+  .wallet-share-selection-modal .selection-modal-preview{display:none!important}
+  .wallet-share-selection-modal .selection-modal-list{max-height:52vh!important}
+}

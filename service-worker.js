@@ -1,4 +1,4 @@
-const CACHE_NAME = "food-moment-platform-v46-pretest-home-moments";
+const CACHE_NAME = "food-moment-platform-v47-entry-bubbles-share-modal";
 
 const FILES_TO_CACHE = [
     "/",
@@ -33,6 +33,12 @@ const FILES_TO_CACHE = [
     "/shopping.js",
     "/wallet.html",
     "/wallet.js",
+    "/assets/scribbles/cook.svg",
+    "/assets/scribbles/visit.svg",
+    "/assets/scribbles/capture.svg",
+    "/assets/scribbles/week.svg",
+    "/assets/scribbles/shop.svg",
+    "/assets/scribbles/idea.svg",
     "/manifest.json"
 ];
 

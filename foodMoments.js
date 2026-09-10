@@ -45,11 +45,13 @@ function searchable(m,q){return !q||`${m.title||''} ${(m.recipes||[]).map(r=>r.n
 function render(){
     const q=(document.getElementById('moments-search')?.value||'').trim().toLocaleLowerCase('de');
     const visible=allMoments.filter(m=>!m.is_component).filter(isVisibleFoodMoment).filter(m=>searchable(m,q));
+    const open=visible.filter(m=>!dateValue(m)).sort((a,b)=>String(b.created_at||'').localeCompare(String(a.created_at||'')));
     const upcoming=upcomingPreview(visible);
     const past=visible.filter(m=>dateValue(m)&&dateValue(m)<todayDate()).sort((a,b)=>dateValue(b)-dateValue(a)).slice(0,50);
     const count=document.getElementById('moments-count');
-    if(count)count.textContent=showHistory?`${upcoming.length} bevorstehend · ${past.length} vergangen`:`${upcoming.length} ${upcoming.length===1?'Moment':'Momente'}`;
+    if(count)count.textContent=showHistory?`${open.length} offen · ${upcoming.length} bevorstehend · ${past.length} vergangen`:`${open.length+upcoming.length} ${open.length+upcoming.length===1?'Moment':'Momente'}`;
     const blocks=[];
+    if(open.length)blocks.push(section('Noch offen','Ohne Termin',open,'open','Food Moments, für die du noch kein Datum oder keine Uhrzeit festgelegt hast.'));
     if(upcoming.length)blocks.push(section('Was als Nächstes kommt','Bevorstehend',upcoming,'upcoming','Bis zu 10 relevante Food Moments – je nach Dichte aus den nächsten 1 Woche bis 2 Monaten.'));
     if(showHistory&&past.length)blocks.push(section('Vergangene Food Moments','Rückblick',past,'history','Zurückliegende größere Moments – bei Bedarf wieder aufnehmen.'));
     if(!blocks.length){

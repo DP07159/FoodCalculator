@@ -1,5 +1,5 @@
 const WalletPage=(()=>{
-const state={status:'saved',items:[],view:'grid',search:'',platform:'all',category:'all',period:'all',sort:'newest',preview:null,shareItemId:null,shareOptions:[],shareSaving:false,recipeItemId:null,recipeOptions:[],recipeSaving:false,momentItemId:null,momentOptions:[],momentSaving:false};
+const state={status:'saved',items:[],view:'list',search:'',platform:'all',category:'all',period:'all',sort:'newest',preview:null,shareItemId:null,shareOptions:[],shareSaving:false,recipeItemId:null,recipeOptions:[],recipeSaving:false,momentItemId:null,momentOptions:[],momentSaving:false};
 const $=id=>document.getElementById(id);
 const categories={recipe:'Rezept / Gericht',restaurant:'Restaurant / Café',product:'Produkt / Zutat',technique:'Kochtechnik / How-to',presentation:'Anrichten / Präsentation',shop:'Shop / Markt / Produzent',other:'Sonstiges'};
 function esc(v){return String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');}

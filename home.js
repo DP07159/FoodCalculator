@@ -268,23 +268,17 @@ async function renderUpcomingMoments() {
         const response = await AuthShell.request("/food-moments");
         const moments = response.ok ? await response.json() : [];
         const now = new Date();
-        const todayKey = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
-        const stillAheadToday = (Array.isArray(moments) ? moments : [])
+        const upcoming = (Array.isArray(moments) ? moments : [])
             .filter(m => !m.is_component)
-            .filter(m => (m.moment_date || m.starts_at?.slice(0,10)) === todayKey)
-            .filter(m => {
-                if (m.is_all_day || (!m.moment_time && !m.starts_at?.slice(11,16))) return true;
-                const raw = m.starts_at || `${todayKey}T${m.moment_time}:00`;
-                const when = new Date(raw);
-                return !Number.isNaN(when.getTime()) && when.getTime() >= now.getTime();
+            .map(m => {
+                const raw = m.starts_at || (m.moment_date ? `${m.moment_date}T${m.moment_time || "23:59"}:00` : null);
+                return {...m, _when: raw ? new Date(raw) : null};
             })
-            .sort((a,b) => {
-                const av = a.starts_at || `${todayKey}T${a.moment_time || "23:59"}:00`;
-                const bv = b.starts_at || `${todayKey}T${b.moment_time || "23:59"}:00`;
-                return new Date(av) - new Date(bv);
-            })
-            .slice(0,5);
-        section.hidden = stillAheadToday.length === 0;
-        list.innerHTML = stillAheadToday.map(item => `<a class="home-upcoming-item" href="/foodMoment.html?id=${encodeURIComponent(item.public_id)}"><span class="home-upcoming-when">${escapeHomeHtml(upcomingMomentLabel({...item,source:"moment"}))}</span><span class="home-upcoming-copy"><strong>${escapeHomeHtml(item.title)}</strong><small>${escapeHomeHtml(item.recipes?.[0]?.name || item.inspirations?.[0]?.title || "Food Moment")}</small></span><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a>`).join("");
+            .filter(m => m._when && !Number.isNaN(m._when.getTime()) && m._when.getTime() >= now.getTime())
+            .sort((a,b) => a._when - b._when)
+            .slice(0,4);
+        section.hidden = upcoming.length === 0;
+        list.innerHTML = upcoming.map(item => `<a class="home-upcoming-item" href="/foodMoment.html?id=${encodeURIComponent(item.public_id)}"><span class="home-upcoming-when">${escapeHomeHtml(upcomingMomentLabel({...item,source:"moment"}))}</span><span class="home-upcoming-copy"><strong>${escapeHomeHtml(item.title)}</strong><small>${escapeHomeHtml(item.recipes?.[0]?.name || item.inspirations?.[0]?.title || "Food Moment")}</small></span><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a>`).join("");
     } catch (_) { section.hidden = true; }
 }
+

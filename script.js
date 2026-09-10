@@ -756,34 +756,16 @@ function getIngredientsFromText(text) {
     return (text || "").split("\n").map(item => item.trim()).filter(Boolean);
 }
 
-window.shareWeeklyShoppingList = async function() {
-    const selectedIds = new Set();
-    WEEK_DAYS.forEach(day => MEAL_ROWS.forEach(meal => {
-        const item = mealPlanDraft?.[day]?.[meal.key];
-        if (item?.type === "recipe" && item.recipeId) selectedIds.add(String(item.recipeId));
-    }));
-
-    const items = [];
-    selectedIds.forEach(id => {
-        const recipe = getRecipeById(id);
-        if (recipe) items.push(...getIngredientsFromText(recipe.ingredients));
-    });
-
-    if (items.length === 0) {
-        showToast("Für den Wochenplan wurden keine Zutaten gefunden.");
-        return;
-    }
-
-    const text = `Einkaufsliste\n\n${items.map(item => `• ${item}`).join("\n")}`;
-
-    if (navigator.share) {
-        try { await navigator.share({ title: "Einkaufsliste", text }); }
-        catch (error) { console.log("Teilen abgebrochen", error); }
-    } else {
-        await navigator.clipboard.writeText(text);
-        showToast("Einkaufsliste wurde kopiert.");
-    }
+window.syncWeeklyShoppingList = async function() {
+    try {
+        const payload = await apiFetch(`${API_URL}/shopping-list/import/week`, {
+            method: "POST", headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({ start_date: localDateKey(currentWeekStart) })
+        });
+        showToast(`${Number(payload?.added||0)} Zutatenpositionen mit der Einkaufsliste synchronisiert.`);
+    } catch (e) { showToast(e.message || "Einkaufsliste konnte nicht synchronisiert werden."); }
 };
+window.shareWeeklyShoppingList = window.syncWeeklyShoppingList;
 
 document.addEventListener("DOMContentLoaded", async () => {
     try {

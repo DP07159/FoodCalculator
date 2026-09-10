@@ -9,6 +9,68 @@ const AuthShell = (() => {
     let workspaces = [];
     let ready = false;
 
+    let pageEnteredAt = Date.now();
+    let analyticsInstalled = false;
+
+    function moduleNameFromPath() {
+        const name = (window.location.pathname.split('/').pop() || 'index.html').replace(/\.html$/i, '');
+        return name || 'home';
+    }
+
+    function installProductAnalytics() {
+        if (analyticsInstalled) return;
+        analyticsInstalled = true;
+        pageEnteredAt = Date.now();
+        track('page_view', { module: moduleNameFromPath(), title: document.title });
+        track('module_view', { module: moduleNameFromPath() });
+
+        document.addEventListener('click', event => {
+            const el = event.target.closest('button,a,[role="button"]');
+            if (!el) return;
+            const label = (el.getAttribute('aria-label') || el.getAttribute('title') || el.textContent || '').trim().replace(/\s+/g,' ').slice(0,120);
+            const target = el.tagName === 'A' ? (el.getAttribute('href') || '') : (el.id || el.getAttribute('data-action') || '');
+            if (label || target) track('ui_action', { module: moduleNameFromPath(), label, target: String(target).slice(0,160) });
+        }, true);
+
+        window.addEventListener('error', event => {
+            track('client_error', { module: moduleNameFromPath(), message: String(event.message || 'JavaScript-Fehler').slice(0,220), source: String(event.filename || '').split('/').pop(), line: event.lineno || null });
+        });
+        window.addEventListener('unhandledrejection', event => {
+            track('client_error', { module: moduleNameFromPath(), message: String(event.reason?.message || event.reason || 'Unhandled Promise Rejection').slice(0,220) });
+        });
+        let dirtyForm = null;
+        let searchTimer = null;
+        document.addEventListener('input', event => {
+            const form = event.target.closest('form');
+            if (form) dirtyForm = form;
+            const el = event.target;
+            const isSearch = el && (el.type === 'search' || /search|suche/i.test(`${el.id||''} ${el.name||''} ${el.placeholder||''}`));
+            if (isSearch) {
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(() => {
+                    const query = String(el.value || '').trim();
+                    if (!query) return;
+                    track('search_used', { module: moduleNameFromPath(), query_length: query.length });
+                    const visibleText = document.body?.innerText || '';
+                    if (/keine\s+(treffer|ergebnisse|rezepte|inspirationen|food moments)|nichts gefunden/i.test(visibleText)) {
+                        track('search_empty', { module: moduleNameFromPath(), query_length: query.length });
+                    }
+                }, 700);
+            }
+        }, true);
+        document.addEventListener('submit', () => { dirtyForm = null; }, true);
+        document.addEventListener('click', event => {
+            const el = event.target.closest('button');
+            const label = (el?.getAttribute('aria-label') || el?.textContent || '').toLowerCase();
+            if (/speichern|erstellen|anlegen|aktualisieren/.test(label)) dirtyForm = null;
+        }, true);
+        window.addEventListener('pagehide', () => {
+            const duration = Date.now() - pageEnteredAt;
+            if (duration >= 500) track('dwell_time', { module: moduleNameFromPath(), duration_ms: Math.min(duration, 3600000) });
+            if (dirtyForm) track('form_abandoned', { module: moduleNameFromPath(), form_id: dirtyForm.id || dirtyForm.getAttribute('name') || 'form' });
+        });
+    }
+
 
     function getProductSessionId() {
         let id = sessionStorage.getItem(PRODUCT_SESSION_KEY);
@@ -63,10 +125,11 @@ const AuthShell = (() => {
             ? String(path)
             : `${AUTH_API_URL}${path}`;
 
-        return fetch(targetUrl, {
-            ...options,
-            headers
-        });
+        const response = await fetch(targetUrl, { ...options, headers });
+        if (ready && !response.ok && !String(path || '').startsWith('/analytics')) {
+            track('request_error', { module: moduleNameFromPath(), path: String(path || '').split('?')[0].slice(0,180), status: response.status });
+        }
+        return response;
     }
 
     async function loadWorkspaces() {
@@ -215,6 +278,7 @@ const AuthShell = (() => {
             }
 
             ready = true;
+            installProductAnalytics();
             document.documentElement.classList.remove("auth-pending");
             renderUserControls();
             document.dispatchEvent(new CustomEvent("auth:ready", { detail: { user: currentUser } }));

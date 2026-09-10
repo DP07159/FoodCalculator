@@ -1,37 +1,23 @@
 (function(){
-function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+const $=id=>document.getElementById(id); const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtDate=v=>v?new Date(String(v).replace(' ','T')+'Z').toLocaleString('de-DE'):'–'; const fmtDuration=ms=>{ms=Number(ms||0);if(!ms)return '–';const s=Math.round(ms/1000);return s<60?`${s}s`:`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')} min`;};
 function metric(label,value,note=''){return `<div class="admin-summary-card"><span>${esc(label)}</span><strong>${esc(value)}</strong>${note?`<small>${esc(note)}</small>`:''}</div>`;}
-async function readJson(response){
-    const text=await response.text();
-    if(!text)return null;
-    try{return JSON.parse(text);}catch{return {error:`Serverantwort konnte nicht verarbeitet werden (HTTP ${response.status}).`};}
-}
-async function load(){
-    const s=document.getElementById('analytics-summary');
-    const days=Number(document.getElementById('analytics-range')?.value||28);
-    document.getElementById('analytics-range-label').textContent=`Letzte ${days} Tage`;
-    s.innerHTML='<p>Lädt…</p>';
-    try{
-        const r=await AuthShell.request(`/analytics/summary?days=${encodeURIComponent(days)}`);
-        const d=await readJson(r);
-        if(!r.ok){
-            const message=r.status===403?'Platform-Admin-Rechte erforderlich.':(d?.error||`Auswertung konnte nicht geladen werden (HTTP ${r.status}).`);
-            s.innerHTML=`<p>${esc(message)}</p>`;
-            document.getElementById('analytics-journeys').innerHTML='';
-            document.getElementById('analytics-users').innerHTML='';
-            document.getElementById('analytics-events').innerHTML='';
-            return;
-        }
-        const t=d?.totals||{};
-        const share=t.total_events?Math.round((t.connection_events/t.total_events)*100):0;
-        s.innerHTML=metric('Aktive Nutzer',t.active_users||0)+metric('Sessions',t.sessions||0)+metric('Aktionen',t.total_events||0)+metric('Connections',t.connection_events||0,`${share}% aller Aktionen`);
-        const names={inspiration:'Inspiration festhalten',recipe_planning:'Rezept konkret einplanen',occasion:'Besuch / Anlass',weekly_planning:'Woche planen',shopping:'Einkaufen'};
-        document.getElementById('analytics-journeys').innerHTML=Object.entries(d?.journey_signals||{}).map(([k,v])=>`<div class="admin-result-row"><strong>${esc(names[k]||k)}</strong><span>${esc(v)} Signale</span></div>`).join('')||'<p>Noch keine Signale.</p>';
-        document.getElementById('analytics-users').innerHTML=(d?.users||[]).map(u=>`<div class="admin-result-row"><div><strong>${esc(u.display_name||u.email||`User ${u.user_id}`)}</strong><small>${esc(u.email||'')}</small></div><span>${esc(u.events)} Aktionen · ${esc(u.sessions)} Sessions · ${esc(u.connections)} Connections</span></div>`).join('')||'<p>Noch keine Nutzeraktivität.</p>';
-        document.getElementById('analytics-events').innerHTML=(d?.events||[]).map(e=>`<div class="admin-result-row"><div><strong>${esc(e.event_name)}</strong><small>${esc(e.event_category)}</small></div><span>${esc(e.count)} · ${esc(e.users)} Nutzer</span></div>`).join('')||'<p>Noch keine Ereignisse.</p>';
-    }catch(error){s.innerHTML=`<p>${esc(error?.message||'Auswertung konnte nicht geladen werden.')}</p>`;}
-}
-document.addEventListener('auth:ready',load);
-document.getElementById('analytics-refresh')?.addEventListener('click',load);
-document.getElementById('analytics-range')?.addEventListener('change',load);
+async function api(path){const r=await AuthShell.request(path);const text=await r.text();let d=null;try{d=text?JSON.parse(text):null}catch{}if(!r.ok)throw new Error(r.status===403?'Platform-Admin-Rechte erforderlich.':(d?.error||`HTTP ${r.status}`));return d;}
+function row(left,right){return `<div class="admin-result-row"><div>${left}</div><span>${right}</span></div>`;}
+function eventLabel(n){const map={page_view:'Seitenaufruf',module_view:'Modulaufruf',ui_action:'UI-Aktion',dwell_time:'Verweildauer',recipe_created:'Rezept erstellt',recipe_updated:'Rezept bearbeitet',wallet_saved:'Inspiration gespeichert',wallet_recipe_connected:'Inspiration ↔ Rezept',wallet_food_moment_connected:'Inspiration ↔ Food Moment',food_moment_created:'Food Moment erstellt',food_moment_updated:'Food Moment bearbeitet',food_moment_repeated:'Food Moment neu geplant',planning_slot_saved:'Planung gespeichert',planning_slot_removed:'Planung entfernt',week_template_applied:'Wochenplan angewendet',recipe_to_shopping:'Rezept → Einkauf',food_moment_to_shopping:'Food Moment → Einkauf',shopping_manual_added:'Einkauf manuell ergänzt',shopping_item_toggled:'Einkaufsstatus geändert',client_error:'Frontend-Fehler',request_error:'Request-Fehler',form_abandoned:'Formular abgebrochen',search_empty:'Leere Suche'};return map[n]||n;}
+async function showUser(id,days){const d=await api(`/analytics/users/${id}?days=${days}`);$('analytics-user-detail').innerHTML=`<div class="analytics-detail-head"><h3>${esc(d.user.display_name||d.user.email)}</h3><button type="button" id="analytics-detail-close">Schließen</button></div><div class="admin-summary-grid">${metric('Sessions',d.sessions.length)}${metric('Events',d.events.length)}${metric('Letzte Aktivität',d.events[0]?fmtDate(d.events[0].created_at):'–')}</div><div class="analytics-detail-list">${d.events.slice(0,120).map(e=>row(`<strong>${esc(eventLabel(e.event_name))}</strong><small>${esc(e.path||'')} · ${fmtDate(e.created_at)}</small>`,esc(e.properties?.label||e.entity_type||''))).join('')||'<p>Keine Aktivität.</p>'}</div>`;$('analytics-detail-close').onclick=()=>{$('analytics-user-detail').innerHTML='';};}
+async function load(){const days=Number($('analytics-range')?.value||28);$('analytics-range-label').textContent=`Letzte ${days} Tage`;['analytics-summary','analytics-concept','analytics-modules','analytics-logins','analytics-journeys','analytics-funnels','analytics-events','analytics-friction','analytics-users'].forEach(id=>$(id).innerHTML='<p>Lädt…</p>');$('analytics-user-detail').innerHTML='';
+try{const [d,l,j,f]=await Promise.all([api(`/analytics/summary?days=${days}`),api(`/analytics/logins?days=${days}`),api(`/analytics/journeys?days=${days}&limit=160`),api(`/analytics/funnels?days=${days}`)]);const t=d.totals||{},share=t.total_events?Math.round((t.connection_events/t.total_events)*100):0;
+$('analytics-summary').innerHTML=metric('Aktive Nutzer',t.active_users||0)+metric('Sessions',t.sessions||0)+metric('Aktionen',t.total_events||0)+metric('Connections',t.connection_events||0,`${share}% aller Aktionen`)+metric('Logins',l.logins?.length||0)+metric('Fehler/Reibung',(d.friction||[]).reduce((a,x)=>a+x.count,0));
+const c=d.concept_metrics||{},r=d.retention||{};$('analytics-concept').innerHTML=metric('Food-Moment-Quote',`${c.food_moment_rate||0}%`,`${c.food_moment_users||0} Nutzer`)+metric('Verknüpfungsquote',`${c.connection_rate||0}%`,`${c.connection_users||0} Nutzer`)+metric('Planungsnutzer',c.planning_users||0)+metric('Cross-Module-Nutzer',c.cross_module_users||0)+metric('D7 Retention',`${r.d7?.rate||0}%`,`${r.d7?.returned||0}/${r.d7?.eligible||0}`)+metric('D30 Retention',`${r.d30?.rate||0}%`,`${r.d30?.returned||0}/${r.d30?.eligible||0}`);
+$('analytics-modules').innerHTML=(d.modules||[]).map(m=>row(`<strong>${esc(m.path)}</strong><small>${esc(m.users)} Nutzer</small>`,`${esc(m.views)} Aufrufe · Ø ${fmtDuration(m.avg_dwell_ms)}`)).join('')||'<p>Noch keine Modulaufrufe.</p>';
+$('analytics-logins').innerHTML=(l.logins||[]).slice(0,120).map(x=>row(`<strong>${esc(x.display_name||x.email)}</strong><small>${esc(x.device)} · ${esc(x.browser)} · ${esc(x.os)}</small>`,fmtDate(x.login_at))).join('')||'<p>Noch keine Logins im Zeitraum.</p>';
+$('analytics-journeys').innerHTML=(j.events||[]).map(e=>row(`<strong>${esc(e.display_name||e.email||`User ${e.user_id}`)} · ${esc(eventLabel(e.event_name))}</strong><small>${esc(e.path||'')} ${e.properties?.label?`· ${esc(e.properties.label)}`:''}</small>`,fmtDate(e.created_at))).join('')||'<p>Noch keine Journey-Daten.</p>';
+$('analytics-funnels').innerHTML=(f.funnels||[]).map(x=>`<article class="analytics-funnel"><h3>${esc(x.label)}</h3>${x.steps.map((s,i)=>{const base=x.steps[0]?.sessions||0,pct=base?Math.round(s.sessions/base*100):0;return row(`<strong>${i+1}. ${esc(eventLabel(s.step))}</strong>`,`${s.sessions} Sessions · ${pct}%`)}).join('')}</article>`).join('')||'<p>Noch keine Funnel-Daten.</p>';
+$('analytics-events').innerHTML=(d.events||[]).map(e=>row(`<strong>${esc(eventLabel(e.event_name))}</strong><small>${esc(e.event_category)}</small>`,`${esc(e.count)} · ${esc(e.users)} Nutzer`)).join('')||'<p>Noch keine Ereignisse.</p>';
+$('analytics-friction').innerHTML=(d.friction||[]).map(e=>row(`<strong>${esc(eventLabel(e.event_name))}</strong>`,`${esc(e.count)} · ${esc(e.users)} Nutzer`)).join('')||'<p>Keine erfasste Reibung oder Fehler.</p>';
+$('analytics-users').innerHTML=(d.users||[]).map(u=>`<button type="button" class="admin-result-row analytics-user-row" data-user-id="${u.user_id}"><div><strong>${esc(u.display_name||u.email||`User ${u.user_id}`)}</strong><small>${esc(u.email||'')} · zuletzt ${fmtDate(u.last_seen)}</small></div><span>${esc(u.events)} Aktionen · ${esc(u.sessions)} Sessions · ${esc(u.connections)} Connections</span></button>`).join('')||'<p>Noch keine Nutzeraktivität.</p>';
+document.querySelectorAll('[data-user-id]').forEach(b=>b.onclick=()=>showUser(b.dataset.userId,days));
+}catch(error){$('analytics-summary').innerHTML=`<p>${esc(error.message||'Auswertung konnte nicht geladen werden.')}</p>`;['analytics-concept','analytics-modules','analytics-logins','analytics-journeys','analytics-funnels','analytics-events','analytics-friction','analytics-users'].forEach(id=>$(id).innerHTML='');}}
+document.addEventListener('auth:ready',load);$('analytics-refresh')?.addEventListener('click',load);$('analytics-range')?.addEventListener('change',load);
 })();

@@ -1,47 +1,20 @@
 <!DOCTYPE html>
 <html lang="de" class="auth-pending">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <title>Nutzungsanalyse · Food Moment</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="/manifest.json">
-</head>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Nutzungsanalyse · Food Moment</title><link rel="stylesheet" href="style.css"><link rel="manifest" href="/manifest.json"></head>
 <body>
-<header class="app-header">
-    <button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen"><svg class="fc-icon" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
-    <a class="app-header-title platform-wordmark" href="/index.html">Food Moment</a>
-    <div id="burger-dropdown" class="burger-dropdown is-hidden"></div>
-</header>
-<div class="container">
-<main class="page-content admin-page">
-    <header class="page-header admin-header">
-        <p class="recipe-kicker">Platform-Analyse</p>
-        <h1>Nutzungsanalyse</h1>
-        <p class="admin-intro">Permanente Produktanalyse: Nutzung, Kern-Journeys und Connection Layer im aktuell gewählten Workspace nachvollziehen.</p>
-    </header>
-    <section class="section-card admin-card">
-        <div class="admin-card-header">
-            <div><p class="recipe-kicker" id="analytics-range-label">Letzte 28 Tage</p><h2>Signalübersicht</h2></div>
-            <div class="admin-card-actions">
-                <select id="analytics-range" aria-label="Auswertungszeitraum">
-                    <option value="7">7 Tage</option>
-                    <option value="28" selected>28 Tage</option>
-                    <option value="90">90 Tage</option>
-                    <option value="365">365 Tage</option>
-                </select>
-                <button id="analytics-refresh" class="recipe-toolbar-toggle-button" type="button">Aktualisieren</button>
-            </div>
-        </div>
-        <div id="analytics-summary" class="admin-summary-grid"></div>
-    </section>
-    <section class="section-card admin-card"><h2>Kern-Journeys</h2><div id="analytics-journeys" class="admin-results"></div></section>
-    <section class="section-card admin-card"><h2>Nutzeraktivität</h2><div id="analytics-users" class="admin-results"></div></section>
-    <section class="section-card admin-card"><h2>Ereignisse</h2><div id="analytics-events" class="admin-results"></div></section>
-    <section class="section-card admin-card"><h2>Interpretationsregel</h2><p>Viele Rezept-, Wallet- oder Planungsaktionen zeigen zunächst die Nutzung des jeweiligen Moduls. Der zentrale Plattformindikator sind freiwillige <strong>Connection-Layer-Aktionen</strong>: Wallet ↔ Rezept/Food Moment, Planung ↔ Food Moment sowie Rezept/Food Moment → Einkauf.</p></section>
-</main>
-</div>
-<div id="app-toast" class="app-toast is-hidden"></div>
+<header class="app-header"><button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen"><svg class="fc-icon" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button><a class="app-header-title platform-wordmark" href="/index.html">Food Moment</a><div id="burger-dropdown" class="burger-dropdown is-hidden"></div></header>
+<div class="container"><main class="page-content admin-page analytics-page">
+<header class="page-header admin-header"><p class="recipe-kicker">Platform-Analyse</p><h1>Nutzungsanalyse</h1><p class="admin-intro">Nutzung, Logins, Geräte, Module, Verweildauer, Klickstrecken, Kernfunktionen, Funnels und Reibung im aktuell gewählten Workspace.</p></header>
+<section class="section-card admin-card"><div class="admin-card-header"><div><p class="recipe-kicker" id="analytics-range-label">Letzte 28 Tage</p><h2>Test Cockpit</h2></div><div class="admin-card-actions"><select id="analytics-range" aria-label="Auswertungszeitraum"><option value="7">7 Tage</option><option value="28" selected>28 Tage</option><option value="90">90 Tage</option><option value="365">365 Tage</option></select><button id="analytics-refresh" class="recipe-toolbar-toggle-button" type="button">Aktualisieren</button></div></div><div id="analytics-summary" class="admin-summary-grid"></div></section>
+<section class="section-card admin-card"><h2>Konzeptverständnis & Retention</h2><div id="analytics-concept" class="admin-summary-grid"></div></section>
+<section class="section-card admin-card"><h2>Module & Verweildauer</h2><div id="analytics-modules" class="admin-results"></div></section>
+<section class="section-card admin-card"><h2>Logins & Devices</h2><div id="analytics-logins" class="admin-results"></div></section>
+<section class="section-card admin-card"><h2>Klickstrecken / User Journeys</h2><div id="analytics-journeys" class="admin-results analytics-timeline"></div></section>
+<section class="section-card admin-card"><h2>Conversion Funnels</h2><div id="analytics-funnels" class="admin-results"></div></section>
+<section class="section-card admin-card"><h2>Funktionen & Ereignisse</h2><div id="analytics-events" class="admin-results"></div></section>
+<section class="section-card admin-card"><h2>Reibung & Fehler</h2><div id="analytics-friction" class="admin-results"></div></section>
+<section class="section-card admin-card"><h2>Nutzeraktivität</h2><div id="analytics-users" class="admin-results"></div><div id="analytics-user-detail" class="analytics-user-detail"></div></section>
+<section class="section-card admin-card"><h2>Datenschutzprinzip</h2><p>Die Analyse protokolliert Produktinteraktionen, technische Metadaten und Objekt-Referenzen, aber keine Inhaltskopien von Rezepten, Inspirationen oder Food Moments. IP-Adressen liegen im Identity-System nur gehasht vor.</p></section>
+</main></div><div id="app-toast" class="app-toast is-hidden"></div>
 <script src="auth-shell.js"></script><script src="navigation.js"></script><script src="adminAnalytics.js"></script><script>AuthShell.guard();</script>
-</body>
-</html>
+</body></html>

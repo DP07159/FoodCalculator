@@ -168,14 +168,25 @@ async function openRecipeFoodMoments() {
 function isLargeFoodMomentForLinking(m) {
     return !["recipe", "planning_slot"].includes(String(m?.source_code || "manual"));
 }
+function updateRecipeFoodMomentPreview(moment) {
+    const preview = document.getElementById("recipe-food-moments-preview");
+    if (!preview) return;
+    if (!moment) {
+        preview.innerHTML = `<div class="selection-preview-icon">◷</div><strong>Großen Food Moment auswählen</strong><p>Hier werden nur eigenständige Food Moments angezeigt – keine rezept- oder planungsbasierten kleinen Moments.</p>`;
+        return;
+    }
+    preview.innerHTML = `<div class="selection-preview-icon">◷</div><span class="selection-preview-kicker">Großer Moment</span><strong>${escapeHtml(moment.title || "Food Moment")}</strong><small>${escapeHtml(formatRecipeFoodMomentDate(moment))}</small>${moment.notes ? `<p>${escapeHtml(moment.notes)}</p>` : `<p>Dieser Food Moment kann mit dem Rezept verknüpft werden.</p>`}<a class="selection-preview-link" href="/foodMoment.html?id=${encodeURIComponent(moment.public_id)}">Details ansehen <span>→</span></a>`;
+}
 function renderRecipeFoodMomentPicker() {
-    const list=document.getElementById("recipe-food-moments-list"); if(!list) return;
-    const q=(document.getElementById("recipe-food-moments-search")?.value||"").trim().toLocaleLowerCase("de");
-    const linked=new Set(recipeFoodMoments.map(m=>m.public_id));
-    const source=(allRecipeFoodMoments.length?allRecipeFoodMoments:recipeFoodMoments)
+    const list = document.getElementById("recipe-food-moments-list"); if (!list) return;
+    const q = (document.getElementById("recipe-food-moments-search")?.value || "").trim().toLocaleLowerCase("de");
+    const linked = new Set(recipeFoodMoments.map(m => m.public_id));
+    const source = (allRecipeFoodMoments.length ? allRecipeFoodMoments : recipeFoodMoments)
         .filter(isLargeFoodMomentForLinking)
-        .filter(m=>String(m.title||"").toLocaleLowerCase("de").includes(q));
-    list.innerHTML=source.length?source.map(m=>`<label class="recipe-context-option"><span><strong>${escapeHtml(m.title||"Food Moment")}</strong><small>${escapeHtml(formatRecipeFoodMomentDate(m))}</small>${linked.has(m.public_id)?`<a class="recipe-context-open" href="/foodMoment.html?id=${encodeURIComponent(m.public_id)}">Moment öffnen</a>`:''}</span><input type="checkbox" data-moment-id="${escapeHtml(m.public_id)}" ${linked.has(m.public_id)?"checked":""}></label>`).join(""):'<p class="recipe-context-empty">Keine passenden Food Moments gefunden.</p>';
+        .filter(m => String(m.title || "").toLocaleLowerCase("de").includes(q));
+    list.innerHTML = source.length ? source.map(m => `<label class="selection-option recipe-context-option" data-preview-moment="${escapeHtml(m.public_id)}"><span class="selection-option-leading"><span class="selection-option-icon">◷</span><span class="selection-option-copy"><strong>${escapeHtml(m.title || "Food Moment")}</strong><small>${escapeHtml(formatRecipeFoodMomentDate(m))} · Großer Moment</small></span></span><input type="checkbox" data-moment-id="${escapeHtml(m.public_id)}" ${linked.has(m.public_id) ? "checked" : ""}><span class="selection-radio" aria-hidden="true"></span></label>`).join("") : '<p class="selection-empty">Keine passenden großen Food Moments gefunden.</p>';
+    const selected = source.find(m => linked.has(m.public_id)) || source[0] || null;
+    updateRecipeFoodMomentPreview(selected);
 }
 async function saveRecipeFoodMomentLinks(){
     const state=document.getElementById("recipe-food-moments-state");
@@ -183,12 +194,16 @@ async function saveRecipeFoodMomentLinks(){
     const selected=boxes.filter(b=>b.checked).map(b=>b.dataset.momentId);
     try{
         if(state) state.textContent="Wird gespeichert …";
-        const result=await apiFetch(`${API_URL}/food-moments/recipe/${currentRecipe.id}/links`,{method:"PUT",body:JSON.stringify({food_moment_public_ids:selected})});
-        recipeFoodMoments=Array.isArray(result?.food_moments)?result.food_moments:[];
+        const result=await apiFetch(`${API_URL}/food-moments/recipe/${currentRecipe.id}/links`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({food_moment_public_ids:selected})});
+        const persisted = Array.isArray(result?.food_moments) ? result.food_moments : [];
+        const persistedIds = persisted.map(m=>m.public_id).sort();
+        const requestedIds = [...selected].sort();
+        if (persistedIds.length !== requestedIds.length || persistedIds.some((id,i)=>id!==requestedIds[i])) throw new Error("Die Verknüpfung konnte serverseitig nicht bestätigt werden.");
+        recipeFoodMoments=persisted;
         allRecipeFoodMoments=Array.isArray(result?.available_food_moments)?result.available_food_moments:allRecipeFoodMoments;
         renderRecipeFoodMomentContext();
         closeRecipeFoodMoments();
-        showToast("Food-Moment-Verknüpfungen aktualisiert");
+        showToast(selected.length ? "Food-Moment-Verknüpfungen gespeichert" : "Food-Moment-Verknüpfungen entfernt");
     }catch(e){ if(state) state.textContent=e.message; }
 }
 function createFoodMomentFromRecipe(){ location.href=`/foodMomentCreate.html?recipe_id=${encodeURIComponent(currentRecipe.id)}`; }
@@ -630,55 +645,20 @@ function closeRecipeWorkspaceOverlay() {
     document.body.classList.remove("modal-open");
 }
 
-function renderRecipeWorkspaceOptions() {
-    const list = document.getElementById("recipe-workspace-list");
-    const search = document.getElementById("recipe-workspace-search");
-    if (!list) return;
-
-    const query = String(search?.value || "").trim().toLowerCase();
-
-    const filtered = recipeWorkspaceOptions
-        .filter(workspace =>
-            !query ||
-            workspace.name.toLowerCase().includes(query) ||
-            workspace.workspace_type.toLowerCase().includes(query)
-        )
-        .sort((a, b) => {
-            if (a.is_assigned !== b.is_assigned) {
-                return a.is_assigned ? -1 : 1;
-            }
-            return a.name.localeCompare(b.name, "de");
-        });
-
-    if (!filtered.length) {
-        list.innerHTML = `<p class="recipe-empty-state">Kein Workspace gefunden.</p>`;
-        return;
-    }
-
-    list.innerHTML = filtered.map(workspace => `
-        <label class="recipe-workspace-option">
-            <span class="recipe-workspace-option-main">
-                <span class="recipe-workspace-option-icon">
-                    ${workspace.workspace_type === "personal" ? "⌂" : "👥"}
-                </span>
-                <span>
-                    <strong>${escapeWorkspaceHtml(workspace.name)}</strong>
-                    <small>${workspace.workspace_type === "personal" ? "Persönlicher Workspace" : "Gemeinsamer Workspace"}</small>
-                </span>
-            </span>
-            <input
-                type="checkbox"
-                class="recipe-workspace-checkbox"
-                data-workspace-id="${escapeWorkspaceHtml(workspace.public_id)}"
-                value="${escapeWorkspaceHtml(workspace.public_id)}"
-                ${workspace.is_assigned ? "checked" : ""}
-                aria-label="${escapeWorkspaceHtml(workspace.name)} zuordnen"
-            >
-            <span class="recipe-workspace-checkmark" aria-hidden="true">✓</span>
-        </label>
-    `).join("");
+function updateRecipeWorkspacePreview(workspace) {
+    const preview=document.getElementById("recipe-workspace-preview"); if(!preview)return;
+    if(!workspace){preview.innerHTML='<div class="selection-preview-icon">⌂</div><strong>Workspace auswählen</strong><p>Wähle links einen Workspace. Bereits aktivierte Workspaces sind mit einem grünen Haken markiert.</p>';return;}
+    const personal=workspace.workspace_type === "personal";
+    preview.innerHTML=`<div class="selection-preview-icon">${personal?'⌂':'♟'}</div><span class="selection-preview-kicker">${personal?'Persönlicher Workspace':'Gemeinsamer Workspace'}</span><strong>${escapeWorkspaceHtml(workspace.name)}</strong><p>${personal?'Das Rezept ist dort nur in deinem persönlichen Bereich verfügbar.':'Das Rezept ist für Mitglieder dieses Workspace verfügbar.'}</p>`;
 }
-
+function renderRecipeWorkspaceOptions() {
+    const list=document.getElementById("recipe-workspace-list"), search=document.getElementById("recipe-workspace-search"); if(!list)return;
+    const query=String(search?.value||"").trim().toLowerCase();
+    const filtered=recipeWorkspaceOptions.filter(workspace => `${workspace.name} ${workspace.workspace_type}`.toLowerCase().includes(query));
+    if(!filtered.length){list.innerHTML='<p class="selection-empty">Kein Workspace gefunden.</p>'; updateRecipeWorkspacePreview(null); return;}
+    list.innerHTML=filtered.map(workspace=>`<label class="selection-option recipe-workspace-option" data-preview-workspace="${escapeWorkspaceHtml(workspace.public_id)}"><span class="selection-option-leading"><span class="selection-option-icon">${workspace.workspace_type === "personal" ? "⌂" : "♟"}</span><span class="selection-option-copy"><strong>${escapeWorkspaceHtml(workspace.name)}</strong><small>${workspace.workspace_type === "personal" ? "Nur für dich" : "Gemeinsamer Workspace"}</small></span></span><input type="checkbox" class="recipe-workspace-checkbox" data-workspace-id="${escapeWorkspaceHtml(workspace.public_id)}" value="${escapeWorkspaceHtml(workspace.public_id)}" ${workspace.is_assigned ? "checked" : ""}><span class="selection-check" aria-hidden="true">✓</span></label>`).join("");
+    updateRecipeWorkspacePreview(filtered.find(w=>w.is_assigned)||filtered[0]);
+}
 async function openRecipeWorkspaceOverlay() {
     if (!currentRecipe?.id) return;
 
@@ -848,6 +828,8 @@ function setupRecipeWorkspaceOverlay() {
     document.getElementById("recipe-workspace-search")
         ?.addEventListener("input", renderRecipeWorkspaceOptions);
 
+    document.getElementById("recipe-workspace-list")?.addEventListener("mouseover", event => { const row=event.target.closest("[data-preview-workspace]"); if(!row)return; updateRecipeWorkspacePreview(recipeWorkspaceOptions.find(w=>w.public_id===row.dataset.previewWorkspace)); });
+
     document.getElementById("recipe-workspace-list")
         ?.addEventListener("change", event => {
             const checkbox = event.target.closest(".recipe-workspace-checkbox");
@@ -1005,6 +987,8 @@ function setupButtons() {
     document.getElementById("recipe-food-moments-done")?.addEventListener("click", saveRecipeFoodMomentLinks);
     document.getElementById("recipe-food-moment-create")?.addEventListener("click", createFoodMomentFromRecipe);
     document.getElementById("recipe-food-moments-search")?.addEventListener("input", renderRecipeFoodMomentPicker);
+    document.getElementById("recipe-food-moments-list")?.addEventListener("mouseover", e => { const row=e.target.closest("[data-preview-moment]"); if(!row)return; const all=(allRecipeFoodMoments.length?allRecipeFoodMoments:recipeFoodMoments); updateRecipeFoodMomentPreview(all.find(m=>m.public_id===row.dataset.previewMoment)); });
+    document.getElementById("recipe-food-moments-list")?.addEventListener("change", e => { const row=e.target.closest("[data-preview-moment]"); if(!row)return; const all=(allRecipeFoodMoments.length?allRecipeFoodMoments:recipeFoodMoments); updateRecipeFoodMomentPreview(all.find(m=>m.public_id===row.dataset.previewMoment)); });
     document.getElementById("edit-recipe-button")?.addEventListener("click", () => {
         if (currentRecipe?.id) window.location.href = `/recipeDetails.html?id=${currentRecipe.id}`;
     });

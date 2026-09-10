@@ -56,12 +56,12 @@ function iconMarkup(name) {
 function homeScribbleMarkup(code) {
     const common = `class="food-moment-scribble" viewBox="0 0 160 120" aria-hidden="true"`;
     const art = {
-        today: `<svg ${common}><path d="M42 72c8 17 29 25 50 17 11-4 18-11 22-20H38c1 1 2 2 4 3Z"/><path d="M48 60c7-18 18-30 28-35M72 58c4-20 15-35 26-43M91 60c8-15 19-23 31-27"/><path d="M59 43c-8-1-14 2-18 9 9 1 15-2 18-9Zm33-18c-7 0-12 3-15 9 8 0 13-3 15-9Zm24 17c-7-1-13 2-17 8 8 1 14-2 17-8Z"/><path d="M39 69h78"/></svg>`,
+        today: `<svg ${common}><path d="M42 72c8 17 29 25 50 17 11-4 18-11 22-20H38c1 1 2 2 4 3Z"/><path d="M48 60c7-18 18-30 28-35M72 58c4-20 15-35 26-43M91 60c8-15 19-23 31-27"/><path d="M59 43c-8-1-14 2-18 9 9 1 15-2 18-9Zm33-18c-7 0-12 3-15 9 8 0 13-3 15-9Zm24 17c-7-1-13 2-17 8 8 1 14-2 17-8Z"/><path d="M39 69h78"/><text x="105" y="24" class="scribble-note">mmm…</text></svg>`,
         visitors: `<svg ${common}><path d="M28 81c18-11 34-15 52-14 20 1 36 7 53 17"/><ellipse cx="55" cy="64" rx="23" ry="8"/><path d="M78 64h34M95 64v24M85 88h20"/><path d="M38 25c0 17 5 27 14 31M66 25c0 17-5 27-14 31M36 25h32"/><path d="M106 28c0 14 4 23 12 28M130 28c0 14-4 23-12 28M105 28h26"/><path d="M52 56v16M118 56v16"/></svg>`,
-        capture: `<svg ${common}><path d="M42 22h66c6 0 10 4 10 10v65c0 5-4 8-9 8H48c-5 0-8-3-8-8V30c0-4 1-6 2-8Z"/><path d="M53 22v83M66 41h39M66 56h32M66 71h36"/><path d="M88 81l8 8 17-20"/><path d="M36 28c-8 5-10 14-7 26"/></svg>`,
+        capture: `<svg ${common}><path d="M42 22h66c6 0 10 4 10 10v65c0 5-4 8-9 8H48c-5 0-8-3-8-8V30c0-4 1-6 2-8Z"/><path d="M53 22v83M66 41h39M66 56h32M66 71h36"/><path d="M88 81l8 8 17-20"/><path d="M36 28c-8 5-10 14-7 26"/><text x="74" y="111" class="scribble-note">Idee!</text></svg>`,
         'plan-week': `<svg ${common}><rect x="30" y="26" width="101" height="74" rx="10"/><path d="M30 48h101M52 20v13M108 20v13M50 61h12M73 61h12M96 61h12M50 78h12M73 78h12M96 78h12"/><path d="M114 78l7 7 12-17"/></svg>`,
         shopping: `<svg ${common}><path d="M37 49h86l-9 46H48Z"/><path d="M57 50c3-18 12-28 24-28s21 10 24 28"/><path d="M62 62v20M80 62v20M98 62v20"/><path d="M43 52c-7 3-11 8-14 15M116 52c8 2 13 7 17 14"/></svg>`,
-        'no-idea': `<svg ${common}><path d="M80 18c-20 0-35 14-35 32 0 13 7 22 17 29 6 4 8 10 8 16h20c0-7 3-12 9-17 9-7 16-15 16-28 0-18-15-32-35-32Z"/><path d="M69 101h22M71 109h18M65 51c8-8 21-8 30 0M80 37v20"/><path d="M30 35l-12-8M128 35l12-8M27 62H12M133 62h15"/></svg>`
+        'no-idea': `<svg ${common}><path d="M80 18c-20 0-35 14-35 32 0 13 7 22 17 29 6 4 8 10 8 16h20c0-7 3-12 9-17 9-7 16-15 16-28 0-18-15-32-35-32Z"/><path d="M69 101h22M71 109h18M65 51c8-8 21-8 30 0M80 37v20"/><path d="M30 35l-12-8M128 35l12-8M27 62H12M133 62h15"/><text x="89" y="111" class="scribble-note">Idee!</text></svg>`
     };
     return `<span class="food-moment-entry-visual" aria-hidden="true">${art[code] || art['no-idea']}</span>`;
 }

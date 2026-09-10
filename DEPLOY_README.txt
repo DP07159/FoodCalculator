@@ -1,15 +1,21 @@
-Food Moment – Debug/UX Fixes R2 – Frontend Delta – 10.09.2026
+Food Moment Platform – Debug/Visual Fix R3 – Frontend Delta – 2026-09-10
 
-Diese ZIP enthält nur geänderte Frontend-Dateien. Alle Dateien im bestehenden Frontend am identischen Pfad ersetzen.
+Replace the files at the same relative paths in the frontend deployment.
+Changed files:
+- foodMoments.html
+- home.js
+- recipeInstructions.html
+- recipeInstructions.js
+- style.css
+- wallet.js
 
-Geändert:
-- foodMoment.js: „Rezept hinzufügen“ bleibt auch bei bestehenden Rezepten verfügbar.
-- foodMoments.html: Header-/Container-Geometrie an die Referenzmodule angeglichen.
-- home.js + style.css: Entry-Bubbles im organischen Gedankenblasen-/Scribble-Stil umgesetzt.
-- recipeInstructions.js: Recipe↔Food-Moment-Verknüpfung auf atomare Serverroute umgestellt; nur große Food Moments.
-- shopping.js: Empty-State robust ausgeblendet sobald Einträge existieren; Quellen dedupliziert und als UI-Link gestaltet.
-- wallet.js: Drei-Punkte-Menü neu gruppiert, mit Icons und klarer Hierarchie.
-- style.css: kaputten literal-\\n CSS-Block entfernt; Spotify-artige Workspace-/Food-Moment-Dialoge; konsistente Header und Links.
+Includes:
+- canonical module header for Food Moments
+- approved organic Entry Bubbles and Scribble visuals
+- redesigned Food Moments linking dialog without horizontal scrolling
+- redesigned recipe workspace availability dialog
+- client-side persistence confirmation for Recipe ↔ Food Moment links
+- personal-workspace save/share action for inspirations from shared workspaces
+- hardening of shopping empty-state display via shared stylesheet
 
-WICHTIG: Für Recipe↔Food-Moment-Verknüpfung muss auch das Server-Delta R2 deployed werden.
-Keine Datenbankmigration erforderlich.
+Deploy together with the matching R3 server delta.

@@ -74,40 +74,34 @@
 
 
     <div id="recipe-workspace-overlay" class="recipe-workspace-overlay is-hidden" aria-hidden="true">
-        <div class="recipe-workspace-dialog" role="dialog" aria-modal="true" aria-labelledby="recipe-workspace-title">
-            <div class="recipe-workspace-dialog-header">
-                <div>
-                    <p class="recipe-kicker">Rezept verfügbar machen</p>
-                    <h2 id="recipe-workspace-title">Zu Workspaces hinzufügen</h2>
+        <div class="recipe-workspace-dialog selection-modal" role="dialog" aria-modal="true" aria-labelledby="recipe-workspace-title">
+            <div class="selection-modal-head">
+                <div><p class="recipe-kicker">Rezept verfügbar machen</p><h2 id="recipe-workspace-title">Zu Workspaces hinzufügen</h2></div>
+                <button type="button" id="recipe-workspace-close" class="selection-modal-close" aria-label="Schließen"><svg class="fc-icon" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+            </div>
+            <div class="selection-modal-body">
+                <div class="selection-modal-main">
+                    <label class="selection-modal-search"><svg class="fc-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input type="search" id="recipe-workspace-search" placeholder="Workspace suchen"></label>
+                    <div id="recipe-workspace-list" class="selection-modal-list recipe-workspace-list"></div>
                 </div>
-                <button type="button" id="recipe-workspace-close" class="header-icon-button" aria-label="Schließen">
-                    <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
-                </button>
+                <aside id="recipe-workspace-preview" class="selection-modal-preview"><div class="selection-preview-icon">⌂</div><strong>Workspace auswählen</strong><p>Wähle links einen Workspace. Bereits aktivierte Workspaces sind mit einem grünen Haken markiert.</p></aside>
             </div>
-
-            <div class="recipe-workspace-search-wrap">
-                <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
-                <input type="search" id="recipe-workspace-search" placeholder="Workspace suchen">
-            </div>
-
-            <div id="recipe-workspace-list" class="recipe-workspace-list"></div>
-
-            <div class="recipe-workspace-dialog-footer">
-                <span id="recipe-workspace-save-state" class="recipe-workspace-save-state"></span>
-                <button type="button" id="recipe-workspace-done" class="recipe-workspace-primary-button">Fertig</button>
-            </div>
+            <div class="selection-modal-footer"><span id="recipe-workspace-save-state" class="recipe-workspace-save-state"></span><button type="button" id="recipe-workspace-done" class="recipe-workspace-primary-button">Fertig</button></div>
         </div>
     </div>
 
-
-    <dialog id="recipe-food-moments-dialog" class="recipe-context-dialog">
-        <div class="recipe-context-dialog-shell">
-            <header><div><p class="recipe-kicker">Food Moments</p><h2>Verknüpfte Momente</h2></div><button type="button" id="recipe-food-moments-close" class="header-icon-button" aria-label="Schließen"><svg class="fc-icon" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></header>
-            <p class="recipe-context-copy">Verknüpfe dieses Rezept mit bestehenden Food Moments oder erstelle direkt einen neuen.</p>
-            <div class="recipe-context-actions"><button type="button" id="recipe-food-moment-create" class="primary-action-button"><svg class="fc-icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>Neuen Food Moment erstellen</span></button></div>
-            <div class="recipe-context-search"><input id="recipe-food-moments-search" type="search" placeholder="Food Moments suchen …"></div>
-            <div id="recipe-food-moments-list" class="recipe-context-list"></div>
-            <footer><span id="recipe-food-moments-state" class="recipe-workspace-save-state"></span><button type="button" id="recipe-food-moments-done" class="primary-action-button">Fertig</button></footer>
+    <dialog id="recipe-food-moments-dialog" class="recipe-context-dialog selection-modal-dialog">
+        <div class="recipe-context-dialog-shell selection-modal">
+            <div class="selection-modal-head"><div><p class="recipe-kicker">Food Moments</p><h2>Verknüpfte Momente</h2></div><button type="button" id="recipe-food-moments-close" class="selection-modal-close" aria-label="Schließen"><svg class="fc-icon" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+            <div class="recipe-context-actions"><button type="button" id="recipe-food-moment-create" class="primary-action-button compact-primary"><svg class="fc-icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>Neuen Food Moment erstellen</span></button></div>
+            <div class="selection-modal-body">
+                <div class="selection-modal-main">
+                    <label class="selection-modal-search"><svg class="fc-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="recipe-food-moments-search" type="search" placeholder="Food Moments suchen …"></label>
+                    <div id="recipe-food-moments-list" class="selection-modal-list recipe-context-list"></div>
+                </div>
+                <aside id="recipe-food-moments-preview" class="selection-modal-preview"><div class="selection-preview-icon">◷</div><strong>Großen Food Moment auswählen</strong><p>Hier werden nur eigenständige Food Moments angezeigt – keine rezept- oder planungsbasierten kleinen Moments.</p></aside>
+            </div>
+            <div class="selection-modal-footer"><span id="recipe-food-moments-state" class="recipe-workspace-save-state"></span><button type="button" id="recipe-food-moments-done" class="primary-action-button">Verknüpfen</button></div>
         </div>
     </dialog>
     <div id="app-toast" class="app-toast is-hidden"></div>

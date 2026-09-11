@@ -1,6 +1,7 @@
 const SHOPPING_API_URL = "https://foodcalculator-server.onrender.com";
 let shoppingState = { active: [], completed: [] };
 let shoppingSetupDone = false;
+let shoppingShareOptions = [];
 const $ = id => document.getElementById(id);
 function esc(v){const d=document.createElement('div');d.textContent=v??'';return d.innerHTML;}
 function toast(message){const t=$('app-toast');if(!t)return alert(message);t.textContent=message;t.classList.remove('is-hidden');t.classList.add('is-visible');clearTimeout(toast.t);toast.t=setTimeout(()=>{t.classList.add('is-hidden');t.classList.remove('is-visible');},2200);}
@@ -14,7 +15,85 @@ function findItem(rowEl){const key=rowEl?.dataset.key,unit=rowEl?.dataset.unit||
 async function load(){try{shoppingState=await api('/shopping-list');render();}catch(e){toast(e.message);}}
 async function toggleGroup(el){const item=findItem(el);if(!item)return;try{shoppingState=await api('/shopping-list/group',{method:'PATCH',body:JSON.stringify({canonical_key:item.canonical_key,unit:item.unit,completed:!item.completed})});render();}catch(e){toast(e.message);}}
 async function deleteGroup(el){const item=findItem(el);if(!item)return;try{shoppingState=await api('/shopping-list/group',{method:'DELETE',body:JSON.stringify({canonical_key:item.canonical_key,unit:item.unit})});render();}catch(e){toast(e.message);}}
-function openSources(el){const item=findItem(el);if(!item)return;const sources=[]; const seen=new Set(); for(const src of (item.sources||[])){const key=[src.type,src.recipe_id||'',src.food_moment_public_id||'',src.label||''].join('|');if(seen.has(key))continue;seen.add(key);sources.push(src);} $('shopping-source-list').innerHTML=sources.map(s=>{const type=s.type==='manual'?'Manuell':s.type==='food_moment'?'Food Moment':'Rezept';const href=s.recipe_id?`/recipeInstructions.html?id=${Number(s.recipe_id)}`:(s.food_moment_public_id?`/foodMoment.html?id=${encodeURIComponent(s.food_moment_public_id)}`:'');return `<div class="shopping-source-entry"><span>${type}</span>${href?`<a class="shopping-source-link" href="${href}"><strong>${esc(s.label)}</strong><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a>`:`<strong>${esc(s.label)}</strong>`}</div>`;}).join('');$('shopping-source-popover').classList.remove('is-hidden');}
+function openSources(el){const item=findItem(el);if(!item)return;const sources=[]; const seen=new Set(); for(const src of (item.sources||[])){const key=[src.type,src.recipe_id||'',src.food_moment_public_id||'',src.label||''].join('|');if(seen.has(key))continue;seen.add(key);sources.push(src);} $('shopping-source-list').innerHTML=sources.map(s=>{const type=s.type==='manual'?'Manuell':s.type==='food_moment'?'Food Moment':s.type==='workspace_share'?'Geteilt':'Rezept';const href=s.recipe_id?`/recipeInstructions.html?id=${Number(s.recipe_id)}`:(s.food_moment_public_id?`/foodMoment.html?id=${encodeURIComponent(s.food_moment_public_id)}`:'');return `<div class="shopping-source-entry"><span>${type}</span>${href?`<a class="shopping-source-link" href="${href}"><strong>${esc(s.label)}</strong><svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a>`:`<strong>${esc(s.label)}</strong>`}</div>`;}).join('');$('shopping-source-popover').classList.remove('is-hidden');}
 function closeSources(){$('shopping-source-popover').classList.add('is-hidden');}
-function setup(){if(shoppingSetupDone)return;shoppingSetupDone=true;document.getElementById('burger-button')?.addEventListener('click',()=>window.PlatformNavigation?.toggleMenu?.());$('shopping-add-toggle').onclick=()=>$('shopping-add-panel').classList.toggle('is-hidden');$('shopping-add-form').onsubmit=async e=>{e.preventDefault();const body={name:$('shopping-name').value,amount:$('shopping-amount').value||null,unit:$('shopping-unit').value};try{shoppingState=await api('/shopping-list/manual',{method:'POST',body:JSON.stringify(body)});e.target.reset();$('shopping-add-panel').classList.add('is-hidden');render();toast('Zur Einkaufsliste hinzugefügt.');}catch(err){toast(err.message);}};$('shopping-clear-completed').onclick=async()=>{try{const r=await api('/shopping-list/completed',{method:'DELETE'});shoppingState=r.list;render();toast('Erledigte entfernt.');}catch(e){toast(e.message);}};$('shopping-source-close').onclick=closeSources;$('shopping-source-popover').onclick=e=>{if(e.target===$('shopping-source-popover'))closeSources();};}
+
+
+function ensureShoppingShareUi(){
+    let headerActions=document.querySelector('.shopping-header-actions');
+    if(!headerActions){
+        const header=document.querySelector('.shopping-header');
+        if(header){
+            headerActions=document.createElement('div');
+            headerActions.className='shopping-header-actions';
+            header.appendChild(headerActions);
+        }
+    }
+    if(headerActions && !document.getElementById('shopping-share-toggle')){
+        const addButton=document.getElementById('shopping-add-toggle');
+        const shareButton=document.createElement('button');
+        shareButton.id='shopping-share-toggle';
+        shareButton.type='button';
+        shareButton.className='header-icon-button shopping-share-button';
+        shareButton.title='Einkaufsliste mit Workspaces teilen';
+        shareButton.setAttribute('aria-label',shareButton.title);
+        shareButton.innerHTML='<svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.5-4.4M8.2 13.2l7.5 4.4"/></svg>';
+        if(addButton?.parentElement===headerActions) headerActions.insertBefore(shareButton,addButton); else headerActions.appendChild(shareButton);
+    }
+    if(!document.getElementById('shopping-share-dialog')){
+        const dialog=document.createElement('dialog');
+        dialog.id='shopping-share-dialog';
+        dialog.className='selection-modal-dialog shopping-share-dialog';
+        dialog.innerHTML=`<div class="selection-modal shopping-share-selection-modal"><div class="selection-modal-head"><div><p class="recipe-kicker">Einkaufsliste teilen</p><h2>Mit Workspaces teilen</h2></div><button id="shopping-share-close" class="selection-modal-close" type="button" aria-label="Schließen"><svg class="fc-icon" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div><div class="selection-modal-body"><div class="selection-modal-main"><label class="selection-modal-search"><svg class="fc-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="shopping-share-search" type="search" placeholder="Workspace suchen" aria-label="Workspace suchen"></label><div id="shopping-share-list" class="selection-modal-list"></div></div><aside class="selection-modal-preview"><div class="selection-preview-icon">🛒</div><span class="selection-preview-kicker">Aktueller Listenstand</span><strong>Gemeinsam einkaufen</strong><p>Die aktive Einkaufsliste wird in die ausgewählten Workspaces übernommen und bei Änderungen aktualisiert.</p></aside></div><div class="selection-modal-footer"><span id="shopping-share-state" class="recipe-workspace-save-state"></span><button id="shopping-share-done" class="primary-action-button" type="button">Fertig</button></div></div>`;
+        document.body.appendChild(dialog);
+    }
+}
+
+function renderShoppingShareOptions(){
+    const list=$('shopping-share-list'); if(!list)return;
+    const query=String($('shopping-share-search')?.value||'').trim().toLocaleLowerCase('de');
+    const options=shoppingShareOptions.filter(workspace=>`${workspace.name} ${workspace.workspace_type||''}`.toLocaleLowerCase('de').includes(query));
+    list.innerHTML=options.length?options.map(workspace=>`<label class="selection-option"><span class="selection-option-leading"><span class="selection-option-icon">${workspace.workspace_type==='personal'?'⌂':'♟'}</span><span class="selection-option-copy"><strong>${esc(workspace.name)}</strong><small>${workspace.workspace_type==='personal'?'Persönlicher Workspace':'Gemeinsamer Workspace'}</small></span></span><input class="shopping-share-checkbox" type="checkbox" value="${esc(workspace.public_id)}" ${workspace.is_assigned?'checked':''}><span class="selection-check" aria-hidden="true">✓</span></label>`).join(''):'<p class="selection-empty">Kein weiterer Workspace verfügbar.</p>';
+}
+async function openShoppingShare(){
+    const dialog=$('shopping-share-dialog'); if(!dialog)return;
+    try{
+        const payload=await api('/shopping-list/workspace-shares');
+        shoppingShareOptions=Array.isArray(payload?.workspaces)?payload.workspaces:[];
+        if($('shopping-share-search')) $('shopping-share-search').value='';
+        if($('shopping-share-state')) $('shopping-share-state').textContent='';
+        renderShoppingShareOptions();
+        dialog.showModal();
+    }catch(error){toast(error.message);}
+}
+function closeShoppingShare(){const dialog=$('shopping-share-dialog');if(dialog?.open)dialog.close();}
+async function saveShoppingShare(){
+    const state=$('shopping-share-state');
+    const selected=[...document.querySelectorAll('.shopping-share-checkbox:checked')].map(input=>input.value);
+    try{
+        if(state) state.textContent='Wird geteilt …';
+        const payload=await api('/shopping-list/workspace-shares',{method:'PUT',body:JSON.stringify({workspace_public_ids:selected})});
+        shoppingShareOptions=Array.isArray(payload?.workspaces)?payload.workspaces:shoppingShareOptions;
+        if(state) state.textContent='Gespeichert.';
+        toast(selected.length?`Einkaufsliste mit ${selected.length} Workspace${selected.length===1?'':'s'} geteilt.`:'Freigaben entfernt.');
+        setTimeout(closeShoppingShare,180);
+    }catch(error){if(state)state.textContent=error.message;else toast(error.message);}
+}
+function setup(){
+    if(shoppingSetupDone)return;
+    shoppingSetupDone=true;
+    ensureShoppingShareUi();
+    document.getElementById('burger-button')?.addEventListener('click',()=>window.PlatformNavigation?.toggleMenu?.());
+    $('shopping-share-toggle')?.addEventListener('click',openShoppingShare);
+    $('shopping-share-close')?.addEventListener('click',closeShoppingShare);
+    $('shopping-share-done')?.addEventListener('click',saveShoppingShare);
+    $('shopping-share-search')?.addEventListener('input',renderShoppingShareOptions);
+    $('shopping-share-dialog')?.addEventListener('click',e=>{if(e.target===$('shopping-share-dialog'))closeShoppingShare();});
+    $('shopping-add-toggle')?.addEventListener('click',()=>$('shopping-add-panel')?.classList.toggle('is-hidden'));
+    const addForm=$('shopping-add-form');
+    if(addForm)addForm.onsubmit=async e=>{e.preventDefault();const body={name:$('shopping-name')?.value||'',amount:$('shopping-amount')?.value||null,unit:$('shopping-unit')?.value||''};try{shoppingState=await api('/shopping-list/manual',{method:'POST',body:JSON.stringify(body)});e.target.reset();$('shopping-add-panel')?.classList.add('is-hidden');render();toast('Zur Einkaufsliste hinzugefügt.');}catch(err){toast(err.message);}};
+    $('shopping-clear-completed')?.addEventListener('click',async()=>{try{const r=await api('/shopping-list/completed',{method:'DELETE'});shoppingState=r.list;render();toast('Erledigte entfernt.');}catch(e){toast(e.message);}});
+    $('shopping-source-close')?.addEventListener('click',closeSources);
+    $('shopping-source-popover')?.addEventListener('click',e=>{if(e.target===$('shopping-source-popover'))closeSources();});
+}
 document.addEventListener('auth:ready',()=>{setup();load();});if(window.AuthShell?.isReady?.()){setup();load();}

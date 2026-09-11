@@ -7712,3 +7712,63 @@ body.login-page {
 .recipe-header-actions .recipe-shopping-button{display:inline-flex!important;visibility:visible!important;opacity:1!important;flex:0 0 var(--control-size)!important;width:var(--control-size)!important;min-width:var(--control-size)!important;height:var(--control-size)!important;color:var(--color-primary-text)!important;background:var(--color-primary-soft)!important;border:1px solid var(--color-primary-border)!important}
 .recipe-header-actions .recipe-shopping-button .fc-icon{display:block!important;width:20px!important;height:20px!important;fill:none!important;stroke:currentColor!important;stroke-width:2!important}
 @media(max-width:768px){.recipe-header-actions .recipe-shopping-button{width:100%!important;min-width:0!important}}
+
+/* === R9: recipe shopping control parity + shopping workspace sharing === */
+.recipe-header-actions .recipe-shopping-button{
+    display:inline-flex!important;
+    visibility:visible!important;
+    opacity:1!important;
+    flex:0 0 var(--control-size-lg)!important;
+    width:var(--control-size-lg)!important;
+    min-width:var(--control-size-lg)!important;
+    height:var(--control-size-lg)!important;
+}
+.shopping-header-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.shopping-share-button{flex:0 0 var(--control-size-lg);width:var(--control-size-lg);min-width:var(--control-size-lg);height:var(--control-size-lg)}
+.shopping-share-dialog{padding:0!important;border:0!important;background:transparent!important;overflow:visible!important}
+.shopping-share-dialog::backdrop{background:rgba(31,35,27,.42)!important;backdrop-filter:blur(3px)!important}
+.shopping-share-selection-modal{width:min(860px,calc(100vw - 48px))!important;max-width:860px!important;max-height:min(760px,calc(100vh - 48px))!important;margin:auto!important}
+@media(max-width:768px){
+  .recipe-header-actions .recipe-shopping-button{width:var(--control-size-lg)!important;min-width:var(--control-size-lg)!important;height:var(--control-size-lg)!important}
+  .shopping-header-actions{width:100%;justify-content:flex-end}
+  .shopping-share-dialog{width:100%!important;max-width:none!important;margin:auto 0 0!important}
+  .shopping-share-selection-modal{width:100%!important;max-width:none!important;max-height:90vh!important;margin:auto 0 0!important;border-radius:20px 20px 0 0!important}
+  .shopping-share-selection-modal .selection-modal-body{display:block!important;min-height:0!important;padding:0 16px 10px!important}
+  .shopping-share-selection-modal .selection-modal-preview{display:none!important}
+  .shopping-share-selection-modal .selection-modal-list{max-height:52vh!important}
+}
+
+/* === R10: deterministic action sizing + resilient shopping share entry point === */
+.recipe-header-actions .recipe-shopping-button{
+    box-sizing:border-box!important;
+    flex:0 0 52px!important;
+    width:52px!important;
+    min-width:52px!important;
+    max-width:52px!important;
+    height:52px!important;
+    min-height:52px!important;
+    padding:0!important;
+    border-radius:12px!important;
+    display:inline-grid!important;
+    place-items:center!important;
+}
+.recipe-header-actions .recipe-shopping-button .fc-icon{width:21px!important;height:21px!important;margin:0!important}
+.shopping-header-actions{display:flex!important;align-items:center!important;gap:10px!important;justify-content:flex-end!important}
+.shopping-header-actions .shopping-share-button{
+    box-sizing:border-box!important;
+    display:inline-grid!important;
+    place-items:center!important;
+    flex:0 0 52px!important;
+    width:52px!important;
+    min-width:52px!important;
+    max-width:52px!important;
+    height:52px!important;
+    min-height:52px!important;
+    padding:0!important;
+    border-radius:12px!important;
+}
+.shopping-header-actions .shopping-share-button .fc-icon{width:21px!important;height:21px!important;margin:0!important}
+@media(max-width:768px){
+  .recipe-header-actions .recipe-shopping-button{flex:0 0 48px!important;width:48px!important;min-width:48px!important;max-width:48px!important;height:48px!important;min-height:48px!important}
+  .shopping-header-actions .shopping-share-button{flex:0 0 48px!important;width:48px!important;min-width:48px!important;max-width:48px!important;height:48px!important;min-height:48px!important}
+}

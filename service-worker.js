@@ -1,4 +1,4 @@
-const CACHE_NAME = "food-moment-platform-v51-recipe-shopping-visible";
+const CACHE_NAME = "food-moment-platform-v51-shopping-share-hotfix";
 
 const FILES_TO_CACHE = [
     "/",

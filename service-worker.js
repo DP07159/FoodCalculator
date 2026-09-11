@@ -1,4 +1,4 @@
-const CACHE_NAME = "food-moment-platform-v48-entry-illustrations";
+const CACHE_NAME = "food-moment-platform-v49-favicon";
 
 const FILES_TO_CACHE = [
     "/",
@@ -39,6 +39,12 @@ const FILES_TO_CACHE = [
     "/assets/entry-illustrations/planning.png",
     "/assets/entry-illustrations/shopping.png",
     "/assets/entry-illustrations/ideas.png",
+    "/favicon.ico",
+    "/favicon-32.png",
+    "/favicon-64.png",
+    "/apple-touch-icon.png",
+    "/icon-192.png",
+    "/icon-512.png",
     "/manifest.json"
 ];
 

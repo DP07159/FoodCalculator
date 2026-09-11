@@ -7706,3 +7706,9 @@ body.login-page {
   .food-moment-entry-capture .food-moment-entry-visual{right:-2px!important;width:48%!important;height:78%!important}
   .food-moment-entry-no-idea .food-moment-entry-visual{right:-5px!important;width:50%!important;height:80%!important}
 }
+
+
+/* R8 · Recipe → shopping list action: keep the cart visibly available in every recipe header. */
+.recipe-header-actions .recipe-shopping-button{display:inline-flex!important;visibility:visible!important;opacity:1!important;flex:0 0 var(--control-size)!important;width:var(--control-size)!important;min-width:var(--control-size)!important;height:var(--control-size)!important;color:var(--color-primary-text)!important;background:var(--color-primary-soft)!important;border:1px solid var(--color-primary-border)!important}
+.recipe-header-actions .recipe-shopping-button .fc-icon{display:block!important;width:20px!important;height:20px!important;fill:none!important;stroke:currentColor!important;stroke-width:2!important}
+@media(max-width:768px){.recipe-header-actions .recipe-shopping-button{width:100%!important;min-width:0!important}}

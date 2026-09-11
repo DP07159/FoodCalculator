@@ -978,7 +978,29 @@ async function shareIngredientsList() {
     }
 }
 
+
+function ensureRecipeShoppingButton() {
+    const actions = document.querySelector(".recipe-header-actions");
+    if (!actions) return null;
+    let button = document.getElementById("recipe-shopping-button");
+    if (button) return button;
+
+    button = document.createElement("button");
+    button.type = "button";
+    button.id = "recipe-shopping-button";
+    button.className = "header-icon-button recipe-shopping-button";
+    button.title = "Zutaten zur Einkaufsliste hinzufügen";
+    button.setAttribute("aria-label", "Zutaten zur Einkaufsliste hinzufügen");
+    button.innerHTML = `<svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.2 10.2a2 2 0 0 0 2 1.6h7.9a2 2 0 0 0 1.9-1.4L21 8H7"/><circle cx="10" cy="19" r="1.4"/><circle cx="18" cy="19" r="1.4"/></svg>`;
+
+    const foodMomentsButton = document.getElementById("recipe-food-moments-button");
+    if (foodMomentsButton) actions.insertBefore(button, foodMomentsButton);
+    else actions.appendChild(button);
+    return button;
+}
+
 function setupButtons() {
+    ensureRecipeShoppingButton();
     document.getElementById("favorite-recipe-button")?.addEventListener("click", toggleCurrentRecipeFavorite);
     document.getElementById("share-ingredients-button")?.addEventListener("click", shareIngredientsList);
     document.getElementById("recipe-food-moments-button")?.addEventListener("click", openRecipeFoodMoments);

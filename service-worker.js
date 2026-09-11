@@ -1,4 +1,4 @@
-const CACHE_NAME = "food-moment-platform-v49-favicon";
+const CACHE_NAME = "food-moment-platform-v51-recipe-shopping-visible";
 
 const FILES_TO_CACHE = [
     "/",

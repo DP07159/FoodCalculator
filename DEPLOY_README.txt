@@ -1,13 +1,13 @@
-Food Moment Platform – Favicon / App Icon – 2026-09-11
+Food Moment Platform – R8 Recipe Shopping Visibility Fix – 2026-09-11
 
-Frontend-only update based on the R5 entry-illustrations build.
+Fixes the recipe → shopping-list action so the cart button is visible and functional again.
 
-Includes:
-- favicon.ico (multi-resolution)
-- favicon-16.png / favicon-32.png / favicon-64.png
-- apple-touch-icon.png (180x180)
-- PWA icons icon-192.png / icon-512.png using the approved Food Moment plate icon
-- favicon/apple-touch link tags in all HTML heads
-- service-worker cache bump to v49 and icon precaching
+Changed files:
+- recipeInstructions.html
+- recipeInstructions.js
+- style.css
+- service-worker.js
 
-No server change or database migration required.
+The button is now present in markup AND defensively injected by JavaScript if missing from an older cached HTML shell. CSS explicitly keeps it visible. Service worker cache is bumped.
+
+No server changes. No migration.

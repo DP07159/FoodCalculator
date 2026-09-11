@@ -7681,3 +7681,28 @@ body.login-page {
   .wallet-share-selection-modal .selection-modal-preview{display:none!important}
   .wallet-share-selection-modal .selection-modal-list{max-height:52vh!important}
 }
+
+/* === Entry illustrations R5: final user-approved graphics === */
+.food-moment-entry-visual{
+    right:8px!important;
+    width:51%!important;
+    height:82%!important;
+}
+.food-moment-entry-visual img{
+    width:100%!important;
+    height:100%!important;
+    object-fit:contain!important;
+    object-position:center!important;
+    filter:none!important;
+}
+.food-moment-entry-plan-week .food-moment-entry-visual{right:4px!important;width:53%!important;height:80%!important}
+.food-moment-entry-shopping .food-moment-entry-visual{right:2px!important;width:53%!important;height:84%!important}
+.food-moment-entry-no-idea .food-moment-entry-visual{right:-2px!important;width:55%!important;height:86%!important}
+.food-moment-entry-capture .food-moment-entry-visual{right:0!important;width:53%!important;height:84%!important}
+@media(max-width:720px){
+  .food-moment-entry-visual{right:0!important;width:46%!important;height:76%!important}
+  .food-moment-entry-plan-week .food-moment-entry-visual,
+  .food-moment-entry-shopping .food-moment-entry-visual,
+  .food-moment-entry-capture .food-moment-entry-visual{right:-2px!important;width:48%!important;height:78%!important}
+  .food-moment-entry-no-idea .food-moment-entry-visual{right:-5px!important;width:50%!important;height:80%!important}
+}

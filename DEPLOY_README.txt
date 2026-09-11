@@ -1,21 +1,32 @@
-Food Moment Platform – Debug/Visual Fix R3 – Frontend Delta – 2026-09-10
+Food Moment Platform – Entry Illustration Integration – 2026-09-11
 
-Replace the files at the same relative paths in the frontend deployment.
-Changed files:
-- foodMoments.html
+Basis: FoodCalculator-main(7).zip
+
+Geänderte Dateien:
 - home.js
-- recipeInstructions.html
-- recipeInstructions.js
 - style.css
-- wallet.js
+- service-worker.js
+- assets/entry-illustrations/recipes.png
+- assets/entry-illustrations/moment.png
+- assets/entry-illustrations/capture.png
+- assets/entry-illustrations/planning.png
+- assets/entry-illustrations/shopping.png
+- assets/entry-illustrations/ideas.png
 
-Includes:
-- canonical module header for Food Moments
-- approved organic Entry Bubbles and Scribble visuals
-- redesigned Food Moments linking dialog without horizontal scrolling
-- redesigned recipe workspace availability dialog
-- client-side persistence confirmation for Recipe ↔ Food Moment links
-- personal-workspace save/share action for inspirations from shared workspaces
-- hardening of shopping empty-state display via shared stylesheet
+Umsetzung:
+- die sechs finalen Einzelgrafiken wurden für die UI auf transparenten Hintergrund aufbereitet
+- alle Motive liegen auf einheitlicher 1200x1200-Canvas
+- die bisherigen Scribble-SVGs werden auf Home nicht mehr verwendet
+- die organischen UI-Bubbles bleiben eigenständiger Hintergrund
+- Desktop- und Mobile-Größen/Positionen wurden für die neuen Motive angepasst
+- Service-Worker-Cache auf v48 aktualisiert, damit alte Scribble-Assets nicht aus dem PWA-Cache erscheinen
 
-Deploy together with the matching R3 server delta.
+Zuordnung:
+recipes.png  -> Was koche ich heute?
+moment.png   -> Besuch kommt
+capture.png  -> Etwas festhalten
+planning.png -> Was steht diese Woche an?
+shopping.png -> Was muss ich einkaufen?
+ideas.png    -> Keine Idee
+
+Keine Serveränderung und keine Datenbankmigration erforderlich.

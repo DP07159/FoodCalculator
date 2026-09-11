@@ -53,17 +53,17 @@ function iconMarkup(name) {
     return window.PlatformNavigation?.iconMarkup?.(name || "home") || "";
 }
 
-function homeScribbleMarkup(code) {
+function homeEntryIllustrationMarkup(code) {
     const assetMap = {
-        today: "/assets/scribbles/cook.svg",
-        visitors: "/assets/scribbles/visit.svg",
-        capture: "/assets/scribbles/capture.svg",
-        "plan-week": "/assets/scribbles/week.svg",
-        shopping: "/assets/scribbles/shop.svg",
-        "no-idea": "/assets/scribbles/idea.svg"
+        today: "/assets/entry-illustrations/recipes.png",
+        visitors: "/assets/entry-illustrations/moment.png",
+        capture: "/assets/entry-illustrations/capture.png",
+        "plan-week": "/assets/entry-illustrations/planning.png",
+        shopping: "/assets/entry-illustrations/shopping.png",
+        "no-idea": "/assets/entry-illustrations/ideas.png"
     };
     const src = assetMap[code] || assetMap["no-idea"];
-    return `<span class="food-moment-entry-visual" aria-hidden="true"><img src="${src}" alt=""></span>`;
+    return `<span class="food-moment-entry-visual" aria-hidden="true"><img src="${src}" alt="" loading="eager" decoding="async"></span>`;
 }
 
 function homeBubbleMarkup(index) {
@@ -85,7 +85,7 @@ function renderPrimaryActions() {
 
     const actions = HOME_PRIMARY_ACTIONS.filter(actionAvailable);
     container.innerHTML = actions.map((action, index) => {
-        const inner = `${homeBubbleMarkup(index)}<span class="food-moment-entry-copy"><strong>${escapeHomeHtml(action.label)}</strong><small>${escapeHomeHtml(action.description)}</small></span><span class="food-moment-entry-icon">${iconMarkup(action.icon)}</span>${homeScribbleMarkup(action.code)}<span class="food-moment-entry-go" aria-hidden="true"><svg class="fc-icon" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></span>`;
+        const inner = `${homeBubbleMarkup(index)}<span class="food-moment-entry-copy"><strong>${escapeHomeHtml(action.label)}</strong><small>${escapeHomeHtml(action.description)}</small></span><span class="food-moment-entry-icon">${iconMarkup(action.icon)}</span>${homeEntryIllustrationMarkup(action.code)}<span class="food-moment-entry-go" aria-hidden="true"><svg class="fc-icon" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></span>`;
         if (action.action) return `<button class="food-moment-entry food-moment-entry-${escapeHomeHtml(action.code)}" type="button" data-home-action="${escapeHomeHtml(action.action)}">${inner}</button>`;
         return `<a class="food-moment-entry food-moment-entry-${escapeHomeHtml(action.code)}" href="${escapeHomeHtml(action.href)}" data-nav-capability="${escapeHomeHtml(action.capability||'')}">${inner}</a>`;
     }).join("");

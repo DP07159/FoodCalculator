@@ -536,6 +536,52 @@ function renderAccessUserDetail() {
         <section class="access-detail-section">
             <div class="access-section-heading">
                 <div>
+                    <p class="recipe-kicker">Stammdaten</p>
+                    <h3>Benutzerdaten bearbeiten</h3>
+                </div>
+            </div>
+            <div class="access-profile-controls">
+                <label>
+                    <span>Name</span>
+                    <input id="access-edit-name" type="text" maxlength="120" value="${escapeHtml(user.display_name || "")}">
+                </label>
+                <label>
+                    <span>E-Mail</span>
+                    <input id="access-edit-email" type="email" value="${escapeHtml(user.email || "")}" autocapitalize="none" spellcheck="false">
+                </label>
+                <div class="access-profile-actions">
+                    <button type="button" id="access-save-profile" class="access-primary-button">Daten speichern</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="access-detail-section">
+            <div class="access-section-heading">
+                <div>
+                    <p class="recipe-kicker">Sicherheit</p>
+                    <h3>Passwort neu setzen</h3>
+                    <p>Das bestehende Passwort ist aus Sicherheitsgründen nicht lesbar. Du kannst hier ein neues Passwort vergeben.</p>
+                </div>
+            </div>
+            <div class="access-password-controls">
+                <label>
+                    <span>Neues Passwort</span>
+                    <input id="access-new-password" type="password" minlength="12" maxlength="256" autocomplete="new-password">
+                </label>
+                <label>
+                    <span>Passwort wiederholen</span>
+                    <input id="access-new-password-confirm" type="password" minlength="12" maxlength="256" autocomplete="new-password">
+                </label>
+                <p class="access-help-text access-password-note">Mindestens 12 Zeichen. Nach dem Ändern werden alle aktiven Sessions dieses Accounts beendet.</p>
+                <div class="access-password-actions">
+                    <button type="button" id="access-save-password" class="access-secondary-button" ${self ? "disabled title='Das eigene Passwort bitte außerhalb der Admin-Nutzerverwaltung ändern.'" : ""}>Passwort setzen</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="access-detail-section">
+            <div class="access-section-heading">
+                <div>
                     <p class="recipe-kicker">Workspaces</p>
                     <h3>Mitgliedschaften & Zugriff</h3>
                     <p>Module, Rollen und Capabilities gelten jeweils innerhalb der einzelnen Workspace-Mitgliedschaft.</p>
@@ -671,6 +717,12 @@ function bindAccessDetailEvents() {
     document.getElementById("access-revoke-sessions")
         ?.addEventListener("click", revokeAccessUserSessions);
 
+    document.getElementById("access-save-profile")
+        ?.addEventListener("click", saveAccessUserProfile);
+
+    document.getElementById("access-save-password")
+        ?.addEventListener("click", saveAccessUserPassword);
+
     document.getElementById("access-add-membership-button")
         ?.addEventListener("click", addSelectedMembership);
 
@@ -727,6 +779,53 @@ async function refreshSelectedAccessUser(message = "") {
     await loadAccessUsers();
 
     if (message) showAccessToast(message);
+}
+
+async function saveAccessUserProfile() {
+    if (!selectedAccessUserId) return;
+    const displayName = document.getElementById("access-edit-name")?.value.trim() || "";
+    const email = document.getElementById("access-edit-email")?.value.trim() || "";
+    if (!displayName || !email) {
+        showAccessToast("Name und E-Mail sind erforderlich.");
+        return;
+    }
+    try {
+        await adminApi(`/users/${encodeURIComponent(selectedAccessUserId)}/profile`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ display_name: displayName, email })
+        });
+        await refreshSelectedAccessUser("Benutzerdaten wurden aktualisiert.");
+    } catch (error) {
+        console.error(error);
+        showAccessToast(error.message);
+    }
+}
+
+async function saveAccessUserPassword() {
+    if (!selectedAccessUserId) return;
+    const password = document.getElementById("access-new-password")?.value || "";
+    const confirm = document.getElementById("access-new-password-confirm")?.value || "";
+    if (password.length < 12) {
+        showAccessToast("Das neue Passwort muss mindestens 12 Zeichen lang sein.");
+        return;
+    }
+    if (password !== confirm) {
+        showAccessToast("Die Passwörter stimmen nicht überein.");
+        return;
+    }
+    if (!window.confirm("Passwort wirklich neu setzen? Alle aktiven Sessions dieses Accounts werden beendet.")) return;
+    try {
+        await adminApi(`/users/${encodeURIComponent(selectedAccessUserId)}/password`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ password })
+        });
+        await refreshSelectedAccessUser("Passwort wurde neu gesetzt; aktive Sessions wurden beendet.");
+    } catch (error) {
+        console.error(error);
+        showAccessToast(error.message);
+    }
 }
 
 async function saveAccessUserStatus() {

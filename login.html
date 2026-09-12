@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#F8F7F3">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link rel="icon" href="/favicon.ico" sizes="any">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
@@ -24,11 +26,11 @@
             <form id="login-form" class="login-form">
                 <label for="login-email">
                     <span>E-Mail</span>
-                    <input id="login-email" type="email" autocomplete="username" inputmode="email" required>
+                    <input id="login-email" type="email" name="email" autocomplete="username" inputmode="email" autocapitalize="none" spellcheck="false" enterkeyhint="next" required>
                 </label>
                 <label for="login-password">
                     <span>Passwort</span>
-                    <input id="login-password" type="password" autocomplete="current-password" minlength="12" required>
+                    <input id="login-password" type="password" name="password" autocomplete="current-password" autocapitalize="none" spellcheck="false" enterkeyhint="go" minlength="12" required>
                 </label>
                 <button id="login-submit" type="submit">Anmelden</button>
                 <p id="login-message" class="login-message is-hidden" role="alert" aria-live="polite"></p>

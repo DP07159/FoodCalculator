@@ -1,4 +1,4 @@
-const CACHE_NAME = "food-moment-platform-v51-shopping-share-hotfix";
+const CACHE_NAME = "food-moment-platform-v52-ipad-auth-admin-user-fix";
 
 const FILES_TO_CACHE = [
     "/",

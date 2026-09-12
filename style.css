@@ -3984,14 +3984,14 @@ body.modal-open .app-header {
 
 /* Platform Shell 1A: nur Identity / Session */
 .auth-pending body { visibility: hidden; }
-.login-page { min-height: 100vh; background: #f5f7fb; }
-.login-shell { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+.login-page { min-height: 100vh; min-height: 100dvh; background: #f5f7fb; }
+.login-shell { min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; padding: 24px; }
 .login-card { width: min(440px, 100%); padding: 32px; border-radius: 22px; background: #fff; border: 1px solid #e4e8ef; box-shadow: 0 18px 60px rgba(25,38,58,.10); }
 .login-brand { font-weight: 900; margin-bottom: 28px; }
 .login-intro { color: #667085; }
 .login-form { display: grid; gap: 16px; margin-top: 24px; }
 .login-form label { display: grid; gap: 7px; font-weight: 800; }
-.login-form input { min-height: 46px; }
+.login-form input { min-height: 46px; touch-action: manipulation; -webkit-user-select: text; user-select: text; }
 .login-form button { min-height: 46px; }
 .login-message { margin: 0; padding: 10px 12px; border-radius: 10px; background: #fff2f2; color: #9f1c1c; font-weight: 700; }
 .auth-shell-user { margin-left: auto; display: flex; align-items: center; gap: 10px; }
@@ -7771,4 +7771,39 @@ body.login-page {
 @media(max-width:768px){
   .recipe-header-actions .recipe-shopping-button{flex:0 0 48px!important;width:48px!important;min-width:48px!important;max-width:48px!important;height:48px!important;min-height:48px!important}
   .shopping-header-actions .shopping-share-button{flex:0 0 48px!important;width:48px!important;min-width:48px!important;max-width:48px!important;height:48px!important;min-height:48px!important}
+}
+
+
+/* Platform Admin: editable identity and password controls */
+.access-profile-controls,
+.access-password-controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    align-items: end;
+}
+.access-profile-controls label,
+.access-password-controls label {
+    display: grid;
+    gap: 6px;
+}
+.access-profile-controls label > span,
+.access-password-controls label > span {
+    color: var(--color-text-muted);
+    font-size: 12px;
+    font-weight: 800;
+}
+.access-profile-actions,
+.access-password-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.access-password-note {
+    grid-column: 1 / -1;
+    margin: 0;
+}
+@media (max-width: 720px) {
+    .access-profile-controls,
+    .access-password-controls { grid-template-columns: 1fr; }
 }

@@ -213,27 +213,52 @@ function renderMembershipAssignmentControl(memberships) {
         memberships.map(item => item.workspace?.public_id).filter(Boolean)
     );
     const available = accessWorkspaces.filter(
-        workspace => !assignedIds.has(workspace.public_id)
+        workspace => workspace.workspace_type !== "personal" && !assignedIds.has(workspace.public_id)
     );
 
-    if (!available.length) {
-        return `<p class="access-help-text">Alle verfügbaren Workspaces sind bereits zugewiesen.</p>`;
-    }
-
     return `
-        <div class="access-add-membership">
-            <select id="access-add-workspace">
-                <option value="">Workspace auswählen …</option>
-                ${available.map(workspace => `
-                    <option value="${escapeHtml(workspace.public_id)}">${escapeHtml(workspace.name)}</option>
-                `).join("")}
-            </select>
-            <select id="access-add-workspace-role">
-                ${roleOptions("standard_user")}
-            </select>
-            <button type="button" id="access-add-membership-button" class="access-primary-button">
-                Workspace zuweisen
-            </button>
+        <div class="access-workspace-management">
+            <div class="access-workspace-management-card">
+                <div>
+                    <strong>Vorhandenen Workspace zuweisen</strong>
+                    <p class="access-help-text">Wähle einen bereits bestehenden Workspace und die Rolle des Users darin.</p>
+                </div>
+                ${available.length ? `
+                    <div class="access-add-membership">
+                        <select id="access-add-workspace">
+                            <option value="">Workspace auswählen …</option>
+                            ${available.map(workspace => `
+                                <option value="${escapeHtml(workspace.public_id)}">${escapeHtml(workspace.name)} · ${escapeHtml(workspaceTypeLabel(workspace.workspace_type))}</option>
+                            `).join("")}
+                        </select>
+                        <select id="access-add-workspace-role">
+                            ${roleOptions("standard_user")}
+                        </select>
+                        <button type="button" id="access-add-membership-button" class="access-primary-button">
+                            Workspace zuweisen
+                        </button>
+                    </div>
+                ` : `<p class="access-help-text">Alle vorhandenen Workspaces sind bereits zugewiesen.</p>`}
+            </div>
+
+            <div class="access-workspace-management-card">
+                <div>
+                    <strong>Neuen Workspace erstellen</strong>
+                    <p class="access-help-text">Der neue Workspace wird diesem User als Owner zugeordnet. Er erhält dafür automatisch die Rolle Tenant Admin.</p>
+                </div>
+                <div class="access-create-workspace-inline">
+                    <input id="access-new-workspace-name" type="text" maxlength="120" placeholder="Name des neuen Workspace">
+                    <select id="access-new-workspace-type" aria-label="Workspace-Typ">
+                        <option value="family">Gemeinsamer Workspace</option>
+                        <option value="organization">Organisation</option>
+                        <option value="practice">Praxis</option>
+                        <option value="restaurant">Restaurant</option>
+                    </select>
+                    <button type="button" id="access-create-workspace-button" class="access-primary-button">
+                        Erstellen & zuweisen
+                    </button>
+                </div>
+            </div>
         </div>
     `;
 }
@@ -260,6 +285,43 @@ async function addSelectedMembership() {
     } catch (error) {
         console.error(error);
         showAccessToast(error.message);
+    }
+}
+
+async function createWorkspaceForSelectedUser() {
+    if (!selectedAccessUserId) return;
+
+    const nameInput = document.getElementById("access-new-workspace-name");
+    const typeInput = document.getElementById("access-new-workspace-type");
+    const button = document.getElementById("access-create-workspace-button");
+    const name = nameInput?.value.trim() || "";
+    const workspaceType = typeInput?.value || "family";
+
+    if (!name) {
+        showAccessToast("Bitte einen Namen für den neuen Workspace eingeben.");
+        nameInput?.focus();
+        return;
+    }
+
+    if (button) button.disabled = true;
+    try {
+        selectedAccessUser = await adminApi(`/users/${encodeURIComponent(selectedAccessUserId)}/workspaces`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                name,
+                workspace_type: workspaceType
+            })
+        });
+        await loadAccessWorkspaces();
+        await loadAccessUsers();
+        renderAccessUserDetail();
+        showAccessToast("Workspace wurde erstellt und zugewiesen.");
+    } catch (error) {
+        console.error(error);
+        showAccessToast(error.message || "Workspace konnte nicht erstellt werden.");
+    } finally {
+        if (button) button.disabled = false;
     }
 }
 
@@ -293,11 +355,13 @@ function accessStatusClass(status) {
 }
 
 function workspaceTypeLabel(type) {
-    return type === "personal"
-        ? "Persönlicher Workspace"
-        : type === "family"
-            ? "Familien-Workspace"
-            : "Workspace";
+    return {
+        personal: "Persönlicher Workspace",
+        family: "Gemeinsamer Workspace",
+        practice: "Praxis-Workspace",
+        restaurant: "Restaurant-Workspace",
+        organization: "Organisations-Workspace"
+    }[type] || "Workspace";
 }
 
 function renderAccessUserList() {
@@ -726,6 +790,9 @@ function bindAccessDetailEvents() {
     document.getElementById("access-add-membership-button")
         ?.addEventListener("click", addSelectedMembership);
 
+    document.getElementById("access-create-workspace-button")
+        ?.addEventListener("click", createWorkspaceForSelectedUser);
+
     document.querySelectorAll("[data-remove-membership]").forEach(button => {
         button.addEventListener("click", () => {
             removeMembership(Number(button.dataset.removeMembership));
@@ -795,6 +862,7 @@ async function saveAccessUserProfile() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ display_name: displayName, email })
         });
+        await loadAccessWorkspaces();
         await refreshSelectedAccessUser("Benutzerdaten wurden aktualisiert.");
     } catch (error) {
         console.error(error);

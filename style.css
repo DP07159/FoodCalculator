@@ -7807,3 +7807,39 @@ body.login-page {
     .access-profile-controls,
     .access-password-controls { grid-template-columns: 1fr; }
 }
+
+/* Platform Admin: Workspace assignment and creation */
+.access-workspace-management {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 14px;
+}
+.access-workspace-management-card {
+    min-width: 0;
+    padding: 14px;
+    border: 1px solid var(--color-border-soft);
+    border-radius: 15px;
+    background: var(--color-surface-soft);
+}
+.access-workspace-management-card > div:first-child > strong {
+    font-size: 14px;
+}
+.access-workspace-management-card .access-help-text {
+    margin-top: 4px;
+}
+.access-workspace-management-card .access-add-membership {
+    grid-template-columns: minmax(0, 1fr);
+    margin-top: 12px;
+}
+.access-create-workspace-inline {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 9px;
+    margin-top: 12px;
+}
+@media (max-width: 900px) {
+    .access-workspace-management {
+        grid-template-columns: 1fr;
+    }
+}

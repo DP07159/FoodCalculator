@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="de" class="auth-pending">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rezeptfreigaben · Food Moment</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#F8F7F3">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+</head>
+<body>
+    <header class="app-header">
+        <button id="burger-button" class="burger-button" type="button" aria-label="Menü öffnen">
+            <svg class="fc-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+        <a class="app-header-title platform-wordmark" href="/index.html">Food Moment</a>
+        <div id="burger-dropdown" class="burger-dropdown is-hidden"></div>
+    </header>
+
+    <div class="container">
+        <main class="page-content recipe-release-admin-page">
+            <header class="page-header admin-header">
+                <p class="recipe-kicker">Administration</p>
+                <div class="access-admin-title-row">
+                    <div>
+                        <h1>Rezeptfreigaben</h1>
+                        <p class="admin-intro">Rezepte exklusiv als Plattform-Admin für einzelne Workspaces oder global bereitstellen.</p>
+                    </div>
+                    <a href="/admin.html" class="access-admin-back-link">System Center</a>
+                </div>
+            </header>
+
+            <div id="recipe-release-denied" class="section-card access-admin-denied is-hidden">
+                <p class="recipe-kicker">Zugriff</p>
+                <h2>Platform-Admin erforderlich</h2>
+                <p>Diese Funktion ist ausschließlich für Platform-Administratoren verfügbar.</p>
+            </div>
+
+            <section id="recipe-release-shell" class="recipe-release-shell">
+                <aside class="section-card recipe-release-list-panel">
+                    <div class="access-panel-head">
+                        <div>
+                            <p class="recipe-kicker">Content</p>
+                            <h2>Rezepte</h2>
+                        </div>
+                        <span id="recipe-release-count" class="access-count-badge">0</span>
+                    </div>
+                    <input id="recipe-release-search" type="search" placeholder="Rezept suchen …" autocomplete="off">
+                    <div id="recipe-release-message" class="inventory-overlay-message is-hidden" aria-live="polite"></div>
+                    <div id="recipe-release-list" class="recipe-release-list">
+                        <p class="admin-empty-state">Rezepte werden geladen …</p>
+                    </div>
+                </aside>
+
+                <section class="section-card recipe-release-detail-panel">
+                    <div id="recipe-release-empty" class="access-user-detail-empty">
+                        <div class="access-user-detail-empty-icon">🍽️</div>
+                        <h2>Rezept auswählen</h2>
+                        <p>Wähle links ein Rezept und lege fest, wo es verfügbar sein soll.</p>
+                    </div>
+                    <div id="recipe-release-detail" class="is-hidden"></div>
+                </section>
+            </section>
+        </main>
+    </div>
+
+    <div id="app-toast" class="app-toast is-hidden"></div>
+    <script src="auth-shell.js"></script>
+    <script>AuthShell.guard();</script>
+    <script src="navigation.js"></script>
+    <script src="adminRecipes.js"></script>
+</body>
+</html>

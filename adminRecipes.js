@@ -2,7 +2,9 @@ const RECIPE_RELEASE_API = "https://foodcalculator-server.onrender.com/platform-
 
 let recipeReleaseRecipes = [];
 let recipeReleaseWorkspaces = [];
-let selectedRecipeReleaseId = null;
+let recipeReleaseFilter = "all";
+let recipeReleaseModalRecipeId = null;
+let recipeReleaseModalSelection = new Set();
 
 function releaseEscape(value) {
     return String(value ?? "")
@@ -37,12 +39,6 @@ function showReleaseToast(message) {
     }, 2400);
 }
 
-function releaseModeLabel(mode) {
-    if (mode === "global") return "Global";
-    if (mode === "selected") return "Ausgewählt";
-    return "Nicht freigegeben";
-}
-
 function releaseWorkspaceType(type) {
     return ({
         personal: "Persönlich",
@@ -53,21 +49,26 @@ function releaseWorkspaceType(type) {
     })[type] || type || "Workspace";
 }
 
-function renderRecipeReleaseList() {
-    const target = document.getElementById("recipe-release-list");
-    const search = (document.getElementById("recipe-release-search")?.value || "").trim().toLowerCase();
-    if (!target) return;
+function releaseModeLabel(mode) {
+    if (mode === "global") return "Alle";
+    if (mode === "selected") return "Ausgewählte";
+    return "Keine";
+}
 
-    const filtered = recipeReleaseRecipes.filter(recipe => {
-        const haystack = [
-            recipe.name,
-            recipe.owner?.display_name,
-            recipe.owner?.email,
-            recipe.origin_workspace?.name
-        ].join(" ").toLowerCase();
+function filteredReleaseRecipes() {
+    const search = (document.getElementById("recipe-release-search")?.value || "").trim().toLowerCase();
+    return recipeReleaseRecipes.filter(recipe => {
+        const mode = recipe.release?.mode || "none";
+        if (recipeReleaseFilter !== "all" && mode !== recipeReleaseFilter) return false;
+        const haystack = [recipe.name, recipe.owner?.display_name, recipe.owner?.email, recipe.origin_workspace?.name].join(" ").toLowerCase();
         return !search || haystack.includes(search);
     });
+}
 
+function renderRecipeReleaseList() {
+    const target = document.getElementById("recipe-release-list");
+    if (!target) return;
+    const filtered = filteredReleaseRecipes();
     document.getElementById("recipe-release-count").textContent = String(filtered.length);
 
     if (!filtered.length) {
@@ -75,119 +76,49 @@ function renderRecipeReleaseList() {
         return;
     }
 
-    target.innerHTML = filtered.map(recipe => `
-        <button type="button" class="recipe-release-list-item ${Number(recipe.id) === Number(selectedRecipeReleaseId) ? "is-active" : ""}" data-recipe-release-id="${recipe.id}">
-            <span class="recipe-release-list-copy">
-                <strong>${releaseEscape(recipe.name)}</strong>
-                <small>${releaseEscape(recipe.origin_workspace?.name || "Ohne Workspace")}</small>
-            </span>
-            <span class="recipe-release-status recipe-release-status-${releaseEscape(recipe.release?.mode || "none")}">${releaseEscape(releaseModeLabel(recipe.release?.mode))}</span>
-        </button>
-    `).join("");
-
-    target.querySelectorAll("[data-recipe-release-id]").forEach(button => {
-        button.addEventListener("click", () => selectRecipeRelease(Number(button.dataset.recipeReleaseId)));
-    });
-}
-
-function renderRecipeReleaseDetail() {
-    const detail = document.getElementById("recipe-release-detail");
-    const empty = document.getElementById("recipe-release-empty");
-    const recipe = recipeReleaseRecipes.find(item => Number(item.id) === Number(selectedRecipeReleaseId));
-    if (!detail || !empty) return;
-
-    if (!recipe) {
-        detail.classList.add("is-hidden");
-        empty.classList.remove("is-hidden");
-        return;
-    }
-
-    empty.classList.add("is-hidden");
-    detail.classList.remove("is-hidden");
-
-    const mode = recipe.release?.mode || "none";
-    const selected = new Set(recipe.release?.workspace_public_ids || []);
-    const originId = recipe.origin_workspace?.public_id || "";
-
-    detail.innerHTML = `
-        <div class="recipe-release-detail-head">
-            <div>
-                <p class="recipe-kicker">Rezept</p>
-                <h2>${releaseEscape(recipe.name)}</h2>
-                <p class="access-help-text">Ursprung: <strong>${releaseEscape(recipe.origin_workspace?.name || "Ohne Workspace")}</strong>${recipe.owner?.display_name ? ` · ${releaseEscape(recipe.owner.display_name)}` : ""}</p>
-            </div>
-            <span class="recipe-release-status recipe-release-status-${releaseEscape(mode)}">${releaseEscape(releaseModeLabel(mode))}</span>
-        </div>
-
-        <div class="recipe-release-options" role="radiogroup" aria-label="Freigabeart">
-            <label class="recipe-release-option ${mode === "none" ? "is-selected" : ""}">
-                <input type="radio" name="recipe-release-mode" value="none" ${mode === "none" ? "checked" : ""}>
-                <span><strong>Nicht zusätzlich freigeben</strong><small>Das Rezept bleibt nur dort verfügbar, wo es bereits regulär zugeordnet ist.</small></span>
-            </label>
-            <label class="recipe-release-option ${mode === "selected" ? "is-selected" : ""}">
-                <input type="radio" name="recipe-release-mode" value="selected" ${mode === "selected" ? "checked" : ""}>
-                <span><strong>Ausgewählte Workspaces</strong><small>Das Rezept gezielt für einzelne Workspaces freigeben.</small></span>
-            </label>
-            <label class="recipe-release-option ${mode === "global" ? "is-selected" : ""}">
-                <input type="radio" name="recipe-release-mode" value="global" ${mode === "global" ? "checked" : ""}>
-                <span><strong>Global · alle Workspaces</strong><small>Gilt auch automatisch für künftig neu angelegte Workspaces.</small></span>
-            </label>
-        </div>
-
-        <div id="recipe-release-workspaces" class="recipe-release-workspaces ${mode === "selected" ? "" : "is-hidden"}">
-            <div class="access-section-heading">
-                <div>
-                    <h3>Workspaces auswählen</h3>
-                    <p>Der Ursprungs-Workspace bleibt unabhängig von dieser Plattformfreigabe erhalten.</p>
+    target.innerHTML = filtered.map(recipe => {
+        const mode = recipe.release?.mode || "none";
+        const selectedCount = (recipe.release?.workspace_public_ids || []).length;
+        const origin = recipe.origin_workspace?.name || "Ohne Workspace";
+        return `
+            <article class="recipe-release-row" data-recipe-id="${recipe.id}">
+                <div class="recipe-release-row-copy">
+                    <strong>${releaseEscape(recipe.name)}</strong>
+                    <small>${releaseEscape(origin)}${recipe.owner?.display_name ? ` · ${releaseEscape(recipe.owner.display_name)}` : ""}</small>
                 </div>
-            </div>
-            <div class="recipe-release-workspace-grid">
-                ${recipeReleaseWorkspaces.map(workspace => {
-                    const isOrigin = workspace.public_id === originId;
-                    return `
-                        <label class="recipe-release-workspace ${isOrigin ? "is-origin" : ""}">
-                            <input type="checkbox" value="${releaseEscape(workspace.public_id)}" ${selected.has(workspace.public_id) ? "checked" : ""} ${isOrigin ? "disabled" : ""}>
-                            <span><strong>${releaseEscape(workspace.name)}</strong><small>${releaseEscape(releaseWorkspaceType(workspace.workspace_type))}${isOrigin ? " · Ursprung" : ""}</small></span>
-                        </label>
-                    `;
-                }).join("")}
-            </div>
-        </div>
-
-        <div class="recipe-release-actions">
-            <button type="button" id="recipe-release-save" class="access-primary-button">Freigabe speichern</button>
-        </div>
-    `;
-
-    detail.querySelectorAll('input[name="recipe-release-mode"]').forEach(input => {
-        input.addEventListener("change", () => {
-            detail.querySelectorAll(".recipe-release-option").forEach(option => option.classList.remove("is-selected"));
-            input.closest(".recipe-release-option")?.classList.add("is-selected");
-            document.getElementById("recipe-release-workspaces")?.classList.toggle("is-hidden", input.value !== "selected");
-        });
-    });
-
-    document.getElementById("recipe-release-save")?.addEventListener("click", saveRecipeRelease);
+                <div class="recipe-release-row-controls" role="radiogroup" aria-label="Freigabe für ${releaseEscape(recipe.name)}">
+                    <label class="recipe-release-pill ${mode === "none" ? "is-active" : ""}">
+                        <input type="radio" name="release-${recipe.id}" value="none" ${mode === "none" ? "checked" : ""}>
+                        <span>Keine</span>
+                    </label>
+                    <label class="recipe-release-pill ${mode === "selected" ? "is-active" : ""}">
+                        <input type="radio" name="release-${recipe.id}" value="selected" ${mode === "selected" ? "checked" : ""}>
+                        <span>Ausgewählte</span>
+                    </label>
+                    <label class="recipe-release-pill ${mode === "global" ? "is-active" : ""}">
+                        <input type="radio" name="release-${recipe.id}" value="global" ${mode === "global" ? "checked" : ""}>
+                        <span>Alle</span>
+                    </label>
+                    <button type="button" class="recipe-release-workspace-trigger ${mode === "selected" ? "" : "is-hidden"}" data-open-workspaces="${recipe.id}">
+                        ${selectedCount} Workspace${selectedCount === 1 ? "" : "s"} ›
+                    </button>
+                    <span class="recipe-release-saving is-hidden" aria-live="polite">Speichert …</span>
+                </div>
+            </article>`;
+    }).join("");
 }
 
-function selectRecipeRelease(recipeId) {
-    selectedRecipeReleaseId = recipeId;
-    renderRecipeReleaseList();
-    renderRecipeReleaseDetail();
+function setRowSaving(recipeId, saving) {
+    const row = document.querySelector(`.recipe-release-row[data-recipe-id="${recipeId}"]`);
+    row?.classList.toggle("is-saving", Boolean(saving));
+    row?.querySelector(".recipe-release-saving")?.classList.toggle("is-hidden", !saving);
+    row?.querySelectorAll("input, button").forEach(control => { control.disabled = Boolean(saving); });
 }
 
-async function saveRecipeRelease() {
-    const recipe = recipeReleaseRecipes.find(item => Number(item.id) === Number(selectedRecipeReleaseId));
-    if (!recipe) return;
-
-    const mode = document.querySelector('input[name="recipe-release-mode"]:checked')?.value || "none";
-    const workspacePublicIds = mode === "selected"
-        ? Array.from(document.querySelectorAll("#recipe-release-workspaces input[type='checkbox']:checked:not(:disabled)")).map(input => input.value)
-        : [];
-
-    const button = document.getElementById("recipe-release-save");
-    if (button) button.disabled = true;
-
+async function saveRelease(recipeId, mode, workspacePublicIds = []) {
+    const recipe = recipeReleaseRecipes.find(item => Number(item.id) === Number(recipeId));
+    if (!recipe) return false;
+    setRowSaving(recipeId, true);
     try {
         const result = await releaseApi(`/recipe-releases/${recipe.id}`, {
             method: "PUT",
@@ -199,14 +130,74 @@ async function saveRecipeRelease() {
             workspace_public_ids: result.workspace_public_ids || workspacePublicIds
         };
         renderRecipeReleaseList();
-        renderRecipeReleaseDetail();
         showReleaseToast("Rezeptfreigabe gespeichert.");
+        return true;
     } catch (error) {
         console.error(error);
+        renderRecipeReleaseList();
         showReleaseToast(error.message || "Freigabe konnte nicht gespeichert werden.");
+        return false;
     } finally {
-        if (button) button.disabled = false;
+        setRowSaving(recipeId, false);
     }
+}
+
+function openWorkspaceModal(recipeId) {
+    const recipe = recipeReleaseRecipes.find(item => Number(item.id) === Number(recipeId));
+    if (!recipe) return;
+    recipeReleaseModalRecipeId = Number(recipeId);
+    recipeReleaseModalSelection = new Set(recipe.release?.workspace_public_ids || []);
+    const modal = document.getElementById("recipe-release-modal");
+    document.getElementById("recipe-release-modal-title").textContent = recipe.name;
+    document.getElementById("recipe-release-modal-subtitle").textContent = "Workspaces auswählen, in denen dieses Rezept zusätzlich verfügbar sein soll.";
+    const search = document.getElementById("recipe-release-workspace-search");
+    if (search) search.value = "";
+    renderWorkspaceModalList();
+    modal?.classList.remove("is-hidden");
+    document.body.classList.add("modal-open");
+    setTimeout(() => search?.focus(), 0);
+}
+
+function closeWorkspaceModal() {
+    document.getElementById("recipe-release-modal")?.classList.add("is-hidden");
+    document.body.classList.remove("modal-open");
+    recipeReleaseModalRecipeId = null;
+    recipeReleaseModalSelection = new Set();
+}
+
+function renderWorkspaceModalList() {
+    const recipe = recipeReleaseRecipes.find(item => Number(item.id) === Number(recipeReleaseModalRecipeId));
+    const target = document.getElementById("recipe-release-workspace-list");
+    if (!recipe || !target) return;
+    const search = (document.getElementById("recipe-release-workspace-search")?.value || "").trim().toLowerCase();
+    const originId = recipe.origin_workspace?.public_id || "";
+    const workspaces = recipeReleaseWorkspaces.filter(ws => !search || `${ws.name} ${releaseWorkspaceType(ws.workspace_type)}`.toLowerCase().includes(search));
+
+    target.innerHTML = workspaces.length ? workspaces.map(workspace => {
+        const isOrigin = workspace.public_id === originId;
+        return `
+            <label class="recipe-release-workspace-option ${isOrigin ? "is-origin" : ""}">
+                <input type="checkbox" value="${releaseEscape(workspace.public_id)}" ${recipeReleaseModalSelection.has(workspace.public_id) ? "checked" : ""} ${isOrigin ? "disabled" : ""}>
+                <span><strong>${releaseEscape(workspace.name)}</strong><small>${releaseEscape(releaseWorkspaceType(workspace.workspace_type))}${isOrigin ? " · Ursprung" : ""}</small></span>
+            </label>`;
+    }).join("") : `<p class="admin-empty-state">Keine Workspaces gefunden.</p>`;
+
+    document.getElementById("recipe-release-workspace-count").textContent = `${recipeReleaseModalSelection.size} ausgewählt`;
+}
+
+async function saveWorkspaceModal() {
+    if (!recipeReleaseModalRecipeId) return;
+    const recipeId = recipeReleaseModalRecipeId;
+    const ids = Array.from(recipeReleaseModalSelection);
+    if (!ids.length) {
+        showReleaseToast("Bitte mindestens einen Workspace auswählen.");
+        return;
+    }
+    const button = document.getElementById("recipe-release-workspace-save");
+    if (button) button.disabled = true;
+    const ok = await saveRelease(recipeId, "selected", ids);
+    if (button) button.disabled = false;
+    if (ok) closeWorkspaceModal();
 }
 
 async function loadRecipeReleases() {
@@ -215,11 +206,7 @@ async function loadRecipeReleases() {
         const payload = await releaseApi("/recipe-releases");
         recipeReleaseRecipes = Array.isArray(payload?.recipes) ? payload.recipes : [];
         recipeReleaseWorkspaces = Array.isArray(payload?.workspaces) ? payload.workspaces : [];
-        if (recipeReleaseRecipes.length && !selectedRecipeReleaseId) {
-            selectedRecipeReleaseId = recipeReleaseRecipes[0].id;
-        }
         renderRecipeReleaseList();
-        renderRecipeReleaseDetail();
     } catch (error) {
         console.error(error);
         if (error.status === 403) {
@@ -236,5 +223,40 @@ async function loadRecipeReleases() {
 
 document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("recipe-release-search")?.addEventListener("input", renderRecipeReleaseList);
+    document.getElementById("recipe-release-filters")?.addEventListener("click", event => {
+        const button = event.target.closest("[data-release-filter]");
+        if (!button) return;
+        recipeReleaseFilter = button.dataset.releaseFilter || "all";
+        document.querySelectorAll("[data-release-filter]").forEach(item => item.classList.toggle("is-active", item === button));
+        renderRecipeReleaseList();
+    });
+    document.getElementById("recipe-release-list")?.addEventListener("change", async event => {
+        const input = event.target.closest('input[type="radio"]');
+        if (!input) return;
+        const row = input.closest("[data-recipe-id]");
+        const recipeId = Number(row?.dataset.recipeId);
+        if (!recipeId) return;
+        if (input.value === "selected") {
+            renderRecipeReleaseList();
+            openWorkspaceModal(recipeId);
+            return;
+        }
+        await saveRelease(recipeId, input.value, []);
+    });
+    document.getElementById("recipe-release-list")?.addEventListener("click", event => {
+        const button = event.target.closest("[data-open-workspaces]");
+        if (button) openWorkspaceModal(Number(button.dataset.openWorkspaces));
+    });
+    document.getElementById("recipe-release-workspace-search")?.addEventListener("input", renderWorkspaceModalList);
+    document.getElementById("recipe-release-workspace-list")?.addEventListener("change", event => {
+        const input = event.target.closest('input[type="checkbox"]');
+        if (!input || input.disabled) return;
+        if (input.checked) recipeReleaseModalSelection.add(input.value);
+        else recipeReleaseModalSelection.delete(input.value);
+        document.getElementById("recipe-release-workspace-count").textContent = `${recipeReleaseModalSelection.size} ausgewählt`;
+    });
+    document.querySelectorAll("[data-release-modal-close]").forEach(button => button.addEventListener("click", closeWorkspaceModal));
+    document.getElementById("recipe-release-workspace-save")?.addEventListener("click", saveWorkspaceModal);
+    document.addEventListener("keydown", event => { if (event.key === "Escape") closeWorkspaceModal(); });
     loadRecipeReleases();
 });

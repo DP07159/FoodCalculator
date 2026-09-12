@@ -27,7 +27,7 @@
                 <div class="access-admin-title-row">
                     <div>
                         <h1>Rezeptfreigaben</h1>
-                        <p class="admin-intro">Rezepte exklusiv als Plattform-Admin für einzelne Workspaces oder global bereitstellen.</p>
+                        <p class="admin-intro">Rezepte direkt einzelnen Workspaces oder global bereitstellen.</p>
                     </div>
                     <a href="/admin.html" class="access-admin-back-link">System Center</a>
                 </div>
@@ -39,32 +39,54 @@
                 <p>Diese Funktion ist ausschließlich für Platform-Administratoren verfügbar.</p>
             </div>
 
-            <section id="recipe-release-shell" class="recipe-release-shell">
-                <aside class="section-card recipe-release-list-panel">
-                    <div class="access-panel-head">
-                        <div>
-                            <p class="recipe-kicker">Content</p>
-                            <h2>Rezepte</h2>
+            <section id="recipe-release-shell" class="section-card recipe-release-manager">
+                <div class="recipe-release-toolbar">
+                    <div class="recipe-release-toolbar-main">
+                        <div class="recipe-release-search-wrap">
+                            <input id="recipe-release-search" type="search" placeholder="Rezept suchen …" autocomplete="off">
+                            <span id="recipe-release-count" class="access-count-badge">0</span>
                         </div>
-                        <span id="recipe-release-count" class="access-count-badge">0</span>
+                        <div id="recipe-release-filters" class="recipe-release-filters" aria-label="Freigaben filtern">
+                            <button type="button" class="is-active" data-release-filter="all">Alle</button>
+                            <button type="button" data-release-filter="none">Nicht freigegeben</button>
+                            <button type="button" data-release-filter="selected">Ausgewählte</button>
+                            <button type="button" data-release-filter="global">Global</button>
+                        </div>
                     </div>
-                    <input id="recipe-release-search" type="search" placeholder="Rezept suchen …" autocomplete="off">
                     <div id="recipe-release-message" class="inventory-overlay-message is-hidden" aria-live="polite"></div>
-                    <div id="recipe-release-list" class="recipe-release-list">
-                        <p class="admin-empty-state">Rezepte werden geladen …</p>
-                    </div>
-                </aside>
+                </div>
 
-                <section class="section-card recipe-release-detail-panel">
-                    <div id="recipe-release-empty" class="access-user-detail-empty">
-                        <div class="access-user-detail-empty-icon">🍽️</div>
-                        <h2>Rezept auswählen</h2>
-                        <p>Wähle links ein Rezept und lege fest, wo es verfügbar sein soll.</p>
-                    </div>
-                    <div id="recipe-release-detail" class="is-hidden"></div>
-                </section>
+                <div class="recipe-release-table-head" aria-hidden="true">
+                    <span>Rezept</span><span>Freigabe</span>
+                </div>
+                <div id="recipe-release-list" class="recipe-release-compact-list">
+                    <p class="admin-empty-state">Rezepte werden geladen …</p>
+                </div>
             </section>
         </main>
+    </div>
+
+    <div id="recipe-release-modal" class="recipe-release-modal is-hidden" role="dialog" aria-modal="true" aria-labelledby="recipe-release-modal-title">
+        <button type="button" class="recipe-release-modal-backdrop" data-release-modal-close aria-label="Dialog schließen"></button>
+        <div class="recipe-release-modal-card">
+            <div class="recipe-release-modal-head">
+                <div>
+                    <p class="recipe-kicker">Workspaces</p>
+                    <h2 id="recipe-release-modal-title">Freigabe auswählen</h2>
+                    <p id="recipe-release-modal-subtitle" class="access-help-text"></p>
+                </div>
+                <button type="button" class="recipe-release-modal-close" data-release-modal-close aria-label="Schließen">×</button>
+            </div>
+            <input id="recipe-release-workspace-search" type="search" placeholder="Workspace suchen …" autocomplete="off">
+            <div id="recipe-release-workspace-list" class="recipe-release-workspace-list"></div>
+            <div class="recipe-release-modal-actions">
+                <span id="recipe-release-workspace-count" class="access-help-text"></span>
+                <div>
+                    <button type="button" class="access-secondary-button" data-release-modal-close>Abbrechen</button>
+                    <button type="button" id="recipe-release-workspace-save" class="access-primary-button">Auswahl speichern</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div id="app-toast" class="app-toast is-hidden"></div>
